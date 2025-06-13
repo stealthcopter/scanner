@@ -1,0 +1,24 @@
+{
+  "name": "scanner",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Monorepo for the Caido Scanner project",
+  "author": "Caido",
+  "main": "index.js",
+  "packageManager": "pnpm@10.12.1",
+  "scripts": {
+    "lint": "eslint --fix packages/*/src",
+    "build": "pnpm -r build"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^24.0.1",
+    "@vitest/ui": "^3.2.3",
+    "rollup-plugin-dts": "^6.2.1",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.3",
+    "@caido/eslint-config": "^0.4.0",
+    "eslint": "^9.29.0",
+    "typescript": "^5.8.3"
+  }
+}
