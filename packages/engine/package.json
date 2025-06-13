@@ -1,13 +1,13 @@
 {
-  "name": "@caido-community/scanner-engine",
+  "name": "engine",
   "version": "0.0.1",
+  "type": "module",
   "description": "Engine powering the Caido Scanner",
   "author": "Caido",
-  "main": "dist/index.mjs",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "types": "src/index.ts",
   "scripts": {
-    "prepublish": "pnpm build",
     "build": "vite build && tsc --emitDeclarationOnly"
   },
   "devDependencies": {

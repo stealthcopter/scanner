@@ -39,7 +39,7 @@ export type StepResult<T> =
 
 export type StepAction<T> = (
   state: T,
-  context: CheckContext,
+  context: CheckContext
 ) => Promise<StepResult<T>> | StepResult<T>;
 
 export type Step<T> = {

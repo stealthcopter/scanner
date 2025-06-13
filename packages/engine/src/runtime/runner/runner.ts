@@ -28,7 +28,8 @@ export class ScanRunner {
 
     const baseCtx: CheckContext = {
       ...ctx,
-      dependencies: <T = unknown>(id: string) => this.dependencyStore.get<T>(id),
+      dependencies: <T = unknown>(id: string) =>
+        this.dependencyStore.get<T>(id),
     };
 
     for (const batch of batches) {
