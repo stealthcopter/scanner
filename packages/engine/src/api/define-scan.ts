@@ -2,6 +2,7 @@ import {
   type Agressivity,
   type CheckContext,
   type DefineUtils,
+  type RequestContext,
   type RunState,
   type ScanDefinition,
   type ScanTask,
@@ -23,9 +24,10 @@ export const defineScan = <T>(
     type: ScanType;
     dependsOn?: string[];
 
+    dedupeKey?: (context: RequestContext) => string;
     initState: () => T;
     when: (ctx: CheckContext) => boolean;
-  },
+  }
 ): ScanDefinition => {
   const steps: Map<StepName, Step<T>> = new Map();
 
@@ -40,6 +42,7 @@ export const defineScan = <T>(
     aggressivity,
     type,
     dependsOn,
+    dedupeKey,
 
     initState,
     when,
@@ -94,5 +97,5 @@ export const defineScan = <T>(
     };
   };
 
-  return { id, name, description, aggressivity, type, dependsOn, create };
+  return { id, name, description, aggressivity, type, dependsOn, dedupeKey, create };
 };

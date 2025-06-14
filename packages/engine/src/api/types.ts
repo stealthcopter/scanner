@@ -9,9 +9,12 @@ export enum Severity {
   CRITICAL = "critical",
 }
 
-export type CheckContext = {
+export type RequestContext = {
   request: Request;
   response?: Response;
+};
+
+export type CheckContext = RequestContext & {
   sdk: SDK;
   dependencies: <T = unknown>(id: string) => T;
 };
@@ -75,6 +78,7 @@ export type ScanDefinition = {
   type: ScanType;
   create: (ctx: CheckContext) => ScanTask;
   dependsOn?: string[];
+  dedupeKey?: (context: RequestContext) => string;
 };
 
 export type DefineUtils<T> = {
