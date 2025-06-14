@@ -74,6 +74,7 @@ export type ScanDefinition = {
   id: string;
   name: string;
   description: string;
+  tags: string[];
   aggressivity: Agressivity;
   type: ScanType;
   create: (ctx: CheckContext) => ScanTask;

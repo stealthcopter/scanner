@@ -20,6 +20,7 @@ export const defineScan = <T>(
     id: string;
     name: string;
     description: string;
+    tags: string[];
     aggressivity: Agressivity;
     type: ScanType;
     dependsOn?: string[];
@@ -39,6 +40,7 @@ export const defineScan = <T>(
     id,
     name,
     description,
+    tags,
     aggressivity,
     type,
     dependsOn,
@@ -97,5 +99,5 @@ export const defineScan = <T>(
     };
   };
 
-  return { id, name, description, aggressivity, type, dependsOn, dedupeKey, create };
+  return { id, name, description, tags, aggressivity, type, dependsOn, dedupeKey, create };
 };

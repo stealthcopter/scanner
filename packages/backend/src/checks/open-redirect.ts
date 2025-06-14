@@ -64,6 +64,7 @@ export const openRedirectScan = defineScan<{
     name: "Open Redirect",
     description: "Check for open redirects",
     type: "active",
+    tags: ["open-redirect"],
     aggressivity: {
       minRequests: 0,
       maxRequests: "Infinity",
