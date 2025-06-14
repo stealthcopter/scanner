@@ -1,4 +1,5 @@
 import {
+  ScanMetadata,
   type Agressivity,
   type CheckContext,
   type DefineUtils,
@@ -17,14 +18,7 @@ import {
  */
 export const defineScan = <T>(
   definition: (utils: DefineUtils<T>) => {
-    id: string;
-    name: string;
-    description: string;
-    tags: string[];
-    aggressivity: Agressivity;
-    type: ScanType;
-    dependsOn?: string[];
-
+    metadata: ScanMetadata;
     dedupeKey?: (context: RequestContext) => string;
     initState: () => T;
     when: (ctx: CheckContext) => boolean;
@@ -37,15 +31,8 @@ export const defineScan = <T>(
   };
 
   const {
-    id,
-    name,
-    description,
-    tags,
-    aggressivity,
-    type,
-    dependsOn,
+    metadata,
     dedupeKey,
-
     initState,
     when,
   } = definition({ step });
@@ -90,7 +77,7 @@ export const defineScan = <T>(
     };
 
     return {
-      id,
+      id: metadata.id,
       tick,
       serialize,
       getFindings: () => [...runState.findings],
@@ -98,5 +85,5 @@ export const defineScan = <T>(
     };
   };
 
-  return { id, name, description, tags, aggressivity, type, dependsOn, dedupeKey, when, create };
+  return { metadata, dedupeKey, when, create };
 };

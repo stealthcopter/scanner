@@ -60,14 +60,16 @@ export const openRedirectScan = defineScan<{
   });
 
   return {
-    id: "open-redirect",
-    name: "Open Redirect",
-    description: "Check for open redirects",
-    type: "active",
-    tags: ["open-redirect"],
-    aggressivity: {
-      minRequests: 0,
-      maxRequests: "Infinity",
+    metadata: {
+      id: "open-redirect",
+      name: "Open Redirect",
+      description: "Check for open redirects",
+      type: "active",
+      tags: ["open-redirect"],
+      aggressivity: {
+        minRequests: 0,
+        maxRequests: "Infinity",
+      },
     },
 
     initState: () => ({ urlParams: [] }),

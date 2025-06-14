@@ -64,12 +64,12 @@ export type ScanTask = {
   getState: () => unknown;
 };
 
-export type ScanType = "passive" | "active";
 export type Agressivity = {
   minRequests: number;
   maxRequests: number | "Infinity";
 };
-export type ScanDefinition = {
+
+export type ScanMetadata = {
   id: string;
   name: string;
   description: string;
@@ -77,6 +77,11 @@ export type ScanDefinition = {
   aggressivity: Agressivity;
   type: ScanType;
   dependsOn?: string[];
+};
+
+export type ScanType = "passive" | "active";
+export type ScanDefinition = {
+  metadata: ScanMetadata;
   dedupeKey?: (context: RequestContext) => string;
   when: (context: CheckContext) => boolean;
   create: (ctx: CheckContext) => ScanTask;
