@@ -93,11 +93,10 @@ export const defineScan = <T>(
       id,
       tick,
       serialize,
-      when,
       getFindings: () => [...runState.findings],
       getState: () => runState.state,
     };
   };
 
-  return { id, name, description, tags, aggressivity, type, dependsOn, dedupeKey, create };
+  return { id, name, description, tags, aggressivity, type, dependsOn, dedupeKey, when, create };
 };

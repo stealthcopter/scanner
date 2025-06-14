@@ -61,7 +61,6 @@ export type ScanTask = {
   tick: () => Promise<{ isDone: boolean; findings?: Finding[] }>;
   getFindings: () => Finding[];
   serialize: () => string;
-  when: (context: CheckContext) => boolean;
   getState: () => unknown;
 };
 
@@ -77,9 +76,10 @@ export type ScanDefinition = {
   tags: string[];
   aggressivity: Agressivity;
   type: ScanType;
-  create: (ctx: CheckContext) => ScanTask;
   dependsOn?: string[];
   dedupeKey?: (context: RequestContext) => string;
+  when: (context: CheckContext) => boolean;
+  create: (ctx: CheckContext) => ScanTask;
 };
 
 export type DefineUtils<T> = {
