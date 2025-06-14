@@ -1,22 +1,34 @@
 import { type DefineAPI, type SDK } from "caido:plugin";
 import { ScanRunner } from "engine";
 
-import { openRedirectScan } from "./checks/open-redirect";
+import openRedirectScan from "./checks/open-redirect";
+import { ScanRegistry } from "./registry";
 
 export type API = DefineAPI<{}>;
 
+const scanRegistry = new ScanRegistry();
+
 export function init(sdk: SDK<API>) {
-  const runner = new ScanRunner();
-  runner.register(openRedirectScan);
+  scanRegistry.register([openRedirectScan]);
 
   sdk.events.onInterceptResponse(async (sdk, request, response) => {
-    const result = await runner.run({
-      request,
-      response,
-      sdk,
-    });
+    const passiveScans = scanRegistry.select({ type: "passive" });
+    if (passiveScans.length === 0) {
+      return;
+    }
 
-    result.forEach(async (finding) => {
+    const runner = new ScanRunner();
+    passiveScans.forEach((scan) => runner.register(scan));
+
+    const findings = await runner.runSingle(
+      {
+        request,
+        response,
+      },
+      sdk,
+    );
+
+    for (const finding of findings) {
       if (!finding.requestID) return;
 
       const request = await sdk.requests.get(finding.requestID);
@@ -28,6 +40,6 @@ export function init(sdk: SDK<API>) {
         title: finding.name,
         description: finding.description,
       });
-    });
+    }
   });
 }

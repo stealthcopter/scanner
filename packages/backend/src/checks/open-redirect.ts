@@ -7,7 +7,7 @@ const getUrlParams = (query: string) => {
   );
 };
 
-export const openRedirectScan = defineScan<{
+export default defineScan<{
   urlParams: string[];
 }>(({ step }) => {
   step("findUrlParams", (_, context) => {
