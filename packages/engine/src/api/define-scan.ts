@@ -1,11 +1,11 @@
 import {
-  ScanMetadata,
   type Agressivity,
   type CheckContext,
   type DefineUtils,
   type RequestContext,
   type RunState,
   type ScanDefinition,
+  type ScanMetadata,
   type ScanTask,
   type ScanType,
   type Step,
@@ -22,7 +22,7 @@ export const defineScan = <T>(
     dedupeKey?: (context: RequestContext) => string;
     initState: () => T;
     when: (ctx: CheckContext) => boolean;
-  }
+  },
 ): ScanDefinition => {
   const steps: Map<StepName, Step<T>> = new Map();
 
@@ -30,12 +30,7 @@ export const defineScan = <T>(
     steps.set(name, { name, action });
   };
 
-  const {
-    metadata,
-    dedupeKey,
-    initState,
-    when,
-  } = definition({ step });
+  const { metadata, dedupeKey, initState, when } = definition({ step });
 
   const create = (context: CheckContext): ScanTask => {
     if (steps.size === 0) {

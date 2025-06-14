@@ -1,10 +1,4 @@
-import {
-  continueWith,
-  defineScan,
-  done,
-  type Finding,
-  Severity,
-} from "engine";
+import { continueWith, defineScan, done, type Finding, Severity } from "engine";
 
 const getUrlParams = (query: string) => {
   const params = new URLSearchParams(query);

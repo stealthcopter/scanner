@@ -1,3 +1,5 @@
+import { type SDK } from "caido:plugin";
+
 import {
   type CheckContext,
   type Finding,
@@ -5,7 +7,6 @@ import {
   type ScanDefinition,
   type ScanTask,
 } from "../../api/types";
-import { type SDK } from "caido:plugin";
 import { DependencyManager } from "../dependency/manager";
 import { DependencyStore } from "../dependency/store";
 
@@ -15,16 +16,13 @@ export class ScanRunner {
   private isPaused = false;
 
   public register(scan: ScanDefinition): void {
-    if (this.scans.some((s) => s.id === scan.id)) {
-      throw new Error(`Scan with id '${scan.id}' already registered`);
+    if (this.scans.some((s) => s.metadata.id === scan.metadata.id)) {
+      throw new Error(`Scan with id '${scan.metadata.id}' already registered`);
     }
     this.scans.push(scan);
   }
 
-  public async run(
-    contexts: RequestContext[],
-    sdk: SDK,
-  ): Promise<Finding[]> {
+  public async run(contexts: RequestContext[], sdk: SDK): Promise<Finding[]> {
     const allFindings: Finding[] = [];
     const batches = this.dependencyManager.getExecutionBatches(this.scans);
     const dedupeCache = new Map<string, Set<string>>();
@@ -47,17 +45,18 @@ export class ScanRunner {
             return false;
           }
 
+          const scanID = scan.metadata.id;
           if (scan.dedupeKey) {
             const key = scan.dedupeKey(context);
-            if (!dedupeCache.has(scan.id)) {
-              dedupeCache.set(scan.id, new Set<string>());
+            if (!dedupeCache.has(scanID)) {
+              dedupeCache.set(scanID, new Set<string>());
             }
 
-            if (dedupeCache.get(scan.id)!.has(key)) {
+            if (dedupeCache.get(scanID)!.has(key)) {
               return false;
             }
 
-            dedupeCache.get(scan.id)!.add(key);
+            dedupeCache.get(scanID)!.add(key);
           }
 
           return true;
@@ -88,10 +87,7 @@ export class ScanRunner {
     return allFindings;
   }
 
-  public async runSingle(
-    ctx: RequestContext,
-    sdk: SDK,
-  ): Promise<Finding[]> {
+  public async runSingle(ctx: RequestContext, sdk: SDK): Promise<Finding[]> {
     return this.run([ctx], sdk);
   }
 }

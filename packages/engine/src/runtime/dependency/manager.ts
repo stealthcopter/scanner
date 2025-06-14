@@ -5,16 +5,18 @@ import { type ScanDefinition } from "../../api/types";
 export class DependencyManager {
   public getExecutionBatches(scans: ScanDefinition[]): ScanDefinition[][] {
     const graph = new Graph();
-    const map = new Map(scans.map((s) => [s.id, s]));
+    const map = new Map(scans.map((s) => [s.metadata.id, s]));
 
-    scans.forEach((s) => graph.addNode(s.id));
+    scans.forEach((s) => graph.addNode(s.metadata.id));
 
     scans.forEach((scan) => {
-      scan.dependsOn?.forEach((d) => {
+      scan.metadata.dependsOn?.forEach((d) => {
         if (!map.has(d)) {
-          throw new Error(`Scan '${scan.id}' has unknown dependency '${d}'`);
+          throw new Error(
+            `Scan '${scan.metadata.id}' has unknown dependency '${d}'`,
+          );
         }
-        graph.addEdge(d, scan.id);
+        graph.addEdge(d, scan.metadata.id);
       });
     });
 
