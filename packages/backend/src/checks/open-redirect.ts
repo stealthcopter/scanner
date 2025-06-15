@@ -1,72 +1,110 @@
-import { continueWith, defineScan, done, type Finding, Severity } from "engine";
+import {
+  continueWith,
+  createUrlBypassGenerator,
+  defineScan,
+  done,
+  type Finding,
+  Severity,
+} from "engine";
 
-const getUrlParams = (query: string) => {
-  const params = new URLSearchParams(query);
-  return Array.from(params.keys()).filter((key) =>
-    key.toLowerCase().includes("url"),
-  );
+type ScanState = {
+  urlParams: string[];
 };
 
-export default defineScan<{
-  urlParams: string[];
-}>(({ step }) => {
+const getUrlParams = (query: string): string[] => {
+  const params = new URLSearchParams(query);
+  const keywords = ["url", "redirect", "target", "destination", "return"];
+
+  return Array.from(params.keys()).filter((key) =>
+    keywords.some((keyword) => key.toLowerCase().includes(keyword)),
+  );
+};
+export default defineScan<ScanState>(({ step }) => {
   step("findUrlParams", (_, context) => {
     const query = context.request.getQuery();
     const urlParams = getUrlParams(query);
 
+    if (urlParams.length === 0) {
+      return done();
+    }
+
     return continueWith({
-      nextStep: "checkRedirect",
+      nextStep: "testRedirectPayloads",
       state: { urlParams },
     });
   });
 
-  step("checkRedirect", async (state, context) => {
-    const [param, ...remainingParams] = state.urlParams;
-    if (!param) return done();
+  step("testRedirectPayloads", async (state, context) => {
+    const attackerHost = "example.com";
 
-    const spec = context.request.toSpec();
-    spec.setQuery(`${param}=${encodeURIComponent("https://example.com")}`);
+    const host = context.request.getHost();
+    const port = context.request.getPort();
+    const protocol = new URL(context.request.getUrl()).protocol;
+    const expectedHost = port === 80 || port === 443 ? host : `${host}:${port}`;
 
-    const { request, response } = await context.sdk.requests.send(spec);
-    const locations = response.getHeader("Location") || [];
+    const generator = createUrlBypassGenerator({
+      expectedHost,
+      attackerHost,
+      protocol,
+    });
 
-    const findings: Finding[] = [];
-    for (const location of locations) {
-      if (location.startsWith("https://example.com")) {
-        findings.push({
-          name: "Open Redirect",
-          description: `Parameter '${param}' allows redirect to external URL: ${location}`,
-          severity: Severity.HIGH,
-          requestID: request.getId(),
-        });
+    for (const param of state.urlParams) {
+      for (const payloadRecipe of generator) {
+        const instance = payloadRecipe.generate();
+
+        const spec = context.request.toSpec();
+        spec.setQuery(`${param}=${encodeURIComponent(instance.value)}`);
+
+        const { request, response } = await context.sdk.requests.send(spec);
+        const locations = response.getHeader("Location") || [];
+
+        for (const location of locations) {
+          try {
+            const redirectUrl = new URL(location, context.request.getUrl());
+            if (instance.validatesWith(redirectUrl)) {
+              return done({
+                findings: [
+                  {
+                    name: "Open Redirect",
+                    description: `Parameter '${param}' allows redirect via the '${payloadRecipe.technique}' technique.\nPayload used: ${instance.value}\n${payloadRecipe.description}`,
+                    severity: Severity.MEDIUM,
+                    requestID: request.getId(),
+                  },
+                ],
+              });
+            }
+          } catch (e) {
+            // Ignore invalid Location headers (TODO: we may want to log this somewhere as this is definitely interesting behavior)
+          }
+        }
       }
     }
 
-    if (remainingParams.length === 0) {
-      return done({ findings });
-    }
-
-    return continueWith({
-      nextStep: "checkRedirect",
-      state: { urlParams: remainingParams },
-      findings,
-    });
+    return done();
   });
 
   return {
     metadata: {
       id: "open-redirect",
       name: "Open Redirect",
-      description: "Check for open redirects",
+      description:
+        "Checks for open redirects using a variety of URL parser bypass techniques.",
       type: "active",
       tags: ["open-redirect"],
       aggressivity: {
-        minRequests: 0,
+        minRequests: 1,
         maxRequests: "Infinity",
       },
     },
 
     initState: () => ({ urlParams: [] }),
+    dedupeKey: (context) => {
+      return (
+        context.request.getHost() +
+        context.request.getPort() +
+        context.request.getPath()
+      );
+    },
     when: (context) => {
       const query = context.request.getQuery();
       if (!query) return false;
