@@ -6,7 +6,6 @@ export type UrlBypassTechnique =
   | "EncodedFragmentBypass"
   | "SchemeRelative"
   | "BackslashPrefix"
-  | "FullWidthHost"
   | "UnescapedRegexDot"
   | "Base64Bypass";
 
@@ -97,18 +96,6 @@ const STRATEGIES: Readonly<Record<UrlBypassTechnique, BypassStrategy>> = {
       value: `${protocol}//${attackerHost}\\\\${expectedHost}`,
       validatesWith: (url) => url.hostname.endsWith(attackerHost),
     }),
-  }),
-  FullWidthHost: ({ attackerHost, protocol }) => ({
-    technique: "FullWidthHost",
-    description:
-      "Replaces periods with full-width dots, which may bypass regex filters.",
-    generate: () => {
-      const maliciousHost = attackerHost.replace(/\./g, "．");
-      return {
-        value: `${protocol}//${maliciousHost}`,
-        validatesWith: (url) => url.hostname === maliciousHost,
-      };
-    },
   }),
   // TODO: this will not work as expected for TLDs with more than one dot like ".com.uk"
   UnescapedRegexDot: ({ expectedHost, protocol }) => ({
