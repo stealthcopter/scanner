@@ -2,6 +2,7 @@ import {
   continueWith,
   createUrlBypassGenerator,
   defineScan,
+  findRedirection,
   done,
   Severity,
 } from "engine";
@@ -54,20 +55,28 @@ export default defineScan<ScanState>(({ step }) => {
         const instance = payloadRecipe.generate();
 
         const spec = context.request.toSpec();
-        spec.setQuery(`${param}=${encodeURIComponent(instance.value)}`);
+
+        const originalQuery = context.request.getQuery();
+        const params = new URLSearchParams(originalQuery);
+        params.set(param, instance.value);
+        spec.setQuery(params.toString());
 
         const { request, response } = await context.sdk.requests.send(spec);
-        const locations = response.getHeader("Location") || [];
+        const responseContext = { ...context, response };
+        const redirectInfo = findRedirection(responseContext);
 
-        for (const location of locations) {
+        if (redirectInfo.hasRedirection && redirectInfo.location) {
           try {
-            const redirectUrl = new URL(location, context.request.getUrl());
+            const redirectUrl = new URL(
+              redirectInfo.location,
+              context.request.getUrl(),
+            );
             if (instance.validatesWith(redirectUrl)) {
               return done({
                 findings: [
                   {
                     name: "Open Redirect",
-                    description: `Parameter '${param}' allows redirect via the '${payloadRecipe.technique}' technique.\nPayload used: ${instance.value}\n${payloadRecipe.description}`,
+                    description: `Parameter '${param}' allows ${redirectInfo.type} redirect via the '${payloadRecipe.technique}' technique.\nPayload used: '${instance.value}'\n${payloadRecipe.description}`,
                     severity: Severity.MEDIUM,
                     requestID: request.getId(),
                   },
@@ -75,7 +84,7 @@ export default defineScan<ScanState>(({ step }) => {
               });
             }
           } catch (e) {
-            // Ignore invalid Location headers (TODO: we may want to log this somewhere as this is definitely interesting behavior)
+            // Ignore invalid redirect URLs
           }
         }
       }
