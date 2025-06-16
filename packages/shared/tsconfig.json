@@ -1,14 +1,4 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "lib": ["DOM", "ESNext"],
-    "baseUrl": ".",
-    "noResolve": false,
-    "moduleResolution": "node",
-    "paths": {
-      "@/*": ["src/*"]
-    },
-    "rootDir": "src"
-  },
-  "include": ["./src/**/*.tsx", "./src/**/*.ts"]
+  "extends": "../../tsconfig.json",
+  "include": ["./src/**/*.ts"]
 }

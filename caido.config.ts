@@ -15,13 +15,13 @@ export default defineConfig({
   author: {
     name: "Caido Labs Inc.",
     email: "dev@caido.io",
-    url: "https://caido.io",
+    url: "https://caido.io"
   },
   plugins: [
     {
       kind: "backend",
       id: "backend",
-      root: "packages/backend",
+      root: "packages/backend"
     },
     {
       kind: 'frontend',

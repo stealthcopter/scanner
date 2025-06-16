@@ -1,10 +1,10 @@
 {
   "name": "scanner",
-  "version": "0.0.1",
+  "version": "0.0.",
   "private": true,
   "description": "Monorepo for the Caido Scanner project",
-  "author": "Caido",
-  "main": "index.js",
+  "author": "Caido Labs Inc. <dev@caido.io>",
+  "type": "module",
   "packageManager": "pnpm@10.12.1",
   "scripts": {
     "typecheck": "pnpm -r typecheck",
@@ -12,7 +12,6 @@
     "watch": "caido-dev watch",
     "lint": "eslint --fix packages/*/src"
   },
-  "dependencies": {},
   "devDependencies": {
     "@caido-community/dev": "^0.1.6",
     "@caido/eslint-config": "^0.4.0",

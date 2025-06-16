@@ -1,5 +1,4 @@
 import {
-  type Agressivity,
   type CheckContext,
   type DefineUtils,
   type RequestContext,
@@ -7,12 +6,10 @@ import {
   type ScanDefinition,
   type ScanMetadata,
   type ScanTask,
-  type ScanType,
   type Step,
   type StepAction,
   type StepName,
 } from "./types";
-
 /**
  * Public helper used by scan authors.
  */

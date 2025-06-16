@@ -106,7 +106,7 @@ const STRATEGIES: Readonly<Record<UrlBypassTechnique, BypassStrategy>> = {
     generate: () => {
       const lastDotIndex = expectedHost.lastIndexOf(
         ".",
-        expectedHost.lastIndexOf(".") - 1
+        expectedHost.lastIndexOf(".") - 1,
       );
       const maliciousHost =
         expectedHost.substring(0, lastDotIndex) +
@@ -152,7 +152,7 @@ export function createUrlBypassGenerator(input: {
   const ALL_TECHNIQUES = Object.keys(STRATEGIES) as UrlBypassTechnique[];
 
   const createGenerator = (
-    activeTechniques: UrlBypassTechnique[]
+    activeTechniques: UrlBypassTechnique[],
   ): UrlBypassGenerator => {
     return {
       *[Symbol.iterator]() {
@@ -167,13 +167,13 @@ export function createUrlBypassGenerator(input: {
       },
       only(...techniques: UrlBypassTechnique[]): UrlBypassGenerator {
         const newActive = activeTechniques.filter((t) =>
-          techniques.includes(t)
+          techniques.includes(t),
         );
         return createGenerator(newActive);
       },
       except(...techniques: UrlBypassTechnique[]): UrlBypassGenerator {
         const newActive = activeTechniques.filter(
-          (t) => !techniques.includes(t)
+          (t) => !techniques.includes(t),
         );
         return createGenerator(newActive);
       },

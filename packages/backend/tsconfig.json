@@ -1,8 +1,7 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "types": ["@caido/sdk-backend", "node"],
-    "rootDir": "src"
+    "types": ["@caido/sdk-backend"]
   },
   "include": ["./src/**/*.ts"]
 }

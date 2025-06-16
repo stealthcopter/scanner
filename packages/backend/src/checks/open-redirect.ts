@@ -3,7 +3,6 @@ import {
   createUrlBypassGenerator,
   defineScan,
   done,
-  type Finding,
   Severity,
 } from "engine";
 
@@ -11,14 +10,21 @@ type ScanState = {
   urlParams: string[];
 };
 
+// TODO: figure out why .keys() is not working
 const getUrlParams = (query: string): string[] => {
   const params = new URLSearchParams(query);
   const keywords = ["url", "redirect", "target", "destination", "return"];
 
-  return Array.from(params.keys()).filter((key) =>
+  const paramKeys: string[] = [];
+  params.forEach((_, key) => {
+    paramKeys.push(key);
+  });
+
+  return paramKeys.filter((key) =>
     keywords.some((keyword) => key.toLowerCase().includes(keyword)),
   );
 };
+
 export default defineScan<ScanState>(({ step }) => {
   step("findUrlParams", (_, context) => {
     const query = context.request.getQuery();

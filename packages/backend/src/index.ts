@@ -1,10 +1,11 @@
-import { type DefineAPI, type SDK } from "caido:plugin";
-import { ScanRunner } from "engine";
+import { type DefineAPI, type DefineEvents, type SDK } from "caido:plugin";
+import { type Finding, ScanRunner } from "engine";
 
 import openRedirectScan from "./checks/open-redirect";
 import { ScanRegistry } from "./registry";
 
-export type API = DefineAPI<{}>;
+export type API = DefineAPI<BackendEvents>;
+export type BackendEvents = DefineEvents<{}>;
 
 const scanRegistry = new ScanRegistry();
 
@@ -20,16 +21,14 @@ export function init(sdk: SDK<API>) {
     const runner = new ScanRunner();
     passiveScans.forEach((scan) => runner.register(scan));
 
-    const findings = await runner.runSingle(
-      {
-        request,
-        response,
-      },
-      sdk,
-    );
+    const ctx = {
+      request,
+      response,
+    };
+    const findings: Finding[] = await runner.run([ctx], sdk);
 
     for (const finding of findings) {
-      if (!finding.requestID) return;
+      if (finding.requestID === undefined) return;
 
       const request = await sdk.requests.get(finding.requestID);
       if (!request) return;

@@ -69,6 +69,7 @@ export type Agressivity = {
   maxRequests: number | "Infinity";
 };
 
+export type ScanType = "passive" | "active";
 export type ScanMetadata = {
   id: string;
   name: string;
@@ -79,7 +80,6 @@ export type ScanMetadata = {
   dependsOn?: string[];
 };
 
-export type ScanType = "passive" | "active";
 export type ScanDefinition = {
   metadata: ScanMetadata;
   dedupeKey?: (context: RequestContext) => string;
@@ -90,3 +90,9 @@ export type ScanDefinition = {
 export type DefineUtils<T> = {
   step: (name: StepName, action: StepAction<T>) => void;
 };
+
+export enum RunnerState {
+  IDLE,
+  RUNNING,
+  STOPPED,
+}

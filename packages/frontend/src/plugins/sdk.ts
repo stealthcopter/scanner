@@ -1,6 +1,6 @@
 import { inject, type InjectionKey, type Plugin } from "vue";
 
-import { type FrontendSDK } from "@/types";
+import { type FrontendSDK } from "../types";
 
 const KEY: InjectionKey<FrontendSDK> = Symbol("FrontendSDK");
 

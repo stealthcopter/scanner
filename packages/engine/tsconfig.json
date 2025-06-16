@@ -1,12 +1,12 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
-    "strict": true,
-    "noImplicitAny": true,
-    "types": ["@caido/sdk-backend", "node"]
+    "lib": ["ESNext"],
+    "types": ["@caido/sdk-backend"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
-  "include": ["src/**/*"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["./src/**/*.ts"]
 }
