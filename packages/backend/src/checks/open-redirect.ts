@@ -10,17 +10,12 @@ type ScanState = {
   urlParams: string[];
 };
 
-// TODO: figure out why .keys() is not working
 const getUrlParams = (query: string): string[] => {
   const params = new URLSearchParams(query);
   const keywords = ["url", "redirect", "target", "destination", "return"];
 
-  const paramKeys: string[] = [];
-  params.forEach((_, key) => {
-    paramKeys.push(key);
-  });
-
-  return paramKeys.filter((key) =>
+  // @ts-expect-error - TODO: figure out TS throwing here for .keys()
+  return Array.from(params.keys()).filter((key: string) =>
     keywords.some((keyword) => key.toLowerCase().includes(keyword)),
   );
 };

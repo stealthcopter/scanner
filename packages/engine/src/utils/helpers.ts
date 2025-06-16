@@ -50,6 +50,7 @@ export const hasQueryParam =
       return params.has(name);
     }
 
+    // @ts-expect-error - TODO: figure out TS throwing here for .keys()
     return Array.from(params.keys()).some((key) => name.test(key));
   };
 

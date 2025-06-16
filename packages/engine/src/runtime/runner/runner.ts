@@ -8,8 +8,7 @@ import {
   type ScanDefinition,
   type ScanTask,
 } from "../../api/types";
-import { getScanBatches } from "../dependency/planner";
-import { DependencyStore } from "../dependency/store";
+import { getScanBatches } from "../dependency";
 
 export class ScanRunner {
   private readonly scans: ScanDefinition[] = [];
@@ -64,11 +63,16 @@ export class ScanRunner {
     dedupeCache: Map<string, Set<string>>,
   ): Promise<Finding[]> {
     const contextFindings: Finding[] = [];
-    const dependencyStore = new DependencyStore();
+    const dependencyStore = new Map<string, unknown>();
     const baseCtx: CheckContext = {
       ...context,
       sdk,
-      dependencies: <T = unknown>(id: string) => dependencyStore.get<T>(id),
+      dependencies: <T = unknown>(id: string) => {
+        if (!dependencyStore.has(id)) {
+          throw new Error(`Dependency '${id}' not resolved yet`);
+        }
+        return dependencyStore.get(id) as T;
+      },
     };
 
     for (const batch of batches) {
@@ -93,7 +97,7 @@ export class ScanRunner {
     batch: ScanDefinition[],
     context: CheckContext,
     dedupeCache: Map<string, Set<string>>,
-    dependencyStore: DependencyStore,
+    dependencyStore: Map<string, unknown>,
   ): Promise<Finding[]> {
     const batchFindings: Finding[] = [];
 
