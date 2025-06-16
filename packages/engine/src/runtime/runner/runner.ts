@@ -8,6 +8,7 @@ import {
   type ScanDefinition,
   type ScanTask,
 } from "../../api/types";
+import type { ParsedHtml } from "../../utils/html/types";
 import { getScanBatches } from "../dependency";
 
 export class ScanRunner {
@@ -35,6 +36,7 @@ export class ScanRunner {
 
     const allFindings: Finding[] = [];
     const dedupeCache = new Map<string, Set<string>>();
+    const htmlCache = new Map<string, ParsedHtml>();
     const batches = getScanBatches(this.scans);
 
     for (const context of contexts) {
@@ -45,6 +47,7 @@ export class ScanRunner {
         sdk,
         batches,
         dedupeCache,
+        htmlCache,
       );
       allFindings.push(...findings);
     }
@@ -61,12 +64,14 @@ export class ScanRunner {
     sdk: SDK,
     batches: ScanDefinition[][],
     dedupeCache: Map<string, Set<string>>,
+    htmlCache: Map<string, ParsedHtml>,
   ): Promise<Finding[]> {
     const contextFindings: Finding[] = [];
     const dependencyStore = new Map<string, unknown>();
     const baseCtx: CheckContext = {
       ...context,
       sdk,
+      htmlCache,
       dependencies: <T = unknown>(id: string) => {
         if (!dependencyStore.has(id)) {
           throw new Error(`Dependency '${id}' not resolved yet`);
@@ -83,6 +88,7 @@ export class ScanRunner {
         baseCtx,
         dedupeCache,
         dependencyStore,
+        htmlCache,
       );
       contextFindings.push(...findings);
     }
@@ -98,6 +104,7 @@ export class ScanRunner {
     context: CheckContext,
     dedupeCache: Map<string, Set<string>>,
     dependencyStore: Map<string, unknown>,
+    htmlCache: Map<string, ParsedHtml>,
   ): Promise<Finding[]> {
     const batchFindings: Finding[] = [];
 

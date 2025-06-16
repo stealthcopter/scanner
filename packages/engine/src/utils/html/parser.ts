@@ -5,8 +5,6 @@ import type { CheckContext } from "../../api/types";
 import { findElements, getElementAttribute, getElementText } from "./query";
 import type { ParsedHtml } from "./types";
 
-const htmlCache = new Map<string, ParsedHtml>();
-
 export function parseHtml(context: CheckContext): ParsedHtml | undefined {
   const response = context.response;
   if (!response) {
@@ -15,8 +13,8 @@ export function parseHtml(context: CheckContext): ParsedHtml | undefined {
 
   const requestId = response.getId();
 
-  if (htmlCache.has(requestId)) {
-    return htmlCache.get(requestId)!;
+  if (context.htmlCache.has(requestId)) {
+    return context.htmlCache.get(requestId)!;
   }
 
   const body = response.getBody();
@@ -44,7 +42,7 @@ export function parseHtml(context: CheckContext): ParsedHtml | undefined {
     getElementText,
   };
 
-  htmlCache.set(requestId, parsedHtml);
+  context.htmlCache.set(requestId, parsedHtml);
   return parsedHtml;
 }
 

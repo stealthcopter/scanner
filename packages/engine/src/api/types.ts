@@ -1,6 +1,8 @@
 import { type SDK } from "caido:plugin";
 import { type Request, type Response } from "caido:utils";
 
+import type { ParsedHtml } from "../utils/html/types";
+
 export enum Severity {
   INFO = "info",
   LOW = "low",
@@ -17,6 +19,7 @@ export type RequestContext = {
 export type CheckContext = RequestContext & {
   sdk: SDK;
   dependencies: <T = unknown>(id: string) => T;
+  htmlCache: Map<string, ParsedHtml>;
 };
 
 export type Finding = {

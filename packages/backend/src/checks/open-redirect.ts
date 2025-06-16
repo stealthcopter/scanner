@@ -2,8 +2,8 @@ import {
   continueWith,
   createUrlBypassGenerator,
   defineScan,
-  findRedirection,
   done,
+  findRedirection,
   Severity,
 } from "engine";
 
