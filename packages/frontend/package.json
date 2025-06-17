@@ -8,8 +8,8 @@
   "dependencies": {
     "@caido/sdk-frontend": "^0.46.0",
     "@caido/primevue": "0.1.14",
-    "primevue": "4.1.0",
-    "vue": "3.4.37",
+    "primevue": "4.3.3",
+    "vue": "3.5.13",
     "shared": "workspace:*"
   },
   "devDependencies": {

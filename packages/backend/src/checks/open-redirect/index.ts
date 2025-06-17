@@ -4,6 +4,7 @@ import {
   defineScan,
   done,
   findRedirection,
+  ScanStrength,
   Severity,
 } from "engine";
 
@@ -13,12 +14,30 @@ type ScanState = {
 
 const getUrlParams = (query: string): string[] => {
   const params = new URLSearchParams(query);
-  const keywords = ["url", "redirect", "target", "destination", "return"];
+  const keywords = [
+    "url",
+    "redirect",
+    "target",
+    "destination",
+    "return",
+    "path",
+  ];
 
   // @ts-expect-error - TODO: figure out TS throwing here for .keys()
-  return Array.from(params.keys()).filter((key: string) =>
-    keywords.some((keyword) => key.toLowerCase().includes(keyword)),
-  );
+  return Array.from(params.keys()).filter((key: string) => {
+    const keyLower = key.toLowerCase();
+    const value = params.get(key) ?? "";
+
+    const hasKeywordInName = keywords.some((keyword) =>
+      keyLower.includes(keyword),
+    );
+    const hasUrlInValue =
+      value.startsWith("http://") ||
+      value.startsWith("https://") ||
+      value.startsWith("/");
+
+    return hasKeywordInName || hasUrlInValue;
+  });
 };
 
 export default defineScan<ScanState>(({ step }) => {
@@ -43,22 +62,27 @@ export default defineScan<ScanState>(({ step }) => {
     const port = context.request.getPort();
     const protocol = new URL(context.request.getUrl()).protocol;
     const expectedHost = port === 80 || port === 443 ? host : `${host}:${port}`;
-
-    const generator = createUrlBypassGenerator({
+    let generator = createUrlBypassGenerator({
       expectedHost,
       attackerHost,
       protocol,
     });
 
+    if (context.strength === ScanStrength.LOW) {
+      generator = generator.limit(2);
+    } else if (context.strength === ScanStrength.MEDIUM) {
+      generator = generator.limit(5);
+    }
+
     for (const param of state.urlParams) {
       for (const payloadRecipe of generator) {
         const instance = payloadRecipe.generate();
 
-        const spec = context.request.toSpec();
-
         const originalQuery = context.request.getQuery();
         const params = new URLSearchParams(originalQuery);
         params.set(param, instance.value);
+
+        const spec = context.request.toSpec();
         spec.setQuery(params.toString());
 
         const { request, response } = await context.sdk.requests.send(spec);
@@ -84,6 +108,7 @@ export default defineScan<ScanState>(({ step }) => {
               });
             }
           } catch (e) {
+            // TODO: we might wanna log this somewhere as this is definitely a interesting finding
             // Ignore invalid redirect URLs
           }
         }
