@@ -8,10 +8,7 @@ export default defineScan(({ step }) => {
     }
 
     const contentType = response.getHeader("content-type")?.[0];
-    if (
-      contentType === undefined ||
-      !contentType.toLowerCase().includes("text/html")
-    ) {
+    if (contentType === undefined || !contentType.includes("text/html")) {
       return done();
     }
 

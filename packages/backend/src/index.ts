@@ -1,6 +1,8 @@
 import { type DefineAPI, type DefineEvents, type SDK } from "caido:plugin";
-import { type Finding, ScanRunner } from "engine";
+import { type Finding, ScanRunner, ScanStrength } from "engine";
+import jsonHtmlResponse from "packages/backend/src/checks/json-html-response";
 
+import exposedEnvScan from "./checks/exposed-env";
 import openRedirectScan from "./checks/open-redirect";
 import { ScanRegistry } from "./registry";
 
@@ -10,10 +12,10 @@ export type BackendEvents = DefineEvents<{}>;
 const scanRegistry = new ScanRegistry();
 
 export function init(sdk: SDK<API>) {
-  scanRegistry.register([openRedirectScan]);
+  scanRegistry.register([exposedEnvScan, openRedirectScan, jsonHtmlResponse]);
 
   sdk.events.onInterceptResponse(async (sdk, request, response) => {
-    const passiveScans = scanRegistry.select({ type: "passive" });
+    const passiveScans = scanRegistry.select({});
     if (passiveScans.length === 0) {
       return;
     }
@@ -25,7 +27,9 @@ export function init(sdk: SDK<API>) {
       request,
       response,
     };
-    const findings: Finding[] = await runner.run([ctx], sdk);
+    const findings: Finding[] = await runner.run([ctx], sdk, {
+      strength: ScanStrength.MEDIUM,
+    });
 
     for (const finding of findings) {
       if (finding.requestID === undefined) return;

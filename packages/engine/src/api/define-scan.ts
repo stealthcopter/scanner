@@ -18,7 +18,7 @@ export const defineScan = <T>(
     metadata: ScanMetadata;
     dedupeKey?: (context: RequestContext) => string;
     initState: () => T;
-    when: (ctx: CheckContext) => boolean;
+    when?: (ctx: CheckContext) => boolean;
   },
 ): ScanDefinition => {
   const steps: Map<StepName, Step<T>> = new Map();
@@ -77,5 +77,10 @@ export const defineScan = <T>(
     };
   };
 
-  return { metadata, dedupeKey, when, create };
+  return {
+    metadata,
+    dedupeKey,
+    when: when ?? (() => true),
+    create,
+  };
 };

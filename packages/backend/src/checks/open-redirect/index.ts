@@ -10,18 +10,15 @@ import {
 
 type ScanState = {
   urlParams: string[];
+  attackerHost?: string;
+  expectedHost?: string;
+  protocol?: string;
 };
+
+const keywords = ["url", "redirect", "target", "destination", "return", "path"];
 
 const getUrlParams = (query: string): string[] => {
   const params = new URLSearchParams(query);
-  const keywords = [
-    "url",
-    "redirect",
-    "target",
-    "destination",
-    "return",
-    "path",
-  ];
 
   // @ts-expect-error - TODO: figure out TS throwing here for .keys()
   return Array.from(params.keys()).filter((key: string) => {
@@ -50,22 +47,43 @@ export default defineScan<ScanState>(({ step }) => {
     }
 
     return continueWith({
-      nextStep: "testRedirectPayloads",
+      nextStep: "setupAttack",
       state: { urlParams },
     });
   });
 
-  step("testRedirectPayloads", async (state, context) => {
+  step("setupAttack", (state, context) => {
     const attackerHost = "example.com";
-
     const host = context.request.getHost();
     const port = context.request.getPort();
     const protocol = new URL(context.request.getUrl()).protocol;
     const expectedHost = port === 80 || port === 443 ? host : `${host}:${port}`;
+
+    return continueWith({
+      nextStep: "testParam",
+      state: {
+        ...state,
+        attackerHost,
+        expectedHost,
+        protocol,
+      },
+    });
+  });
+
+  step("testParam", async (state, context) => {
+    if (state.urlParams.length === 0) {
+      return done();
+    }
+
+    const [currentParam, ...remainingParams] = state.urlParams;
+    if (currentParam === undefined) {
+      return done();
+    }
+
     let generator = createUrlBypassGenerator({
-      expectedHost,
-      attackerHost,
-      protocol,
+      expectedHost: state.expectedHost!,
+      attackerHost: state.attackerHost!,
+      protocol: state.protocol!,
     });
 
     if (context.strength === ScanStrength.LOW) {
@@ -74,48 +92,52 @@ export default defineScan<ScanState>(({ step }) => {
       generator = generator.limit(5);
     }
 
-    for (const param of state.urlParams) {
-      for (const payloadRecipe of generator) {
-        const instance = payloadRecipe.generate();
+    for (const payloadRecipe of generator) {
+      const instance = payloadRecipe.generate();
 
-        const originalQuery = context.request.getQuery();
-        const params = new URLSearchParams(originalQuery);
-        params.set(param, instance.value);
+      const originalQuery = context.request.getQuery() || "";
+      const params = new URLSearchParams(originalQuery);
+      params.set(currentParam, instance.value);
 
-        const spec = context.request.toSpec();
-        spec.setQuery(params.toString());
+      const spec = context.request.toSpec();
+      spec.setQuery(params.toString());
 
-        const { request, response } = await context.sdk.requests.send(spec);
-        const responseContext = { ...context, response };
-        const redirectInfo = findRedirection(responseContext);
+      const { request, response } = await context.sdk.requests.send(spec);
+      const responseContext = { ...context, response };
+      const redirectInfo = findRedirection(responseContext);
 
-        if (redirectInfo.hasRedirection && redirectInfo.location) {
-          try {
-            const redirectUrl = new URL(
-              redirectInfo.location,
-              context.request.getUrl(),
-            );
-            if (instance.validatesWith(redirectUrl)) {
-              return done({
-                findings: [
-                  {
-                    name: "Open Redirect",
-                    description: `Parameter '${param}' allows ${redirectInfo.type} redirect via the '${payloadRecipe.technique}' technique.\nPayload used: '${instance.value}'\n${payloadRecipe.description}`,
-                    severity: Severity.MEDIUM,
-                    requestID: request.getId(),
-                  },
-                ],
-              });
-            }
-          } catch (e) {
-            // TODO: we might wanna log this somewhere as this is definitely a interesting finding
-            // Ignore invalid redirect URLs
+      if (redirectInfo.hasRedirection && redirectInfo.location) {
+        try {
+          const redirectUrl = new URL(
+            redirectInfo.location,
+            context.request.getUrl(),
+          );
+          if (instance.validatesWith(redirectUrl)) {
+            return done({
+              findings: [
+                {
+                  name: "Open Redirect",
+                  description: `Parameter '${currentParam}' allows ${redirectInfo.type} redirect via the '${payloadRecipe.technique}' technique.\nPayload used: '${instance.value}'\n${payloadRecipe.description}`,
+                  severity: Severity.MEDIUM,
+                  requestID: request.getId(),
+                },
+              ],
+            });
           }
+        } catch (e) {
+          // TODO: we might wanna log this somewhere as this is definitely a interesting finding
+          // Ignore invalid redirect URLs
         }
       }
     }
 
-    return done();
+    return continueWith({
+      nextStep: "testParam",
+      state: {
+        ...state,
+        urlParams: remainingParams,
+      },
+    });
   });
 
   return {
