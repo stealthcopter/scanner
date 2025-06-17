@@ -1,4 +1,5 @@
 export type UrlBypassTechnique =
+  | "NormalUrl"
   | "UserInfoBypass"
   | "EncodedSlashUserInfoBypass"
   | "DoubleEncodedSlashUserInfoBypass"
@@ -32,9 +33,19 @@ type BypassStrategy = (config: UrlBypassGeneratorConfig) => Payload;
 export type UrlBypassGenerator = Iterable<Payload> & {
   only(...techniques: UrlBypassTechnique[]): UrlBypassGenerator;
   except(...techniques: UrlBypassTechnique[]): UrlBypassGenerator;
+  limit(max: number): UrlBypassGenerator;
 };
 
+// We want to keep the most common techniques at the top of the list because some checks will use .limit(n)
 const STRATEGIES: Readonly<Record<UrlBypassTechnique, BypassStrategy>> = {
+  NormalUrl: ({ attackerHost, protocol }) => ({
+    technique: "NormalUrl",
+    description: "Uses a plain URL with the attacker host.",
+    generate: () => ({
+      value: `${protocol}//${attackerHost}/`,
+      validatesWith: (url) => url.hostname.endsWith(attackerHost),
+    }),
+  }),
   UserInfoBypass: ({ expectedHost, attackerHost, protocol }) => ({
     technique: "UserInfoBypass",
     description: "Uses the @ symbol to treat the expected host as userinfo.",
@@ -176,6 +187,9 @@ export function createUrlBypassGenerator(input: {
           (t) => !techniques.includes(t),
         );
         return createGenerator(newActive);
+      },
+      limit(max: number): UrlBypassGenerator {
+        return createGenerator(activeTechniques.slice(0, max));
       },
     };
   };
