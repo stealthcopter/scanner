@@ -1,7 +1,7 @@
-import type { DependenciesSDK } from "./dependencies";
-import type { HtmlSDK } from "./html";
+import type { ScanDependencies } from "./dependencies";
+import type { HTMLParser } from "./html";
 
-export type RuntimeSDK = {
-  dependencies: DependenciesSDK;
-  html: HtmlSDK;
+export type ScanRuntime = {
+  dependencies: ScanDependencies;
+  html: HTMLParser;
 };

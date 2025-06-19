@@ -1,7 +1,7 @@
 import type { SDK } from "caido:plugin";
 import type { Request, Response } from "caido:utils";
 
-import type { RuntimeSDK } from "./runtime";
+import type { ScanRuntime } from "./runtime";
 
 export enum JobState {
   IDLE,
@@ -22,7 +22,7 @@ export type ScanTarget = {
 
 export type ScanContext = ScanTarget & {
   sdk: SDK;
-  runtime: RuntimeSDK;
+  runtime: ScanRuntime;
   config: ScanConfig;
 };
 

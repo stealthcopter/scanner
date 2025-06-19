@@ -2,7 +2,7 @@ import { type SDK } from "caido:plugin";
 import { type Request, type Response } from "caido:utils";
 
 import { type ScanContext, ScanStrength, Severity } from "../../index";
-import type { RuntimeSDK } from "../../types/runtime";
+import type { ScanRuntime } from "../../types/runtime";
 
 export const createMockSDK = () => ({}) as unknown as SDK;
 
@@ -64,6 +64,6 @@ export const createScanContext = ({
   request: createMockRequest({ host, path, id: requestId }),
   response: createMockResponse({ id: responseId }),
   sdk: createMockSDK(),
-  runtime: {} as unknown as RuntimeSDK,
+  runtime: {} as unknown as ScanRuntime,
   config: { strength },
 });

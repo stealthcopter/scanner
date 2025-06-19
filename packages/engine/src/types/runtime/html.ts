@@ -3,7 +3,7 @@ import type { ParsedHtml } from "../../utils";
 /**
  * Utilities to interact with the HTML parser.
  */
-export type HtmlSDK = {
+export type HTMLParser = {
   /**
    * Used internally to avoid running the HTML parser multiple times on same requestID.
    * Map<requestID, ParsedHtml>
