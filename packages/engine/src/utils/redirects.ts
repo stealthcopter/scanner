@@ -1,6 +1,4 @@
-import { type CheckContext } from "../api/types";
-
-import { parseHtml } from "./html";
+import { type ScanContext } from "../types";
 
 export type RedirectionType =
   | "http"
@@ -19,7 +17,7 @@ export type RedirectionInfo =
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
  * https://code.google.com/archive/p/html5security/wikis/RedirectionMethods.wiki
  */
-export function findRedirection(context: CheckContext): RedirectionInfo {
+export function findRedirection(context: ScanContext): RedirectionInfo {
   if (!context.response) {
     return { hasRedirection: false };
   }
@@ -58,8 +56,8 @@ export function findRedirection(context: CheckContext): RedirectionInfo {
   }
 
   // HTML redirects
-  const html = parseHtml(context);
-  if (html) {
+  const html = context.runtime.html.get();
+  if (html !== undefined) {
     // <meta> refresh redirects
     const metaElements = html.findElements({ tagName: "meta" });
 

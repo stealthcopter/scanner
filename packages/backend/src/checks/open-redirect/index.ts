@@ -8,14 +8,15 @@ import {
   Severity,
 } from "engine";
 
-type ScanState = {
-  urlParams: string[];
-  attackerHost?: string;
-  expectedHost?: string;
-  protocol?: string;
-};
-
-const keywords = ["url", "redirect", "target", "destination", "return", "path"];
+const keywords = [
+  "url",
+  "redirect",
+  "target",
+  "destination",
+  "return",
+  "path",
+  "next",
+];
 
 const getUrlParams = (query: string): string[] => {
   const params = new URLSearchParams(query);
@@ -37,7 +38,12 @@ const getUrlParams = (query: string): string[] => {
   });
 };
 
-export default defineScan<ScanState>(({ step }) => {
+export default defineScan<{
+  urlParams: string[];
+  attackerHost?: string;
+  expectedHost?: string;
+  protocol?: string;
+}>(({ step }) => {
   step("findUrlParams", (_, context) => {
     const query = context.request.getQuery();
     const urlParams = getUrlParams(query);
@@ -86,9 +92,9 @@ export default defineScan<ScanState>(({ step }) => {
       protocol: state.protocol!,
     });
 
-    if (context.strength === ScanStrength.LOW) {
+    if (context.config.strength === ScanStrength.LOW) {
       generator = generator.limit(2);
-    } else if (context.strength === ScanStrength.MEDIUM) {
+    } else if (context.config.strength === ScanStrength.MEDIUM) {
       generator = generator.limit(5);
     }
 
@@ -104,6 +110,7 @@ export default defineScan<ScanState>(({ step }) => {
 
       const { request, response } = await context.sdk.requests.send(spec);
       const responseContext = { ...context, response };
+
       const redirectInfo = findRedirection(responseContext);
 
       if (redirectInfo.hasRedirection && redirectInfo.location) {

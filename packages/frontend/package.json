@@ -6,11 +6,11 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@caido/sdk-frontend": "^0.46.0",
     "@caido/primevue": "0.1.14",
-    "primevue": "4.3.3",
-    "vue": "3.5.13",
-    "shared": "workspace:*"
+    "@caido/sdk-frontend": "0.48.2-beta.7",
+    "primevue": "4.1.0",
+    "shared": "workspace:*",
+    "vue": "3.5.13"
   },
   "devDependencies": {
     "@caido/sdk-backend": "^0.46.0",

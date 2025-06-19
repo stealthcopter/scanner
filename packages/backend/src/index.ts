@@ -1,8 +1,8 @@
 import { type DefineAPI, type DefineEvents, type SDK } from "caido:plugin";
 import { type Finding, ScanRunner, ScanStrength } from "engine";
-import jsonHtmlResponse from "packages/backend/src/checks/json-html-response";
 
 import exposedEnvScan from "./checks/exposed-env";
+import jsonHtmlResponse from "./checks/json-html-response";
 import openRedirectScan from "./checks/open-redirect";
 import { ScanRegistry } from "./registry";
 
@@ -27,7 +27,7 @@ export function init(sdk: SDK<API>) {
       request,
       response,
     };
-    const findings: Finding[] = await runner.run([ctx], sdk, {
+    const findings: Finding[] = await runner.run(sdk, [ctx], {
       strength: ScanStrength.MEDIUM,
     });
 

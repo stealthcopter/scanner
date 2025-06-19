@@ -1,24 +1,28 @@
 import {
-  type CheckContext,
   type DefineUtils,
-  type RequestContext,
+  type JSONSerializable,
   type RunState,
+  type ScanContext,
   type ScanDefinition,
   type ScanMetadata,
+  type ScanTarget,
   type ScanTask,
   type Step,
   type StepAction,
   type StepName,
-} from "./types";
+  type StepTickResult,
+} from "../types";
+
 /**
  * Public helper used by scan authors.
  */
 export const defineScan = <T>(
   definition: (utils: DefineUtils<T>) => {
     metadata: ScanMetadata;
-    dedupeKey?: (context: RequestContext) => string;
-    initState: () => T;
-    when?: (ctx: CheckContext) => boolean;
+    initState?: () => T;
+    dedupeKey?: (target: ScanTarget) => string;
+    when?: (context: ScanContext) => boolean;
+    output?: (state: T) => JSONSerializable;
   },
 ): ScanDefinition => {
   const steps: Map<StepName, Step<T>> = new Map();
@@ -27,20 +31,21 @@ export const defineScan = <T>(
     steps.set(name, { name, action });
   };
 
-  const { metadata, dedupeKey, initState, when } = definition({ step });
+  const { metadata, dedupeKey, initState, when, output } = definition({ step });
 
-  const create = (context: CheckContext): ScanTask => {
+  const create = (context: ScanContext): ScanTask => {
     if (steps.size === 0) {
       throw new Error("No steps defined for scan");
     }
 
+    const initialState = initState !== undefined ? initState() : ({} as T);
     const runState: RunState<T> = {
-      state: initState(),
+      state: initialState,
       nextStep: steps.keys().next().value ?? "",
       findings: [],
     };
 
-    const tick = async () => {
+    const tick = async (): Promise<StepTickResult> => {
       const step = steps.get(runState.nextStep);
       if (!step) {
         throw new Error(`Step ${runState.nextStep} not found`);
@@ -68,19 +73,26 @@ export const defineScan = <T>(
       return JSON.stringify(runState);
     };
 
+    const getOutput = (): JSONSerializable | undefined => {
+      if (output === undefined) {
+        return undefined;
+      }
+      return output(runState.state);
+    };
+
     return {
       id: metadata.id,
       tick,
       serialize,
-      getFindings: () => [...runState.findings],
-      getState: () => runState.state,
+      getFindings: () => runState.findings,
+      getOutput,
     };
   };
 
   return {
     metadata,
     dedupeKey,
-    when: when ?? (() => true),
+    when,
     create,
   };
 };

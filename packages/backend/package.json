@@ -8,7 +8,9 @@
   },
   "devDependencies": {
     "@caido/sdk-backend": "^0.48.1",
+    "engine": "workspace:*",
     "shared": "workspace:*",
-    "engine": "workspace:*"
-  }
+    "vitest": "^3.2.3"
+  },
+  "dependencies": {}
 }

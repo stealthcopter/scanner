@@ -1,20 +1,15 @@
-import type { IAttribute, INode, ITag, IText } from "html5parser";
-
-export type HtmlElement = ITag;
-export type HtmlTextNode = IText;
-export type HtmlNode = INode;
-export type HtmlAttribute = IAttribute;
+import type { INode, ITag } from "html5parser";
 
 export type ElementSelector = {
   tagName?: string;
 };
 
 export type ParsedHtml = {
-  ast: HtmlNode[];
-  findElements: (selector: ElementSelector) => HtmlElement[];
+  ast: INode[];
+  findElements: (selector: ElementSelector) => ITag[];
   getElementAttribute: (
-    element: HtmlElement,
+    element: ITag,
     attributeName: string,
   ) => string | undefined;
-  getElementText: (element: HtmlElement) => string;
+  getElementText: (element: ITag) => string;
 };

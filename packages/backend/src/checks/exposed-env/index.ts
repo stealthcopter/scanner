@@ -67,7 +67,7 @@ const isValidEnvContent = (bodyText: string, contentType: string): boolean => {
 
 export default defineScan<ScanState>(({ step }) => {
   step("setupScan", (_, context) => {
-    const envFiles = getEnvFilesToTest(context.strength);
+    const envFiles = getEnvFilesToTest(context.config.strength);
     const basePath = getBasePath(context.request.getPath());
 
     return continueWith({

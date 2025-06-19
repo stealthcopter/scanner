@@ -1,6 +1,6 @@
 import { Graph, topologicalSort } from "graph-data-structure";
 
-import { type ScanDefinition } from "../../api/types";
+import { type ScanDefinition } from "../../types";
 
 /**
  * Takes a list of scans and organizes them into execution batches

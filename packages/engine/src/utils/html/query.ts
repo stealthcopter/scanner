@@ -1,12 +1,9 @@
-import { SyntaxKind, walk } from "html5parser";
+import { type INode, type ITag, SyntaxKind, walk } from "html5parser";
 
-import type { ElementSelector, HtmlElement, HtmlNode } from "./types";
+import type { ElementSelector } from "./types";
 
-export function findElements(
-  ast: HtmlNode[],
-  selector: ElementSelector,
-): HtmlElement[] {
-  const results: HtmlElement[] = [];
+export function findElements(ast: INode[], selector: ElementSelector): ITag[] {
+  const results: ITag[] = [];
 
   walk(ast, {
     enter: (node) => {
@@ -20,7 +17,7 @@ export function findElements(
 }
 
 export function getElementAttribute(
-  element: HtmlElement,
+  element: ITag,
   attributeName: string,
 ): string | undefined {
   if (!element.attributeMap) {
@@ -34,7 +31,7 @@ export function getElementAttribute(
   return attr?.value?.value;
 }
 
-export function getElementText(element: HtmlElement): string {
+export function getElementText(element: ITag): string {
   if (!element.body || !Array.isArray(element.body)) {
     return "";
   }
@@ -51,10 +48,7 @@ export function getElementText(element: HtmlElement): string {
   return text.trim();
 }
 
-function matchesSelector(
-  element: HtmlElement,
-  selector: ElementSelector,
-): boolean {
+function matchesSelector(element: ITag, selector: ElementSelector): boolean {
   if (
     selector.tagName !== undefined &&
     element.name !== selector.tagName.toLowerCase()

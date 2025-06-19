@@ -1,22 +1,10 @@
+import type { Response } from "caido:utils";
 import { parse } from "html5parser";
-
-import type { CheckContext } from "../../api/types";
 
 import { findElements, getElementAttribute, getElementText } from "./query";
 import type { ParsedHtml } from "./types";
 
-export function parseHtml(context: CheckContext): ParsedHtml | undefined {
-  const response = context.response;
-  if (!response) {
-    return undefined;
-  }
-
-  const requestId = response.getId();
-
-  if (context.htmlCache.has(requestId)) {
-    return context.htmlCache.get(requestId)!;
-  }
-
+export function parseHtml(response: Response): ParsedHtml | undefined {
   const body = response.getBody();
   if (!body) {
     return undefined;
@@ -42,7 +30,6 @@ export function parseHtml(context: CheckContext): ParsedHtml | undefined {
     getElementText,
   };
 
-  context.htmlCache.set(requestId, parsedHtml);
   return parsedHtml;
 }
 

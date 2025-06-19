@@ -1,4 +1,4 @@
-import { type Finding, type StepName, type StepResult } from "../api/types";
+import { type Finding, type StepName, type StepResult } from "../types";
 
 type ContinueParams<T> = {
   nextStep: StepName;
