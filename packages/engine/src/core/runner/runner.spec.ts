@@ -36,7 +36,7 @@ describe("ScanRunner", () => {
       response: {
         getId: () => "123",
       },
-    }) as unknown as ScanTarget;
+    } as unknown as ScanTarget);
 
   it("should deduplicate scans based on dedupeKey", async () => {
     const mockStep = vi.fn().mockReturnValue(done({ findings: [baseFinding] }));
@@ -94,5 +94,58 @@ describe("ScanRunner", () => {
 
     expect(mockWhen).toHaveBeenCalledTimes(1);
     expect(mockStep).not.toHaveBeenCalled();
+  });
+
+  it("should pass the dependencies to the scan", async () => {
+    const mockFirstStep = vi.fn().mockReturnValue(
+      done({
+        findings: [{ ...baseFinding, name: "first-finding" }],
+        state: { path: "test" },
+      })
+    );
+
+    const firstScan = defineScan<{ path: string }>(({ step }) => {
+      step("execute", mockFirstStep);
+
+      return {
+        metadata: { ...baseMetadata, id: "first-scan" },
+        output: (state) => ({
+          path: state.path,
+        }),
+      };
+    });
+
+    const secondScan = defineScan(({ step }) => {
+      step("execute", (_, context) => {
+        const dependencies = context.runtime.dependencies.get("first-scan") as {
+          path: string;
+        };
+
+        return done({
+          findings: [{ ...baseFinding, name: dependencies?.path }],
+        });
+      });
+
+      return {
+        metadata: {
+          ...baseMetadata,
+          id: "second-scan",
+          dependsOn: ["first-scan"],
+        },
+      };
+    });
+
+    const runner = new ScanRunner();
+    runner.register(firstScan);
+    runner.register(secondScan);
+
+    const findings = await runner.run(sdk, [createTarget()], {
+      strength: ScanStrength.HIGH,
+    });
+
+    expect(findings).toEqual([
+      { ...baseFinding, name: "first-finding" },
+      { ...baseFinding, name: "test" },
+    ]);
   });
 });
