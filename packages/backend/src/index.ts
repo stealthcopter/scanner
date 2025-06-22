@@ -1,5 +1,10 @@
 import { type DefineAPI, type DefineEvents, type SDK } from "caido:plugin";
-import { type Finding, ScanRunner, ScanStrength } from "engine";
+import {
+  type Finding,
+  ScanRunner,
+  ScanStrength,
+  type ScanTarget,
+} from "engine";
 
 import exposedEnvScan from "./checks/exposed-env";
 import jsonHtmlResponse from "./checks/json-html-response";
@@ -20,14 +25,14 @@ export function init(sdk: SDK<API>) {
       return;
     }
 
-    const runner = new ScanRunner();
-    passiveScans.forEach((scan) => runner.register(scan));
+    const runner = new ScanRunner(passiveScans);
 
-    const ctx = {
+    const target: ScanTarget = {
       request,
       response,
     };
-    const findings: Finding[] = await runner.run(sdk, [ctx], {
+
+    const findings: Finding[] = await runner.run(sdk, [target], {
       strength: ScanStrength.MEDIUM,
     });
 

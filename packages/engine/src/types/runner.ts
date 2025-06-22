@@ -3,17 +3,13 @@ import type { Request, Response } from "caido:utils";
 
 import type { ScanRuntime } from "./runtime";
 
-export enum JobState {
-  IDLE,
-  RUNNING,
-  STOPPED,
-}
+export const ScanStrength = {
+  LOW: 0,
+  MEDIUM: 1,
+  HIGH: 2,
+} as const;
 
-export enum ScanStrength {
-  LOW,
-  MEDIUM,
-  HIGH,
-}
+export type ScanStrength = (typeof ScanStrength)[keyof typeof ScanStrength];
 
 export type ScanTarget = {
   request: Request;

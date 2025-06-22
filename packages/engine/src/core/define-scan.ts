@@ -13,9 +13,6 @@ import {
   type StepTickResult,
 } from "../types";
 
-/**
- * Public helper used by scan authors.
- */
 export const defineScan = <T>(
   definition: (utils: DefineUtils<T>) => {
     metadata: ScanMetadata;

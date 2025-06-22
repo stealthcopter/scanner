@@ -5,12 +5,6 @@ import type { ParsedHtml } from "../../utils";
  */
 export type HTMLParser = {
   /**
-   * Used internally to avoid running the HTML parser multiple times on same requestID.
-   * Map<requestID, ParsedHtml>
-   */
-  _cache: Map<string, ParsedHtml>;
-
-  /**
    * Get the parsed HTML for current context.
    */
   get: () => ParsedHtml | undefined;

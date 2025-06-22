@@ -3,7 +3,7 @@ import { parseHtml } from "../../../utils/html";
 import { type ParsedHtml } from "../../../utils/html/types";
 
 export class HtmlCache {
-  public readonly cache = new Map<string, ParsedHtml>();
+  private cache = new Map<string, ParsedHtml>();
 
   get(target: ScanTarget): ParsedHtml | undefined {
     const response = target.response;

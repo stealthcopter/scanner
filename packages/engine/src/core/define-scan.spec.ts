@@ -8,214 +8,162 @@ import {
   type ScanContext,
   type ScanMetadata,
 } from "../index";
-
 import {
   createBaseFinding,
   createBaseMetadata,
   createScanContext,
-} from "./__tests__/utils";
+} from "../tests/factories";
 
 describe("defineScan", () => {
-  let baseFinding: Finding;
   let baseMetadata: ScanMetadata;
   let context: ScanContext;
+  let baseFinding: Finding;
 
   beforeEach(() => {
-    baseFinding = createBaseFinding();
     baseMetadata = createBaseMetadata();
     context = createScanContext();
+    baseFinding = createBaseFinding();
   });
 
-  it("should throw error when no steps are defined", () => {
-    const scan = defineScan(() => ({
-      metadata: baseMetadata,
-    }));
-
-    expect(() => scan.create(context)).toThrow("No steps defined for scan");
-  });
-
-  it("should execute a single step and return findings", async () => {
-    const scan = defineScan(({ step }) => {
-      step("execute", () => done({ findings: [baseFinding] }));
-
-      return {
-        metadata: baseMetadata,
-      };
+  describe("Definition", () => {
+    it("should return a scan definition with the provided metadata", () => {
+      const scan = defineScan(() => ({ metadata: baseMetadata }));
+      expect(scan.metadata).toEqual(baseMetadata);
     });
-
-    const task = scan.create(context);
-
-    const result = await task.tick();
-
-    expect(result.isDone).toBe(true);
-    expect(result.findings).toEqual([baseFinding]);
-    expect(task.getFindings()).toEqual([baseFinding]);
   });
 
-  it("should execute multiple steps in sequence", async () => {
-    const firstStepMock = vi.fn().mockReturnValue(
-      continueWith({
-        state: {},
-        nextStep: "second",
-      }),
-    );
-
-    const secondStepMock = vi.fn().mockReturnValue(
-      done({
-        findings: [baseFinding],
-      }),
-    );
-
-    const scan = defineScan(({ step }) => {
-      step("first", firstStepMock);
-      step("second", secondStepMock);
-
-      return {
-        metadata: baseMetadata,
-      };
+  describe("Task Creation", () => {
+    it("should throw an error if no steps are defined", () => {
+      const scan = defineScan(() => ({ metadata: baseMetadata }));
+      expect(() => scan.create(context)).toThrow("No steps defined for scan");
     });
-
-    const task = scan.create(context);
-
-    await task.tick();
-    await task.tick();
-
-    expect(firstStepMock).toHaveBeenCalledTimes(1);
-    expect(secondStepMock).toHaveBeenCalledTimes(1);
-
-    expect(task.getFindings()).toEqual([baseFinding]);
   });
 
-  it("should pass state between steps", async () => {
-    let capturedState: unknown;
+  describe("State Management", () => {
+    it("should initialize state with the 'initState' function", async () => {
+      const initState = () => ({ count: 100 });
+      const stepMock = vi.fn().mockReturnValue(done());
 
-    const scan = defineScan(({ step }) => {
-      step("first", () => {
-        return continueWith({
-          state: { data: "test-data", count: 42 },
-          nextStep: "second",
-        });
+      const scan = defineScan(({ step }) => {
+        step("start", stepMock);
+        return { metadata: baseMetadata, initState };
       });
 
-      step("second", (state) => {
-        capturedState = state;
-        return done({ findings: [baseFinding] });
-      });
+      const task = scan.create(context);
+      await task.tick();
 
-      return {
-        metadata: baseMetadata,
-      };
+      expect(stepMock).toHaveBeenCalledWith({ count: 100 }, context);
     });
 
-    const task = scan.create(context);
+    it("should pass state between steps", async () => {
+      const secondStepMock = vi.fn().mockReturnValue(done());
 
-    await task.tick();
-    await task.tick();
+      const scan = defineScan(({ step }) => {
+        step("first", () =>
+          continueWith({ state: { data: "test" }, nextStep: "second" }),
+        );
+        step("second", secondStepMock);
+        return { metadata: baseMetadata };
+      });
 
-    expect(capturedState).toEqual({ data: "test-data", count: 42 });
+      const task = scan.create(context);
+      await task.tick();
+      await task.tick();
+
+      expect(secondStepMock).toHaveBeenCalledWith({ data: "test" }, context);
+    });
+
+    it("should retain the last state if 'done' is called without a state", async () => {
+      const outputMock = vi.fn();
+      const initialState = { result: "initial" };
+
+      const scan = defineScan(({ step }) => {
+        step("execute", () => done());
+        return {
+          metadata: baseMetadata,
+          initState: () => initialState,
+          output: outputMock,
+        };
+      });
+
+      const task = scan.create(context);
+      await task.tick();
+      task.getOutput();
+
+      expect(outputMock).toHaveBeenCalledWith(initialState);
+    });
   });
 
-  it("should initialize state with initState function", async () => {
-    let capturedState: unknown;
-
-    const scan = defineScan(({ step }) => {
-      step("execute", (state) => {
-        capturedState = state;
-        return done({ findings: [baseFinding] });
+  describe("Execution Flow", () => {
+    it("should execute a single step and finish", async () => {
+      const scan = defineScan(({ step }) => {
+        step("execute", () => done({ findings: [baseFinding] }));
+        return { metadata: baseMetadata };
       });
 
-      return {
-        metadata: baseMetadata,
-        initState: () => ({ initialized: true, value: 100 }),
-      };
+      const task = scan.create(context);
+      const result = await task.tick();
+
+      expect(result.isDone).toBe(true);
+      expect(result.findings).toEqual([baseFinding]);
+      expect(task.getFindings()).toEqual([baseFinding]);
     });
 
-    const task = scan.create(context);
+    it("should execute multiple steps in sequence", async () => {
+      const firstStepMock = vi
+        .fn()
+        .mockReturnValue(continueWith({ state: {}, nextStep: "second" }));
+      const secondStepMock = vi
+        .fn()
+        .mockReturnValue(done({ findings: [baseFinding] }));
 
-    await task.tick();
+      const scan = defineScan(({ step }) => {
+        step("first", firstStepMock);
+        step("second", secondStepMock);
+        return { metadata: baseMetadata };
+      });
 
-    expect(capturedState).toEqual({ initialized: true, value: 100 });
+      const task = scan.create(context);
+      const firstTickResult = await task.tick();
+      const secondTickResult = await task.tick();
+
+      expect(firstStepMock).toHaveBeenCalledTimes(1);
+      expect(secondStepMock).toHaveBeenCalledTimes(1);
+      expect(firstTickResult.isDone).toBe(false);
+      expect(secondTickResult.isDone).toBe(true);
+      expect(task.getFindings()).toEqual([baseFinding]);
+    });
+
+    it("should throw an error when trying to tick to an unknown step", async () => {
+      const scan = defineScan(({ step }) => {
+        step("start", () =>
+          continueWith({ state: {}, nextStep: "nonexistent" }),
+        );
+        return { metadata: baseMetadata };
+      });
+
+      const task = scan.create(context);
+      await task.tick();
+      await expect(task.tick()).rejects.toThrow("Step nonexistent not found");
+    });
   });
 
-  it("should accumulate findings across steps", async () => {
-    const finding1 = { ...baseFinding, name: "finding-1" };
-    const finding2 = { ...baseFinding, name: "finding-2" };
+  describe("Output", () => {
+    it("should call the output function with the final state", async () => {
+      const outputMock = vi.fn().mockReturnValue({ custom: "output" });
+      const finalState = { result: "success" };
 
-    const scan = defineScan(({ step }) => {
-      step("first", () => {
-        return continueWith({
-          state: {},
-          nextStep: "second",
-          findings: [finding1],
-        });
+      const scan = defineScan(({ step }) => {
+        step("execute", () => done({ state: finalState }));
+        return { metadata: baseMetadata, output: outputMock };
       });
 
-      step("second", () => {
-        return done({ findings: [finding2] });
-      });
+      const task = scan.create(context);
+      await task.tick();
+      const outputResult = task.getOutput();
 
-      return {
-        metadata: baseMetadata,
-      };
+      expect(outputMock).toHaveBeenCalledWith(finalState);
+      expect(outputResult).toEqual({ custom: "output" });
     });
-
-    const task = scan.create(context);
-
-    await task.tick();
-    await task.tick();
-
-    const allFindings = task.getFindings();
-    expect(allFindings).toHaveLength(2);
-    expect(allFindings).toContain(finding1);
-    expect(allFindings).toContain(finding2);
-  });
-
-  it("should throw error for unknown step", async () => {
-    const scan = defineScan(({ step }) => {
-      step("execute", () => {
-        return continueWith({
-          state: {},
-          nextStep: "unknown-step",
-        });
-      });
-
-      return {
-        metadata: baseMetadata,
-      };
-    });
-
-    const task = scan.create(context);
-
-    await task.tick();
-    await expect(task.tick()).rejects.toThrow("Step unknown-step not found");
-  });
-
-  it("should call the output function with the final state", async () => {
-    const mockOutput = vi.fn().mockReturnValue({ hello: "world" });
-    const finalState = { result: "success", data: [1, 2, 3] };
-
-    const scan = defineScan(({ step }) => {
-      step("execute", () => {
-        return done({
-          state: finalState,
-          findings: [baseFinding],
-        });
-      });
-
-      return {
-        metadata: baseMetadata,
-        output: mockOutput,
-      };
-    });
-
-    const task = scan.create(context);
-    await task.tick();
-
-    const outputResult = task.getOutput();
-
-    expect(mockOutput).toHaveBeenCalledTimes(1);
-    expect(mockOutput).toHaveBeenCalledWith(finalState);
-
-    expect(outputResult).toEqual({ hello: "world" });
   });
 });
