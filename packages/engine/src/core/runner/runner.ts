@@ -16,11 +16,15 @@ import { ScanOrchestrator } from "./orchestrator";
 export class ScanRunner {
   public readonly scans: ScanDefinition[] = [];
 
-  public register(scan: ScanDefinition): void {
-    if (this.scans.some((s) => s.metadata.id === scan.metadata.id)) {
-      throw new Error(`Scan with id '${scan.metadata.id}' already registered`);
+  public register(...scans: ScanDefinition[]): void {
+    for (const scan of scans) {
+      if (this.scans.some((s) => s.metadata.id === scan.metadata.id)) {
+        throw new Error(
+          `Scan with id '${scan.metadata.id}' already registered`,
+        );
+      }
+      this.scans.push(scan);
     }
-    this.scans.push(scan);
   }
 
   public async run(
