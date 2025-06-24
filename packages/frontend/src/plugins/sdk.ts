@@ -9,5 +9,5 @@ export const SDKPlugin: Plugin = (app, sdk: FrontendSDK) => {
 };
 
 export const useSDK = () => {
-  return inject(KEY);
+  return inject(KEY) as FrontendSDK;
 };

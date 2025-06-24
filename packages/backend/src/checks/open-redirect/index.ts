@@ -124,7 +124,7 @@ export default defineScan<{
               findings: [
                 {
                   name: "Open Redirect",
-                  description: `Parameter '${currentParam}' allows ${redirectInfo.type} redirect via the '${payloadRecipe.technique}' technique.\nPayload used: '${instance.value}'\n${payloadRecipe.description}`,
+                  description: `Parameter \`${currentParam}\` allows ${redirectInfo.type} redirect via the \`${payloadRecipe.technique}\` technique.\n\n**Payload used:**\n\`\`\`\n${instance.value}\n\`\`\`\n\n${payloadRecipe.description}`,
                   severity: Severity.MEDIUM,
                   requestID: request.getId(),
                 },

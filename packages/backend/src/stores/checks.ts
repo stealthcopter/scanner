@@ -1,26 +1,5 @@
-import type { ScanDefinition, ScanMetadata, ScanType } from "engine";
-
-export type SelectOptions = {
-  /**
-   * Filter by scan type (e.g. only run PASSIVE checks)
-   */
-  type?: ScanType;
-
-  /**
-   * A whitelist of scan IDs to run. If provided, only these scans are considered
-   */
-  include?: string[];
-
-  /**
-   * A blacklist of scan IDs to skip. This is applied after the 'include' and 'type' filters
-   */
-  exclude?: string[];
-
-  /**
-   * If true, returns ScanMetadata[] instead of ScanDefinition[]
-   */
-  returnMetadata?: boolean;
-};
+import type { ScanDefinition, ScanMetadata } from "engine";
+import type { SelectOptions } from "shared";
 
 export class ChecksStore {
   private static _store?: ChecksStore;

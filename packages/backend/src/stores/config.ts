@@ -1,17 +1,10 @@
 import { ScanStrength } from "engine";
-
-export type UserConfig = {
-  passive: {
-    enabled: boolean;
-    strength: ScanStrength;
-    overrides: Record<string, { passive: boolean; active: boolean }>;
-  };
-};
+import { type UserConfigDTO } from "shared";
 
 export class ConfigStore {
   private static _store?: ConfigStore;
 
-  private config: UserConfig;
+  private config: UserConfigDTO;
 
   private constructor() {
     this.config = {
@@ -35,7 +28,7 @@ export class ConfigStore {
     return { ...this.config };
   }
 
-  updateUserConfig(config: Partial<UserConfig>) {
+  updateUserConfig(config: Partial<UserConfigDTO>) {
     Object.assign(this.config, config);
     return this.config;
   }

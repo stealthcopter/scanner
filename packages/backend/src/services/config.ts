@@ -1,16 +1,16 @@
-import { ok, type Result } from "shared";
+import { ok, type Result, type UserConfigDTO } from "shared";
 
-import { ConfigStore, type UserConfig } from "../stores/config";
+import { ConfigStore } from "../stores/config";
 import { type BackendSDK } from "../types";
 
-export const getUserConfig = (_: BackendSDK): Result<UserConfig> => {
+export const getUserConfig = (_: BackendSDK): Result<UserConfigDTO> => {
   const store = ConfigStore.get();
   return ok(store.getUserConfig());
 };
 
 export const updateUserConfig = (
   _: BackendSDK,
-  config: Partial<UserConfig>,
+  config: Partial<UserConfigDTO>,
 ): Result<void> => {
   const store = ConfigStore.get();
   store.updateUserConfig(config);

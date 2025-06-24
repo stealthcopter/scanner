@@ -11,6 +11,8 @@ import { ChecksStore } from "./stores/checks";
 import { ConfigStore } from "./stores/config";
 import { type BackendSDK } from "./types";
 
+export { type BackendEvents } from "./types";
+
 export type API = DefineAPI<{
   getChecks: typeof getChecks;
   getUserConfig: typeof getUserConfig;

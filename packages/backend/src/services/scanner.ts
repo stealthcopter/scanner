@@ -5,13 +5,23 @@ import { ChecksStore } from "../stores/checks";
 import { ConfigStore } from "../stores/config";
 import { type BackendSDK } from "../types";
 
-// TODO: this should return a scanID and run in background
 export const startActiveScan = async (
   sdk: BackendSDK,
-  ...targets: ScanTarget[]
+  requestIDs: string[],
 ): Promise<Result<Finding[]>> => {
-  if (targets.length === 0) {
+  if (requestIDs.length === 0) {
     return error("No targets provided");
+  }
+
+  const targets: ScanTarget[] = [];
+  for (const id of requestIDs) {
+    const requestResponse = await sdk.requests.get(id);
+    if (requestResponse?.request && requestResponse?.response) {
+      targets.push({
+        request: requestResponse.request,
+        response: requestResponse.response,
+      });
+    }
   }
 
   const checksStore = ChecksStore.get();
@@ -20,11 +30,11 @@ export const startActiveScan = async (
     return error("No active scans available");
   }
 
-  const runner = new ScanRunner();
-  runner.register(...activeScans);
-
   const configStore = ConfigStore.get();
   const config = configStore.getUserConfig();
+
+  const runner = new ScanRunner();
+  runner.register(...activeScans);
 
   const findings: Finding[] = await runner.run(sdk, targets, {
     strength: config.passive.strength,
