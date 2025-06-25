@@ -6,7 +6,7 @@ import jsonHtmlResponse from "./checks/json-html-response";
 import openRedirectScan from "./checks/open-redirect";
 import { getChecks } from "./services/checks";
 import { getUserConfig, updateUserConfig } from "./services/config";
-import { startActiveScan } from "./services/scanner";
+import { getScanSession, startActiveScan } from "./services/scanner";
 import { ChecksStore } from "./stores/checks";
 import { ConfigStore } from "./stores/config";
 import { type BackendSDK } from "./types";
@@ -18,6 +18,7 @@ export type API = DefineAPI<{
   getUserConfig: typeof getUserConfig;
   updateUserConfig: typeof updateUserConfig;
   startActiveScan: typeof startActiveScan;
+  getScanSession: typeof getScanSession;
 }>;
 
 export function init(sdk: BackendSDK) {
@@ -25,6 +26,7 @@ export function init(sdk: BackendSDK) {
   sdk.api.register("getUserConfig", getUserConfig);
   sdk.api.register("updateUserConfig", updateUserConfig);
   sdk.api.register("startActiveScan", startActiveScan);
+  sdk.api.register("getScanSession", getScanSession);
 
   const checksStore = ChecksStore.get();
   checksStore.register(exposedEnvScan, openRedirectScan, jsonHtmlResponse);

@@ -54,6 +54,15 @@ const STRATEGIES: Readonly<Record<UrlBypassTechnique, BypassStrategy>> = {
       validatesWith: (url) => url.hostname.endsWith(attackerHost),
     }),
   }),
+  SchemeRelative: ({ attackerHost }) => ({
+    technique: "SchemeRelative",
+    description:
+      "Uses a scheme-relative URL, which may be treated as an external domain.",
+    generate: () => ({
+      value: `//${attackerHost}/`,
+      validatesWith: (url) => url.hostname.endsWith(attackerHost),
+    }),
+  }),
   EncodedSlashUserInfoBypass: ({ expectedHost, attackerHost, protocol }) => ({
     technique: "EncodedSlashUserInfoBypass",
     description: "Uses a URL-encoded slash (%2F) before the @ symbol.",
@@ -79,7 +88,7 @@ const STRATEGIES: Readonly<Record<UrlBypassTechnique, BypassStrategy>> = {
     description:
       "Uses a fragment (#) to mask the intended host from some parsers.",
     generate: () => ({
-      value: `${protocol}//${attackerHost}#${expectedHost}`,
+      value: `${protocol}//${attackerHost}#${expectedHost}/`,
       validatesWith: (url) => url.hostname.endsWith(attackerHost),
     }),
   }),
@@ -87,16 +96,7 @@ const STRATEGIES: Readonly<Record<UrlBypassTechnique, BypassStrategy>> = {
     technique: "EncodedFragmentBypass",
     description: "Uses a URL-encoded fragment (%23) to mask the intended host.",
     generate: () => ({
-      value: `${protocol}//${attackerHost}%23${expectedHost}`,
-      validatesWith: (url) => url.hostname.endsWith(attackerHost),
-    }),
-  }),
-  SchemeRelative: ({ attackerHost }) => ({
-    technique: "SchemeRelative",
-    description:
-      "Uses a scheme-relative URL, which may be treated as an external domain.",
-    generate: () => ({
-      value: `//${attackerHost}`,
+      value: `${protocol}//${attackerHost}%23${expectedHost}/`,
       validatesWith: (url) => url.hostname.endsWith(attackerHost),
     }),
   }),
@@ -104,7 +104,7 @@ const STRATEGIES: Readonly<Record<UrlBypassTechnique, BypassStrategy>> = {
     technique: "BackslashPrefix",
     description: "Uses backslashes, which some parsers interpret differently.",
     generate: () => ({
-      value: `${protocol}//${attackerHost}\\\\${expectedHost}`,
+      value: `${protocol}//${attackerHost}\\@${expectedHost}/`,
       validatesWith: (url) => url.hostname.endsWith(attackerHost),
     }),
   }),
@@ -124,8 +124,8 @@ const STRATEGIES: Readonly<Record<UrlBypassTechnique, BypassStrategy>> = {
         "x" +
         expectedHost.substring(lastDotIndex + 1);
       return {
-        value: `${protocol}//${maliciousHost}`,
-        validatesWith: (url) => url.hostname === maliciousHost,
+        value: `${protocol}//${maliciousHost}/`,
+        validatesWith: (url) => url.host === maliciousHost,
       };
     },
   }),
@@ -134,7 +134,7 @@ const STRATEGIES: Readonly<Record<UrlBypassTechnique, BypassStrategy>> = {
     description: "Uses a base64 encoded string to bypass the expected host.",
     generate: () => {
       return {
-        value: btoa(`${protocol}//${attackerHost}`),
+        value: btoa(`${protocol}//${attackerHost}/`),
         validatesWith: (url) => url.hostname === attackerHost,
       };
     },

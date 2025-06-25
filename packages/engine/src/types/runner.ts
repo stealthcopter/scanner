@@ -1,7 +1,14 @@
 import type { SDK } from "caido:plugin";
 import type { Request, Response } from "caido:utils";
 
+import type { Finding } from "./finding";
 import type { ScanRuntime } from "./runtime";
+
+export type FindingHandler = (finding: Finding) => void;
+
+export type ScanCallbacks = {
+  onFinding?: FindingHandler;
+};
 
 export const ScanStrength = {
   LOW: 0,

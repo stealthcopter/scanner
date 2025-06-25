@@ -1,4 +1,4 @@
-import { type UserConfigDTO } from "shared";
+import { type UserConfig } from "shared";
 
 import { useSDK } from "@/plugins/sdk";
 
@@ -20,7 +20,7 @@ export const useConfigRepository = () => {
     }
   };
 
-  const updateConfig = async (update: Partial<UserConfigDTO>) => {
+  const updateConfig = async (update: Partial<UserConfig>) => {
     try {
       await sdk.backend.updateUserConfig(update);
       return {

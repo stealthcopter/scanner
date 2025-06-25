@@ -59,24 +59,8 @@ export const init = (sdk: FrontendSDK) => {
         return;
       }
 
-      for (const finding of result.value) {
-        if (finding.requestID === undefined) continue;
-
-        await sdk.findings.createFinding(finding.requestID, {
-          reporter: "Scanner: Active",
-          title: finding.name,
-          description: finding.description,
-        });
-      }
-
-      if (result.value.length > 0) {
-        sdk.window.showToast(
-          `Created ${result.value.length} finding${result.value.length === 1 ? "" : "s"}`,
-          { variant: "success" },
-        );
-      } else {
-        sdk.window.showToast("No findings detected", { variant: "info" });
-      }
+      console.log("startActiveScan", result);
+      sdk.window.showToast(`Scan started`, { variant: "info" });
     },
     group: "Scanner",
     when: (context) => {
@@ -85,6 +69,26 @@ export const init = (sdk: FrontendSDK) => {
         (context.type === "RequestContext" && context.request.id !== undefined)
       );
     },
+  });
+
+  sdk.backend.onEvent("scanner:finished", async (sessionId) => {
+    const response = await sdk.backend.getScanSession(sessionId);
+    if (response.kind === "Error") {
+      sdk.window.showToast(`Scan failed: ${response.error}`, {
+        variant: "error",
+      });
+      return;
+    }
+
+    const session = response.value;
+    if (session.kind === "Done") {
+      sdk.window.showToast(
+        `Scan finished with ${session.findings.length} findings`,
+        { variant: "success" },
+      );
+    } else if (session.kind === "Error") {
+      sdk.window.showToast(`Scan failed`, { variant: "error" });
+    }
   });
 
   sdk.menu.registerItem({

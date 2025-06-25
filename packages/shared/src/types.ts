@@ -1,6 +1,6 @@
-import { type ScanStrength, type ScanType } from "engine";
+import { type Finding, type ScanStrength, type ScanType } from "engine";
 
-export type UserConfigDTO = {
+export type UserConfig = {
   passive: {
     enabled: boolean;
     strength: ScanStrength;
@@ -19,6 +19,18 @@ export type GetChecksOptions = Pick<
   SelectOptions,
   "type" | "include" | "exclude"
 >;
+
+export type ScanState =
+  | { kind: "Pending"; createdAt: number }
+  | { kind: "Running"; createdAt: number; startedAt: number }
+  | {
+      kind: "Done";
+      createdAt: number;
+      startedAt: number;
+      finishedAt: number;
+      findings: Finding[];
+    }
+  | { kind: "Error"; createdAt: number; error: string };
 
 export type Result<T> =
   | { kind: "Error"; error: string }

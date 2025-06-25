@@ -12,5 +12,5 @@ export type Finding = {
   name: string;
   description: string;
   severity: Severity;
-  requestID?: string;
+  requestID: string;
 };

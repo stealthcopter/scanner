@@ -23,6 +23,7 @@ export const createBaseFinding = (
   name: "test-finding",
   description: "Test finding description",
   severity: Severity.INFO,
+  requestID: "123",
   ...overrides,
 });
 

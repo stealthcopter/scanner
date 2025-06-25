@@ -40,9 +40,6 @@ const getUrlParams = (query: string): string[] => {
 
 export default defineScan<{
   urlParams: string[];
-  attackerHost?: string;
-  expectedHost?: string;
-  protocol?: string;
 }>(({ step }) => {
   step("findUrlParams", (_, context) => {
     const query = context.request.getQuery();
@@ -53,26 +50,8 @@ export default defineScan<{
     }
 
     return continueWith({
-      nextStep: "setupAttack",
-      state: { urlParams },
-    });
-  });
-
-  step("setupAttack", (state, context) => {
-    const attackerHost = "example.com";
-    const host = context.request.getHost();
-    const port = context.request.getPort();
-    const protocol = new URL(context.request.getUrl()).protocol;
-    const expectedHost = port === 80 || port === 443 ? host : `${host}:${port}`;
-
-    return continueWith({
       nextStep: "testParam",
-      state: {
-        ...state,
-        attackerHost,
-        expectedHost,
-        protocol,
-      },
+      state: { urlParams },
     });
   });
 
@@ -86,10 +65,42 @@ export default defineScan<{
       return done();
     }
 
+    const attackerHost = "example.com";
+    let expectedHost: string;
+    let protocol: string;
+
+    const originalQueryForParamValue = context.request.getQuery() || "";
+    context.sdk.console.log("originalQueryForParamValue", originalQueryForParamValue);
+    const paramsForParamValue = new URLSearchParams(originalQueryForParamValue);
+    const paramValue = paramsForParamValue.get(currentParam);
+    context.sdk.console.log("paramValue", paramValue);
+    if (
+      paramValue &&
+      (paramValue.startsWith("http://") || paramValue.startsWith("https://"))
+    ) {
+      try {
+        const url = new URL(paramValue);
+        expectedHost = url.host;
+        protocol = url.protocol;
+      } catch (e) {
+        const host = context.request.getHost();
+        const port = context.request.getPort();
+
+        protocol = new URL(context.request.getUrl()).protocol;
+        expectedHost = port === 80 || port === 443 ? host : `${host}:${port}`;
+      }
+    } else {
+      const host = context.request.getHost();
+      const port = context.request.getPort();
+
+      protocol = new URL(context.request.getUrl()).protocol;
+      expectedHost = port === 80 || port === 443 ? host : `${host}:${port}`;
+    }
+
     let generator = createUrlBypassGenerator({
-      expectedHost: state.expectedHost!,
-      attackerHost: state.attackerHost!,
-      protocol: state.protocol!,
+      expectedHost,
+      attackerHost,
+      protocol,
     });
 
     if (context.config.strength === ScanStrength.LOW) {
@@ -104,6 +115,7 @@ export default defineScan<{
       const originalQuery = context.request.getQuery() || "";
       const params = new URLSearchParams(originalQuery);
       params.set(currentParam, instance.value);
+      context.sdk.console.log("params", params.toString());
 
       const spec = context.request.toSpec();
       spec.setQuery(params.toString());

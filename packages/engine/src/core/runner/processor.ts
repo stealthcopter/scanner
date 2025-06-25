@@ -1,5 +1,6 @@
 import {
   type Finding,
+  type ScanCallbacks,
   type ScanContext,
   type ScanDefinition,
   type ScanTarget,
@@ -17,27 +18,29 @@ export class TargetProcessor {
     private readonly orchestrator: ScanOrchestrator,
   ) {}
 
-  public async process(): Promise<Finding[]> {
-    const findings: Finding[] = [];
+  public async process(callbacks?: ScanCallbacks): Promise<Finding[]> {
+    const allFindings: Finding[] = [];
     const context = this.createContext();
 
     for (const batch of this.orchestrator.batches) {
-      const batchFindings = await this.processBatch(batch, context);
-      findings.push(...batchFindings);
+      const batchFindings = await this.processBatch(batch, context, callbacks);
+      allFindings.push(...batchFindings);
     }
 
-    return findings;
+    return allFindings;
   }
 
   private async processBatch(
     batch: ScanDefinition[],
     context: ScanContext,
+    callbacks?: ScanCallbacks,
   ): Promise<Finding[]> {
+    const findings: Finding[] = [];
+
     const tasks = batch
       .filter((scan) => this.isScanApplicable(scan, context))
       .map((scan) => scan.create(context));
 
-    const findings: Finding[] = [];
     let activeTasks = [...tasks];
 
     while (activeTasks.length > 0) {
@@ -45,7 +48,12 @@ export class TargetProcessor {
       for (const task of activeTasks) {
         const result = await task.tick();
         if (result.findings) {
-          findings.push(...result.findings);
+          for (const finding of result.findings) {
+            findings.push(finding);
+            if (callbacks?.onFinding) {
+              callbacks.onFinding(finding);
+            }
+          }
         }
 
         if (result.isDone) {

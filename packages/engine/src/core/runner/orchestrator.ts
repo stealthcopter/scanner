@@ -3,6 +3,7 @@ import { Graph, topologicalSort } from "graph-data-structure";
 
 import {
   type Finding,
+  type ScanCallbacks,
   type ScanConfig,
   type ScanDefinition,
   type ScanTarget,
@@ -29,13 +30,16 @@ export class ScanOrchestrator {
     this.batches = this.getScanBatches(this.scans);
   }
 
-  public async execute(targets: ScanTarget[]): Promise<Finding[]> {
+  public async execute(
+    targets: ScanTarget[],
+    callbacks?: ScanCallbacks,
+  ): Promise<Finding[]> {
     const allFindings: Finding[] = [];
 
     for (const target of targets) {
       const processor = new TargetProcessor(target, this);
-      const findings = await processor.process();
-      allFindings.push(...findings);
+      const newFindings = await processor.process(callbacks);
+      allFindings.push(...newFindings);
     }
 
     return allFindings;

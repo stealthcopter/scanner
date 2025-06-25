@@ -2,6 +2,7 @@ import { type SDK } from "caido:plugin";
 
 import {
   type Finding,
+  type ScanCallbacks,
   type ScanConfig,
   type ScanDefinition,
   type ScanTarget,
@@ -31,8 +32,10 @@ export class ScanRunner {
     sdk: SDK,
     targets: ScanTarget[],
     config: ScanConfig,
+    callbacks?: ScanCallbacks,
   ): Promise<Finding[]> {
     const orchestrator = new ScanOrchestrator(this.scans, sdk, config);
-    return await orchestrator.execute(targets);
+    const findings = await orchestrator.execute(targets, callbacks);
+    return findings;
   }
 }
