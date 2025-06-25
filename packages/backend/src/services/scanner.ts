@@ -1,4 +1,4 @@
-import { ScanCallbacks, ScanRunner, type ScanTarget } from "engine";
+import { type ScanCallbacks, ScanRunner, type ScanTarget } from "engine";
 import { error, ok, type Result, type ScanState } from "shared";
 
 import { ChecksStore } from "../stores/checks";
@@ -8,7 +8,7 @@ import { type BackendSDK } from "../types";
 
 export const startActiveScan = async (
   sdk: BackendSDK,
-  requestIDs: string[]
+  requestIDs: string[],
 ): Promise<Result<string>> => {
   if (requestIDs.length === 0) {
     return error("No targets provided");
@@ -64,7 +64,7 @@ export const startActiveScan = async (
         {
           strength: config.passive.strength,
         },
-        callbacks
+        callbacks,
       );
 
       scannerStore.send(sessionId, { type: "finish", findings });
@@ -82,7 +82,7 @@ export const startActiveScan = async (
 
 export const getScanSession = (
   _: BackendSDK,
-  id: string
+  id: string,
 ): Result<ScanState> => {
   const session = ScannerStore.get().getSession(id);
   if (!session) {

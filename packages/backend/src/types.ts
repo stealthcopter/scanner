@@ -1,7 +1,7 @@
 import { type DefineEvents, type SDK } from "caido:plugin";
+import { type Finding } from "packages/engine/src/types/finding";
 
 import { type API } from ".";
-import { Finding } from "packages/engine/src/types/finding";
 
 export type BackendSDK = SDK<API, BackendEvents>;
 export type BackendEvents = DefineEvents<{

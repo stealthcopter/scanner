@@ -1,3 +1,4 @@
+import { type Request } from "caido:utils";
 import {
   continueWith,
   createUrlBypassGenerator,
@@ -38,6 +39,30 @@ const getUrlParams = (query: string): string[] => {
   });
 };
 
+const getExpectedHostInfo = (
+  request: Request,
+  paramValue: string | undefined,
+): {
+  host: string;
+  protocol: string;
+} => {
+  if (paramValue !== undefined && paramValue.startsWith("http")) {
+    try {
+      const url = new URL(paramValue);
+      return { host: url.host, protocol: url.protocol };
+    } catch (e) {
+      // Ignore invalid URLs and fallback to using the request's host
+    }
+  }
+
+  const host = request.getHost();
+  const port = request.getPort();
+  const protocol = new URL(request.getUrl()).protocol;
+  const expectedHost = port === 80 || port === 443 ? host : `${host}:${port}`;
+
+  return { host: expectedHost, protocol };
+};
+
 export default defineScan<{
   urlParams: string[];
 }>(({ step }) => {
@@ -66,36 +91,15 @@ export default defineScan<{
     }
 
     const attackerHost = "example.com";
-    let expectedHost: string;
-    let protocol: string;
 
     const originalQueryForParamValue = context.request.getQuery() || "";
-    context.sdk.console.log("originalQueryForParamValue", originalQueryForParamValue);
     const paramsForParamValue = new URLSearchParams(originalQueryForParamValue);
-    const paramValue = paramsForParamValue.get(currentParam);
-    context.sdk.console.log("paramValue", paramValue);
-    if (
-      paramValue &&
-      (paramValue.startsWith("http://") || paramValue.startsWith("https://"))
-    ) {
-      try {
-        const url = new URL(paramValue);
-        expectedHost = url.host;
-        protocol = url.protocol;
-      } catch (e) {
-        const host = context.request.getHost();
-        const port = context.request.getPort();
+    const paramValue = paramsForParamValue.get(currentParam) ?? undefined;
 
-        protocol = new URL(context.request.getUrl()).protocol;
-        expectedHost = port === 80 || port === 443 ? host : `${host}:${port}`;
-      }
-    } else {
-      const host = context.request.getHost();
-      const port = context.request.getPort();
-
-      protocol = new URL(context.request.getUrl()).protocol;
-      expectedHost = port === 80 || port === 443 ? host : `${host}:${port}`;
-    }
+    const { host: expectedHost, protocol } = getExpectedHostInfo(
+      context.request,
+      paramValue,
+    );
 
     let generator = createUrlBypassGenerator({
       expectedHost,
@@ -115,7 +119,6 @@ export default defineScan<{
       const originalQuery = context.request.getQuery() || "";
       const params = new URLSearchParams(originalQuery);
       params.set(currentParam, instance.value);
-      context.sdk.console.log("params", params.toString());
 
       const spec = context.request.toSpec();
       spec.setQuery(params.toString());
@@ -124,7 +127,6 @@ export default defineScan<{
       const responseContext = { ...context, response };
 
       const redirectInfo = findRedirection(responseContext);
-
       if (redirectInfo.hasRedirection && redirectInfo.location) {
         try {
           const redirectUrl = new URL(
