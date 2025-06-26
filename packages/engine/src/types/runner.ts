@@ -6,6 +6,8 @@ import type { ScanRuntime } from "./runtime";
 
 export type ScanCallbacks = {
   onFinding?: (finding: Finding) => void;
+  onCheckFinished?: (checkID: string) => void;
+  onRequest?: (requestID: string, responseID: string) => void;
 };
 
 export const ScanStrength = {

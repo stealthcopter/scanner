@@ -8,7 +8,7 @@ import { type BackendSDK } from "../types";
 
 export const startActiveScan = async (
   sdk: BackendSDK,
-  requestIDs: string[],
+  requestIDs: string[]
 ): Promise<Result<SessionState>> => {
   if (requestIDs.length === 0) {
     return error("No targets provided");
@@ -41,7 +41,9 @@ export const startActiveScan = async (
     const { id } = initialSession;
 
     try {
-      const startedSession = scannerStore.send(id, { type: "Start" });
+      const startedSession = scannerStore.send(id, {
+        type: "Start",
+      });
       sdk.api.send("session:created", id, startedSession);
 
       const runner = new ScanRunner();
@@ -49,6 +51,8 @@ export const startActiveScan = async (
 
       const callbacks: ScanCallbacks = {
         onFinding: async (finding) => {
+          sdk.console.log("onFinding=" + finding.requestID);
+
           const findingAddedSession = scannerStore.send(id, {
             type: "AddFinding",
             finding,
@@ -65,6 +69,22 @@ export const startActiveScan = async (
             description: finding.description,
           });
         },
+        onCheckFinished: async (checkID) => {
+          sdk.console.log("onCheckFinished=" + checkID);
+
+          const checkFinishedSession = scannerStore.send(id, {
+            type: "AddCheckCompleted",
+          });
+          sdk.api.send("session:updated", id, checkFinishedSession);
+        },
+        onRequest: (requestID, responseID) => {
+          sdk.console.log("onRequest=" + requestID + " " + responseID);
+
+          const requestSentSession = scannerStore.send(id, {
+            type: "AddRequestSent",
+          });
+          sdk.api.send("session:updated", id, requestSentSession);
+        },
       };
 
       const findings = await runner.run(
@@ -73,7 +93,7 @@ export const startActiveScan = async (
         {
           strength: config.passive.strength,
         },
-        callbacks,
+        callbacks
       );
 
       const finishedSession = scannerStore.send(id, {
@@ -95,7 +115,7 @@ export const startActiveScan = async (
 
 export const getScanSession = (
   _: BackendSDK,
-  id: string,
+  id: string
 ): Result<SessionState> => {
   const session = ScannerStore.get().getSession(id);
   if (!session) {

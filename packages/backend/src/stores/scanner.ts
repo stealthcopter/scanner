@@ -4,6 +4,8 @@ import { type SessionState } from "shared";
 export type ScanMessage =
   | { type: "Start" }
   | { type: "AddFinding"; finding: Finding }
+  | { type: "AddRequestSent" }
+  | { type: "AddCheckCompleted" }
   | { type: "Finish"; findings: Finding[] }
   | { type: "Error"; error: string };
 
@@ -70,7 +72,7 @@ export class ScannerStore {
 
 const processPending = (
   state: SessionState & { kind: "Pending" },
-  message: ScanMessage,
+  message: ScanMessage
 ): SessionState => {
   if (message.type === "Start") {
     return {
@@ -79,6 +81,10 @@ const processPending = (
       createdAt: state.createdAt,
       startedAt: Date.now(),
       findings: [],
+      progress: {
+        checksCompleted: 0,
+        requestsSent: 0,
+      },
     };
   }
   throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
@@ -86,7 +92,7 @@ const processPending = (
 
 const processRunning = (
   state: SessionState & { kind: "Running" },
-  message: ScanMessage,
+  message: ScanMessage
 ): SessionState => {
   if (message.type === "Finish") {
     return {
@@ -96,12 +102,34 @@ const processRunning = (
       startedAt: state.startedAt,
       finishedAt: Date.now(),
       findings: message.findings,
+      progress: {
+        checksCompleted: state.progress.checksCompleted,
+        requestsSent: state.progress.requestsSent,
+      },
     };
   }
   if (message.type === "AddFinding") {
     return {
       ...state,
       findings: [...state.findings, message.finding],
+    };
+  }
+  if (message.type === "AddRequestSent") {
+    return {
+      ...state,
+      progress: {
+        ...state.progress,
+        requestsSent: state.progress.requestsSent + 1,
+      },
+    };
+  }
+  if (message.type === "AddCheckCompleted") {
+    return {
+      ...state,
+      progress: {
+        ...state.progress,
+        checksCompleted: state.progress.checksCompleted + 1,
+      },
     };
   }
   if (message.type === "Error") {
@@ -117,14 +145,14 @@ const processRunning = (
 
 const processDone = (
   state: SessionState & { kind: "Done" },
-  message: ScanMessage,
+  message: ScanMessage
 ): SessionState => {
   throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
 };
 
 const processError = (
   state: SessionState & { kind: "Error" },
-  message: ScanMessage,
+  message: ScanMessage
 ): SessionState => {
   throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
 };

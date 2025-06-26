@@ -20,6 +20,11 @@ export type GetChecksOptions = Pick<
   "type" | "include" | "exclude"
 >;
 
+export type SessionProgress = {
+  checksCompleted: number;
+  requestsSent: number;
+};
+
 export type SessionState =
   | { kind: "Pending"; id: string; createdAt: number }
   | {
@@ -28,6 +33,7 @@ export type SessionState =
       createdAt: number;
       startedAt: number;
       findings: Finding[];
+      progress: SessionProgress;
     }
   | {
       kind: "Done";
@@ -36,6 +42,7 @@ export type SessionState =
       startedAt: number;
       finishedAt: number;
       findings: Finding[];
+      progress: SessionProgress;
     }
   | { kind: "Error"; id: string; createdAt: number; error: string };
 

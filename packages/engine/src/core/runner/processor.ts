@@ -6,6 +6,7 @@ import {
   type ScanTarget,
   type ScanTask,
 } from "../../types";
+import type { RequestSpec } from "caido:utils";
 
 import { type ScanOrchestrator } from "./orchestrator";
 
@@ -15,12 +16,12 @@ import { type ScanOrchestrator } from "./orchestrator";
 export class TargetProcessor {
   constructor(
     private readonly target: ScanTarget,
-    private readonly orchestrator: ScanOrchestrator,
+    private readonly orchestrator: ScanOrchestrator
   ) {}
 
   public async process(callbacks?: ScanCallbacks): Promise<Finding[]> {
     const allFindings: Finding[] = [];
-    const context = this.createContext();
+    const context = this.createContext(callbacks);
 
     for (const batch of this.orchestrator.batches) {
       const batchFindings = await this.processBatch(batch, context, callbacks);
@@ -33,7 +34,7 @@ export class TargetProcessor {
   private async processBatch(
     batch: ScanDefinition[],
     context: ScanContext,
-    callbacks?: ScanCallbacks,
+    callbacks?: ScanCallbacks
   ): Promise<Finding[]> {
     const findings: Finding[] = [];
 
@@ -57,6 +58,10 @@ export class TargetProcessor {
         }
 
         if (result.isDone) {
+          if (callbacks?.onCheckFinished) {
+            callbacks.onCheckFinished(task.id);
+          }
+
           const output = task.getOutput();
           if (output !== undefined) {
             this.orchestrator.dependencyStore.set(task.id, output);
@@ -71,22 +76,27 @@ export class TargetProcessor {
     return findings;
   }
 
-  private createContext(): ScanContext {
-    // TODO: This is a hack to wrap around SDK functions to track sent requests.
-    // const wrappedSdk = {
-    //   ...this.orchestrator.sdk,
-    //   requests: {
-    //     ...this.orchestrator.sdk.requests,
-    //     send: async (request: RequestSpec) => {
-    //       const result = await this.orchestrator.sdk.requests.send(request);
-    //       console.log("req_id=" + result.request.getId());
-    //       return result;
-    //     },
-    //   },
-    // };
+  private createContext(callbacks?: ScanCallbacks): ScanContext {
+    const wrappedSdk = {
+      ...this.orchestrator.sdk,
+      requests: {
+        ...this.orchestrator.sdk.requests,
+        send: async (request: RequestSpec) => {
+          const result = await this.orchestrator.sdk.requests.send(request);
+          if (callbacks?.onRequest) {
+            callbacks.onRequest(
+              result.request.getId(),
+              result.response.getId()
+            );
+          }
+
+          return result;
+        },
+      },
+    };
     return {
       ...this.target,
-      sdk: this.orchestrator.sdk,
+      sdk: wrappedSdk,
       runtime: {
         html: {
           get: () => this.orchestrator.htmlCache.get(this.target),
@@ -101,7 +111,7 @@ export class TargetProcessor {
 
   private isScanApplicable(
     scan: ScanDefinition,
-    context: ScanContext,
+    context: ScanContext
   ): boolean {
     const { config } = this.orchestrator;
 
