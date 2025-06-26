@@ -72,6 +72,18 @@ export class TargetProcessor {
   }
 
   private createContext(): ScanContext {
+    // TODO: This is a hack to wrap around SDK functions to track sent requests.
+    // const wrappedSdk = {
+    //   ...this.orchestrator.sdk,
+    //   requests: {
+    //     ...this.orchestrator.sdk.requests,
+    //     send: async (request: RequestSpec) => {
+    //       const result = await this.orchestrator.sdk.requests.send(request);
+    //       console.log("req_id=" + result.request.getId());
+    //       return result;
+    //     },
+    //   },
+    // };
     return {
       ...this.target,
       sdk: this.orchestrator.sdk,

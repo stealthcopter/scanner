@@ -4,10 +4,8 @@ import type { Request, Response } from "caido:utils";
 import type { Finding } from "./finding";
 import type { ScanRuntime } from "./runtime";
 
-export type FindingHandler = (finding: Finding) => void;
-
 export type ScanCallbacks = {
-  onFinding?: FindingHandler;
+  onFinding?: (finding: Finding) => void;
 };
 
 export const ScanStrength = {

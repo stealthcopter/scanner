@@ -1,4 +1,5 @@
 import { Classic } from "@caido/primevue";
+import { createPinia } from "pinia";
 import PrimeVue from "primevue/config";
 import { createApp } from "vue";
 
@@ -9,6 +10,9 @@ import App from "./views/App.vue";
 
 export const init = (sdk: FrontendSDK) => {
   const app = createApp(App);
+  const pinia = createPinia();
+
+  app.use(pinia);
 
   app.use(PrimeVue, {
     unstyled: true,
@@ -44,6 +48,9 @@ export const init = (sdk: FrontendSDK) => {
         requestIds = context.requests.map((req) => req.id.toString());
       } else if (context.type === "RequestContext" && context.request.id) {
         requestIds = [context.request.id.toString()];
+      } else {
+        sdk.window.showToast("No requests selected", { variant: "warning" });
+        return;
       }
 
       if (requestIds.length === 0) {
@@ -58,9 +65,6 @@ export const init = (sdk: FrontendSDK) => {
         });
         return;
       }
-
-      console.log("startActiveScan", result);
-      sdk.window.showToast(`Scan started`, { variant: "info" });
     },
     group: "Scanner",
     when: (context) => {
@@ -69,26 +73,6 @@ export const init = (sdk: FrontendSDK) => {
         (context.type === "RequestContext" && context.request.id !== undefined)
       );
     },
-  });
-
-  sdk.backend.onEvent("scanner:finished", async (sessionId) => {
-    const response = await sdk.backend.getScanSession(sessionId);
-    if (response.kind === "Error") {
-      sdk.window.showToast(`Scan failed: ${response.error}`, {
-        variant: "error",
-      });
-      return;
-    }
-
-    const session = response.value;
-    if (session.kind === "Done") {
-      sdk.window.showToast(
-        `Scan finished with ${session.findings.length} findings`,
-        { variant: "success" },
-      );
-    } else if (session.kind === "Error") {
-      sdk.window.showToast(`Scan failed`, { variant: "error" });
-    }
   });
 
   sdk.menu.registerItem({

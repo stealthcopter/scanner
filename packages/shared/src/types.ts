@@ -20,17 +20,24 @@ export type GetChecksOptions = Pick<
   "type" | "include" | "exclude"
 >;
 
-export type ScanState =
-  | { kind: "Pending"; createdAt: number }
-  | { kind: "Running"; createdAt: number; startedAt: number }
+export type SessionState =
+  | { kind: "Pending"; id: string; createdAt: number }
+  | {
+      kind: "Running";
+      id: string;
+      createdAt: number;
+      startedAt: number;
+      findings: Finding[];
+    }
   | {
       kind: "Done";
+      id: string;
       createdAt: number;
       startedAt: number;
       finishedAt: number;
       findings: Finding[];
     }
-  | { kind: "Error"; createdAt: number; error: string };
+  | { kind: "Error"; id: string; createdAt: number; error: string };
 
 export type Result<T> =
   | { kind: "Error"; error: string }

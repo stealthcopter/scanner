@@ -6,7 +6,7 @@ import { type BackendSDK } from "../types";
 
 export const getChecks = (
   _: BackendSDK,
-  options?: GetChecksOptions,
+  options: GetChecksOptions = {},
 ): Result<ScanMetadata[]> => {
   const store = ChecksStore.get();
   const results = store.select({ ...options, returnMetadata: true });

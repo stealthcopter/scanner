@@ -1,5 +1,10 @@
 import { type ScanCallbacks, ScanRunner, type ScanTarget } from "engine";
-import { error, ok, type Result, type ScanState } from "shared";
+import {
+  error,
+  ok,
+  type Result,
+  type SessionState,
+} from "shared";
 
 import { ChecksStore } from "../stores/checks";
 import { ConfigStore } from "../stores/config";
@@ -9,7 +14,7 @@ import { type BackendSDK } from "../types";
 export const startActiveScan = async (
   sdk: BackendSDK,
   requestIDs: string[],
-): Promise<Result<string>> => {
+): Promise<Result<SessionState>> => {
   if (requestIDs.length === 0) {
     return error("No targets provided");
   }
@@ -35,17 +40,26 @@ export const startActiveScan = async (
   const config = configStore.getUserConfig();
 
   const scannerStore = ScannerStore.get();
-  const sessionId = scannerStore.createSession();
+  const initialSession = scannerStore.createSession();
 
   (async () => {
+    const { id } = initialSession;
+
     try {
-      scannerStore.send(sessionId, { type: "start" });
+      const startedSession = scannerStore.send(id, { type: "Start" });
+      sdk.api.send("session:created", id, startedSession);
 
       const runner = new ScanRunner();
       runner.register(...activeScans);
 
       const callbacks: ScanCallbacks = {
         onFinding: async (finding) => {
+          const findingAddedSession = scannerStore.send(id, {
+            type: "AddFinding",
+            finding,
+          });
+          sdk.api.send("session:updated", id, findingAddedSession);
+
           const result = await sdk.requests.get(finding.requestID);
           if (!result) return;
 
@@ -67,27 +81,36 @@ export const startActiveScan = async (
         callbacks,
       );
 
-      scannerStore.send(sessionId, { type: "finish", findings });
-      sdk.api.send("scanner:finished", sessionId);
+      const finishedSession = scannerStore.send(id, {
+        type: "Finish",
+        findings,
+      });
+      sdk.api.send("session:updated", id, finishedSession);
     } catch (err: unknown) {
-      scannerStore.send(sessionId, {
-        type: "fail",
+      const errorSession = scannerStore.send(id, {
+        type: "Error",
         error: err instanceof Error ? err.message : "Unknown error",
       });
+      sdk.api.send("session:updated", id, errorSession);
     }
   })();
 
-  return ok(sessionId);
+  return ok(initialSession);
 };
 
 export const getScanSession = (
   _: BackendSDK,
   id: string,
-): Result<ScanState> => {
+): Result<SessionState> => {
   const session = ScannerStore.get().getSession(id);
   if (!session) {
     return error(`Session ${id} not found`);
   }
 
   return ok(session);
+};
+
+export const getScanSessions = (_: BackendSDK): Result<SessionState[]> => {
+  const sessions = ScannerStore.get().listSessions();
+  return ok(sessions);
 };

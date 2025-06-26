@@ -4,21 +4,23 @@ export const useScannerRepository = () => {
   const sdk = useSDK();
 
   const startActiveScan = async (requestIDs: string[]) => {
-    try {
-      const findings = await sdk.backend.startActiveScan(requestIDs);
-      return {
-        type: "Ok" as const,
-        findings,
-      };
-    } catch {
-      return {
-        type: "Err" as const,
-        error: "Failed to start active scan",
-      };
-    }
+    const response = await sdk.backend.startActiveScan(requestIDs);
+    return response;
+  };
+
+  const getScanSession = async (sessionId: string) => {
+    const response = await sdk.backend.getScanSession(sessionId);
+    return response;
+  };
+
+  const getScanSessions = async () => {
+    const response = await sdk.backend.getScanSessions();
+    return response;
   };
 
   return {
     startActiveScan,
+    getScanSession,
+    getScanSessions,
   };
 };
