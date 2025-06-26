@@ -1,21 +1,20 @@
 {
-  "name": "@caido-community/scanner-engine",
-  "version": "0.0.1",
-  "description": "Engine powering the Caido Scanner",
-  "author": "Caido",
-  "main": "dist/index.mjs",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "name": "engine",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "scripts": {
-    "prepublish": "pnpm build",
-    "build": "vite build && tsc --emitDeclarationOnly"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
-    "typescript": "^5.8.3",
-    "vite": "^6.3.5"
+    "@caido/sdk-backend": "^0.48.1",
+    "vitest": "^2.1.8"
   },
   "dependencies": {
     "graph-data-structure": "^4.5.0",
-    "@caido/sdk-backend": "^0.48.1"
+    "html5parser": "^2.0.2"
   }
 }

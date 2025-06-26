@@ -1,0 +1,23 @@
+{
+  "name": "frontend",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@caido/primevue": "0.1.14",
+    "@caido/sdk-frontend": "0.48.2-beta.7",
+    "pinia": "^3.0.3",
+    "primevue": "4.1.0",
+    "shared": "workspace:*",
+    "engine": "workspace:*",
+    "vue": "3.5.13"
+  },
+  "devDependencies": {
+    "@caido/sdk-backend": "^0.46.0",
+    "@codemirror/view": "6.28.1",
+    "backend": "workspace:*",
+    "vue-tsc": "2.0.29"
+  }
+}

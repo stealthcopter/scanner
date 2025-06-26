@@ -4,3 +4,5 @@ tsconfig.tsbuildinfo
 .vscode
 dist
 test
+todo.md
+.DS_Store
