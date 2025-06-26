@@ -1,8 +1,8 @@
 import { defineStore } from "pinia";
+import { type UserConfig } from "shared";
 
 import { useConfigRepository } from "@/repositories/config";
 import { useConfigStore } from "@/stores/config";
-import { UserConfig } from "shared";
 
 export const useConfigService = defineStore("services.config", () => {
   const repository = useConfigRepository();

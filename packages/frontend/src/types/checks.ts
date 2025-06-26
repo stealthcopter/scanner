@@ -1,4 +1,4 @@
-import { ScanMetadata } from "engine";
+import { type ScanMetadata } from "engine";
 
 export type ChecksState =
   | { type: "Idle" }

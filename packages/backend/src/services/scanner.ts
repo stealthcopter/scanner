@@ -1,10 +1,5 @@
 import { type ScanCallbacks, ScanRunner, type ScanTarget } from "engine";
-import {
-  error,
-  ok,
-  type Result,
-  type SessionState,
-} from "shared";
+import { error, ok, type Result, type SessionState } from "shared";
 
 import { ChecksStore } from "../stores/checks";
 import { ConfigStore } from "../stores/config";

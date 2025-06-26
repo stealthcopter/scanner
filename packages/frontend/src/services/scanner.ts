@@ -21,12 +21,12 @@ export const useScannerService = defineStore("services.scanner", () => {
       store.send({ type: "Error", error: result.error });
     }
 
-    sdk.backend.onEvent("session:updated", async (_, state) => {
+    sdk.backend.onEvent("session:updated", (_, state) => {
       console.log("session:updated", state);
       store.send({ type: "UpdateSession", session: state });
     });
 
-    sdk.backend.onEvent("session:created", async (id, state) => {
+    sdk.backend.onEvent("session:created", (id, state) => {
       console.log("session:created", state);
       store.send({ type: "AddSession", session: state });
     });

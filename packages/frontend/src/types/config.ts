@@ -1,4 +1,4 @@
-import { UserConfig } from "shared";
+import { type UserConfig } from "shared";
 
 export type ConfigState =
   | { type: "Idle" }

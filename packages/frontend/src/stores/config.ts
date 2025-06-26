@@ -1,7 +1,8 @@
-import { ConfigState } from "@/types/config";
 import { defineStore } from "pinia";
-import { UserConfig } from "shared";
+import { type UserConfig } from "shared";
 import { reactive } from "vue";
+
+import { type ConfigState } from "@/types/config";
 
 type Context = {
   state: ConfigState;
@@ -44,7 +45,7 @@ export const useConfigStore = defineStore("stores.config", () => {
 
 const processIdle = (
   state: ConfigState & { type: "Idle" },
-  message: Message
+  message: Message,
 ): ConfigState => {
   switch (message.type) {
     case "Start":
@@ -58,7 +59,7 @@ const processIdle = (
 
 const processError = (
   state: ConfigState & { type: "Error" },
-  message: Message
+  message: Message,
 ): ConfigState => {
   switch (message.type) {
     case "Start":
@@ -72,7 +73,7 @@ const processError = (
 
 const processSuccess = (
   state: ConfigState & { type: "Success" },
-  message: Message
+  message: Message,
 ): ConfigState => {
   switch (message.type) {
     case "UpdateConfig":
@@ -93,7 +94,7 @@ const processSuccess = (
 
 const processLoading = (
   state: ConfigState & { type: "Loading" },
-  message: Message
+  message: Message,
 ): ConfigState => {
   switch (message.type) {
     case "Error":

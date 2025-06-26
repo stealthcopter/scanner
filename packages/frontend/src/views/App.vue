@@ -4,9 +4,9 @@ import Panel from "primevue/panel";
 import Tag from "primevue/tag";
 import { computed, onMounted } from "vue";
 
-import { useScannerService } from "@/services/scanner";
 import { useChecksService } from "@/services/checks";
 import { useConfigService } from "@/services/config";
+import { useScannerService } from "@/services/scanner";
 
 const scannerService = useScannerService();
 const checksService = useChecksService();
