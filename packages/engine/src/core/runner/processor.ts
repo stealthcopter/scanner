@@ -1,66 +1,100 @@
-import {
-  type Finding,
-  type ScanCallbacks,
-  type ScanContext,
-  type ScanDefinition,
-  type ScanTarget,
-  type ScanTask,
-} from "../../types";
 import type { RequestSpec } from "caido:utils";
 
+import {
+  type CheckContext,
+  type CheckDefinition,
+  type CheckTarget,
+  type Finding,
+  type InterruptReason,
+  type ScanTask,
+} from "../../types";
+
 import { type ScanOrchestrator } from "./orchestrator";
+
+type ProcessorResult =
+  | {
+      kind: "Finished";
+      findings: Finding[];
+    }
+  | {
+      kind: "Interrupted";
+      reason: InterruptReason;
+    };
 
 /**
  * TargetProcessor is responsible for processing a single scan target.
  */
 export class TargetProcessor {
-  constructor(
-    private readonly target: ScanTarget,
-    private readonly orchestrator: ScanOrchestrator
-  ) {}
+  private readonly target: CheckTarget;
+  private readonly orchestrator: ScanOrchestrator;
 
-  public async process(callbacks?: ScanCallbacks): Promise<Finding[]> {
+  constructor(target: CheckTarget, orchestrator: ScanOrchestrator) {
+    this.target = target;
+    this.orchestrator = orchestrator;
+  }
+
+  public async process(): Promise<ProcessorResult> {
     const allFindings: Finding[] = [];
-    const context = this.createContext(callbacks);
+    const context = this.createContext();
 
     for (const batch of this.orchestrator.batches) {
-      const batchFindings = await this.processBatch(batch, context, callbacks);
-      allFindings.push(...batchFindings);
+      if (this.orchestrator.runner.state !== "Running") {
+        return {
+          kind: "Interrupted",
+          reason: "Cancelled",
+        };
+      }
+
+      const result = await this.processBatch(batch, context);
+      if (result.kind === "Interrupted") {
+        return result;
+      }
+
+      allFindings.push(...result.findings);
     }
 
-    return allFindings;
+    return {
+      kind: "Finished",
+      findings: allFindings,
+    };
   }
 
   private async processBatch(
-    batch: ScanDefinition[],
-    context: ScanContext,
-    callbacks?: ScanCallbacks
-  ): Promise<Finding[]> {
+    batch: CheckDefinition[],
+    context: CheckContext,
+  ): Promise<ProcessorResult> {
     const findings: Finding[] = [];
-
     const tasks = batch
-      .filter((scan) => this.isScanApplicable(scan, context))
-      .map((scan) => scan.create(context));
+      .filter((check) => this.isScanApplicable(check, context))
+      .map((check) => check.create(context));
 
     let activeTasks = [...tasks];
 
-    while (activeTasks.length > 0) {
+    while (
+      activeTasks.length > 0 &&
+      this.orchestrator.runner.state === "Running"
+    ) {
       const nextTasks: ScanTask[] = [];
+
       for (const task of activeTasks) {
+        if (this.orchestrator.runner.state !== "Running") {
+          return {
+            kind: "Interrupted",
+            reason: "Cancelled",
+          };
+        }
+
         const result = await task.tick();
+
         if (result.findings) {
           for (const finding of result.findings) {
             findings.push(finding);
-            if (callbacks?.onFinding) {
-              callbacks.onFinding(finding);
-            }
+            this.orchestrator.config.callbacks?.onFinding?.(finding);
           }
         }
 
         if (result.isDone) {
-          if (callbacks?.onCheckFinished) {
-            callbacks.onCheckFinished(task.id);
-          }
+          this.orchestrator.config.callbacks?.onCheckFinished?.(task.id);
 
           const output = task.getOutput();
           if (output !== undefined) {
@@ -70,23 +104,28 @@ export class TargetProcessor {
           nextTasks.push(task);
         }
       }
+
       activeTasks = nextTasks;
     }
 
-    return findings;
+    return {
+      kind: "Finished",
+      findings,
+    };
   }
 
-  private createContext(callbacks?: ScanCallbacks): ScanContext {
+  private createContext(): CheckContext {
+    // TODO: this is a hack to get the onRequest callback to work, improve it
     const wrappedSdk = {
       ...this.orchestrator.sdk,
       requests: {
         ...this.orchestrator.sdk.requests,
         send: async (request: RequestSpec) => {
           const result = await this.orchestrator.sdk.requests.send(request);
-          if (callbacks?.onRequest) {
-            callbacks.onRequest(
+          if (this.orchestrator.config.callbacks?.onRequest) {
+            this.orchestrator.config.callbacks.onRequest(
               result.request.getId(),
-              result.response.getId()
+              result.response.getId(),
             );
           }
 
@@ -94,6 +133,7 @@ export class TargetProcessor {
         },
       },
     };
+
     return {
       ...this.target,
       sdk: wrappedSdk,
@@ -110,8 +150,8 @@ export class TargetProcessor {
   }
 
   private isScanApplicable(
-    scan: ScanDefinition,
-    context: ScanContext
+    scan: CheckDefinition,
+    context: CheckContext,
   ): boolean {
     const { config } = this.orchestrator;
 

@@ -1,4 +1,4 @@
-import { type ScanCallbacks, ScanRunner, type ScanTarget } from "engine";
+import { type CheckTarget, type ScanCallbacks, ScanRunner } from "engine";
 import { error, ok, type Result, type SessionState } from "shared";
 
 import { ChecksStore } from "../stores/checks";
@@ -8,13 +8,13 @@ import { type BackendSDK } from "../types";
 
 export const startActiveScan = async (
   sdk: BackendSDK,
-  requestIDs: string[]
+  requestIDs: string[],
 ): Promise<Result<SessionState>> => {
   if (requestIDs.length === 0) {
     return error("No targets provided");
   }
 
-  const targets: ScanTarget[] = [];
+  const targets: CheckTarget[] = [];
   for (const id of requestIDs) {
     const requestResponse = await sdk.requests.get(id);
     if (requestResponse?.request && requestResponse?.response) {
@@ -69,7 +69,7 @@ export const startActiveScan = async (
             description: finding.description,
           });
         },
-        onCheckFinished: async (checkID) => {
+        onCheckFinished: (checkID) => {
           sdk.console.log("onCheckFinished=" + checkID);
 
           const checkFinishedSession = scannerStore.send(id, {
@@ -87,20 +87,37 @@ export const startActiveScan = async (
         },
       };
 
-      const findings = await runner.run(
-        sdk,
-        targets,
-        {
-          strength: config.passive.strength,
-        },
-        callbacks
-      );
-
-      const finishedSession = scannerStore.send(id, {
-        type: "Finish",
-        findings,
+      const result = await runner.start(sdk, targets, {
+        strength: config.passive.strength,
+        callbacks,
       });
-      sdk.api.send("session:updated", id, finishedSession);
+
+      switch (result.kind) {
+        case "Finished": {
+          const finishedSession = scannerStore.send(id, {
+            type: "Finish",
+            findings: result.findings,
+          });
+          sdk.api.send("session:updated", id, finishedSession);
+          break;
+        }
+        case "Interrupted": {
+          const interruptedSession = scannerStore.send(id, {
+            type: "Interrupted",
+            reason: result.reason,
+          });
+          sdk.api.send("session:updated", id, interruptedSession);
+          break;
+        }
+        case "Error": {
+          const errorSession = scannerStore.send(id, {
+            type: "Error",
+            error: result.error,
+          });
+          sdk.api.send("session:updated", id, errorSession);
+          break;
+        }
+      }
     } catch (err: unknown) {
       const errorSession = scannerStore.send(id, {
         type: "Error",
@@ -115,7 +132,7 @@ export const startActiveScan = async (
 
 export const getScanSession = (
   _: BackendSDK,
-  id: string
+  id: string,
 ): Result<SessionState> => {
   const session = ScannerStore.get().getSession(id);
   if (!session) {

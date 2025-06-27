@@ -1,4 +1,9 @@
-import { type Finding, type ScanStrength, type ScanType } from "engine";
+import {
+  type CheckType,
+  type Finding,
+  type InterruptReason,
+  type ScanStrength,
+} from "engine";
 
 export type UserConfig = {
   passive: {
@@ -9,7 +14,7 @@ export type UserConfig = {
 };
 
 export type SelectOptions = {
-  type?: ScanType;
+  type?: CheckType;
   include?: string[];
   exclude?: string[];
   returnMetadata?: boolean;
@@ -43,6 +48,14 @@ export type SessionState =
       finishedAt: number;
       findings: Finding[];
       progress: SessionProgress;
+    }
+  | {
+      kind: "Interrupted";
+      id: string;
+      createdAt: number;
+      startedAt: number;
+      reason: InterruptReason;
+      findings: Finding[];
     }
   | { kind: "Error"; id: string; createdAt: number; error: string };
 
