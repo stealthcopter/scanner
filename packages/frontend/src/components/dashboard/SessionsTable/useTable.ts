@@ -8,7 +8,6 @@ export const useTable = (options: {
   statusFilter: Ref<string>;
 }) => {
   const { search, statusFilter } = options;
-
   const filters = computed<DataTableFilterMeta>(() => ({
     global: { value: search.value, matchMode: "contains" },
   }));

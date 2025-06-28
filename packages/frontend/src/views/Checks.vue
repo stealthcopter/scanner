@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import Card from "primevue/card";
+import { computed } from "vue";
+
+import { ChecksTable } from "@/components/checks/ChecksTable";
+import { useChecksService } from "@/services/checks";
+
+const checksService = useChecksService();
+const checksState = computed(() => checksService.getState());
 </script>
 
 <template>
-  <Card
-    class="h-full"
-    :pt="{ body: { class: 'h-full' }, content: { class: 'flex-1 min-h-0' } }"
-  >
-    <template #content> </template>
-  </Card>
+  <ChecksTable :checks-state="checksState" />
 </template>

@@ -5,11 +5,23 @@ import {
   type ScanStrength,
 } from "engine";
 
+/**
+ * UserConfig is the configuration for the user.
+ *
+ * Overrides are used to enable or disable checks.
+ * By default:
+ * - for active scans, all checks are enabled including passive
+ * - for passive scans, all passive checks are enabled
+ * Overrides are used to force enable or disable checks.
+ */
 export type UserConfig = {
   passive: {
     enabled: boolean;
     strength: ScanStrength;
-    overrides: Record<string, { passive: boolean; active: boolean }>;
+    overrides: Record<string, boolean>;
+  };
+  active: {
+    overrides: Record<string, boolean>;
   };
 };
 
@@ -18,6 +30,7 @@ export type SelectOptions = {
   include?: string[];
   exclude?: string[];
   returnMetadata?: boolean;
+  overrides?: Record<string, boolean>;
 };
 
 export type GetChecksOptions = Pick<

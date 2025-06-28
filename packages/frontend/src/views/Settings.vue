@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import Card from "primevue/card";
+import { computed } from "vue";
+
+import { Settings } from "@/components/settings";
+import { useConfigStore } from "@/stores/config";
+
+const config = useConfigStore();
+
+const state = computed(() => config.getState());
 </script>
 
 <template>
-  <Card
-    class="h-full"
-    :pt="{ body: { class: 'h-full' }, content: { class: 'flex-1 min-h-0' } }"
-  >
-    <template #content> </template>
-  </Card>
+  <Settings :config-state="state" />
 </template>
