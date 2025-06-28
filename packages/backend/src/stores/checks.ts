@@ -51,9 +51,19 @@ export class ChecksStore {
     }
 
     if (options.type) {
-      selectedChecks = selectedChecks.filter(
-        (check) => check.metadata.type === options.type,
-      );
+      const overrides = options.overrides ?? {};
+      selectedChecks = selectedChecks.filter((check) => {
+        const override = overrides[check.metadata.id];
+        if (override === true) {
+          return true;
+        }
+
+        if (override === false) {
+          return false;
+        }
+
+        return check.metadata.type === options.type;
+      });
     }
 
     if (options.exclude) {

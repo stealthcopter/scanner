@@ -48,13 +48,16 @@ export function init(sdk: BackendSDK) {
 
     if (!config.passive.enabled) return;
 
-    const passiveScans = checksStore.select({ type: "passive" });
-    if (passiveScans.length === 0) {
+    const passiveChecks = checksStore.select({
+      type: "passive",
+      overrides: config.passive.overrides,
+    });
+    if (passiveChecks.length === 0) {
       return;
     }
 
     const runner = new ScanRunner();
-    runner.register(...passiveScans);
+    runner.register(...passiveChecks);
 
     const target: CheckTarget = {
       request,
@@ -74,7 +77,7 @@ export function init(sdk: BackendSDK) {
       if (!request) return;
 
       sdk.findings.create({
-        reporter: "session: Passive",
+        reporter: "Scanner: Passive",
         request: request.request,
         title: finding.name,
         description: finding.description,

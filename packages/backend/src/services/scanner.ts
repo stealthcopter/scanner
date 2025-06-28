@@ -8,7 +8,7 @@ import { type BackendSDK } from "../types";
 
 export const startActiveScan = async (
   sdk: BackendSDK,
-  requestIDs: string[],
+  requestIDs: string[]
 ): Promise<Result<SessionState>> => {
   if (requestIDs.length === 0) {
     return error("No targets provided");
@@ -25,14 +25,18 @@ export const startActiveScan = async (
     }
   }
 
-  const checksStore = ChecksStore.get();
-  const activeScans = checksStore.select({ type: "active" });
-  if (activeScans.length === 0) {
-    return error("No active scans available");
-  }
-
   const configStore = ConfigStore.get();
   const config = configStore.getUserConfig();
+
+  const checksStore = ChecksStore.get();
+  const activeChecks = checksStore.select({
+    type: "active",
+    overrides: config.active.overrides,
+  });
+
+  if (activeChecks.length === 0) {
+    return error("No active scans available");
+  }
 
   const scannerStore = ScannerStore.get();
   const initialSession = scannerStore.createSession();
@@ -47,7 +51,7 @@ export const startActiveScan = async (
       sdk.api.send("session:created", id, startedSession);
 
       const runner = new ScanRunner();
-      runner.register(...activeScans);
+      runner.register(...activeChecks);
 
       const callbacks: ScanCallbacks = {
         onFinding: async (finding) => {
@@ -132,7 +136,7 @@ export const startActiveScan = async (
 
 export const getScanSession = (
   _: BackendSDK,
-  id: string,
+  id: string
 ): Result<SessionState> => {
   const session = ScannerStore.get().getSession(id);
   if (!session) {
