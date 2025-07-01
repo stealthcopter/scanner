@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "graph-data-structure": "^4.5.0",
-    "html5parser": "^2.0.2"
+    "html5parser": "^2.0.2",
+    "mitt": "^3.0.1"
   }
 }

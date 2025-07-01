@@ -1,6 +1,5 @@
 import type { CheckMetadata } from "engine";
 import type { DataTableFilterMeta } from "primevue/datatable";
-import type { UserConfig } from "shared";
 import { computed, type Ref } from "vue";
 
 import { useConfigService } from "@/services/config";
@@ -43,7 +42,9 @@ export const useTable = (options: {
     if (configState.type !== "Success") return check.type === "passive";
 
     const config = configState.config;
-    const overrideValue = config.passive.overrides[check.id];
+    const overrideValue = config.passive.overrides.find(
+      (o) => o.checkID === check.id,
+    )?.enabled;
     return overrideValue !== undefined
       ? overrideValue
       : check.type === "passive";
@@ -54,7 +55,9 @@ export const useTable = (options: {
     if (configState.type !== "Success") return true;
 
     const config = configState.config;
-    const overrideValue = config.active.overrides[check.id];
+    const overrideValue = config.active.overrides.find(
+      (o) => o.checkID === check.id,
+    )?.enabled;
     return overrideValue !== undefined ? overrideValue : true;
   };
 
@@ -65,17 +68,21 @@ export const useTable = (options: {
     const config = configState.config;
     const currentValue = getPassiveEnabled(check);
 
-    const update: Partial<UserConfig> = {
+    const existingOverrides = config.passive.overrides.filter(
+      (o) => o.checkID !== check.id,
+    );
+    const newOverrides = [
+      ...existingOverrides,
+      { checkID: check.id, enabled: !currentValue },
+    ];
+
+    const update = {
       passive: {
-        ...config.passive,
-        overrides: {
-          ...config.passive.overrides,
-          [check.id]: !currentValue,
-        },
+        overrides: newOverrides,
       },
     };
 
-    await configService.updateConfig({ passive: update.passive });
+    await configService.updateConfig(update);
   };
 
   const toggleActiveCheck = async (check: CheckMetadata) => {
@@ -85,17 +92,21 @@ export const useTable = (options: {
     const config = configState.config;
     const currentValue = getActiveEnabled(check);
 
-    const update: Partial<UserConfig> = {
+    const existingOverrides = config.active.overrides.filter(
+      (o) => o.checkID !== check.id,
+    );
+    const newOverrides = [
+      ...existingOverrides,
+      { checkID: check.id, enabled: !currentValue },
+    ];
+
+    const update = {
       active: {
-        ...config.active,
-        overrides: {
-          ...config.active.overrides,
-          [check.id]: !currentValue,
-        },
+        overrides: newOverrides,
       },
     };
 
-    await configService.updateConfig({ active: update.active });
+    await configService.updateConfig(update);
   };
 
   return {

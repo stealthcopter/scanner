@@ -11,10 +11,11 @@ export class ConfigStore {
       passive: {
         enabled: false,
         strength: ScanStrength.HIGH,
-        overrides: {},
+        inScopeOnly: false,
+        overrides: [],
       },
       active: {
-        overrides: {},
+        overrides: [],
       },
     };
   }

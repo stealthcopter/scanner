@@ -3,7 +3,7 @@ import Card from "primevue/card";
 import Checkbox from "primevue/checkbox";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import Dropdown from "primevue/dropdown";
+import Select from "primevue/select";
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import InputText from "primevue/inputtext";
@@ -15,7 +15,7 @@ import { useTable } from "./useTable";
 import { type ChecksState } from "@/types/checks";
 
 defineProps<{
-  state: ChecksState & { type: "Success" };
+  state: ChecksState & { type: "Success" }
 }>();
 
 const search = ref("");
@@ -34,7 +34,7 @@ const {
   getPassiveEnabled,
   getActiveEnabled,
   togglePassiveCheck,
-  toggleActiveCheck
+  toggleActiveCheck,
 } = useTable({ search, typeFilter });
 </script>
 <template>
@@ -56,7 +56,7 @@ const {
         </div>
 
         <div class="flex gap-2 items-center">
-          <Dropdown
+          <Select
             v-model="typeFilter"
             :options="typeOptions"
             option-label="label"

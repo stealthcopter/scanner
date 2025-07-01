@@ -5,7 +5,7 @@ import Button from "primevue/button";
 import Card from "primevue/card";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import Dropdown from "primevue/dropdown";
+import Select from "primevue/select";
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import InputText from "primevue/inputtext";
@@ -55,7 +55,7 @@ const {
         </div>
 
         <div class="flex gap-2 items-center">
-          <Dropdown
+          <Select
             v-model="statusFilter"
             :options="statusOptions"
             option-label="label"
@@ -91,7 +91,7 @@ const {
           </div>
         </template>
 
-        <Column field="kind" header="Status" class="w-32">
+        <Column field="kind" header="Status" class="w-32" sortable>
           <template #body="{ data }">
             <Badge
               :value="data.kind"

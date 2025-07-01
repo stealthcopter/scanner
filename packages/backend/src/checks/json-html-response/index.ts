@@ -35,7 +35,7 @@ export default defineScan(({ step }) => {
           },
         ],
       });
-    } catch (e) {
+    } catch {
       return done();
     }
   });

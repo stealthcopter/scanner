@@ -1,5 +1,5 @@
 import type { DefineAPI } from "caido:plugin";
-import { type CheckTarget, ScanRunner } from "engine";
+import { ScanRunner } from "engine";
 
 import exposedEnvScan from "./checks/exposed-env";
 import jsonHtmlResponse from "./checks/json-html-response";
@@ -48,10 +48,16 @@ export function init(sdk: BackendSDK) {
 
     if (!config.passive.enabled) return;
 
+    if (config.passive.inScopeOnly) {
+      const inScope = sdk.requests.inScope(request);
+      if (!inScope) return;
+    }
+
     const passiveChecks = checksStore.select({
       type: "passive",
       overrides: config.passive.overrides,
     });
+
     if (passiveChecks.length === 0) {
       return;
     }
@@ -59,13 +65,11 @@ export function init(sdk: BackendSDK) {
     const runner = new ScanRunner();
     runner.register(...passiveChecks);
 
-    const target: CheckTarget = {
-      request,
-      response,
-    };
-
-    const result = await runner.start(sdk, [target], {
+    const result = await runner.start(sdk, [request.getId()], {
       strength: config.passive.strength,
+      inScopeOnly: true,
+      maxRequestsPerSecond: 10,
+      scanTimeout: 10000,
     });
 
     if (result.kind !== "Finished") return;

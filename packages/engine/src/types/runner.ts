@@ -11,12 +11,6 @@ export type ScanState =
   | "Interrupted"
   | "Error";
 
-export type ScanCallbacks = {
-  onFinding?: (finding: Finding) => void;
-  onCheckFinished?: (checkID: string) => void;
-  onRequest?: (requestID: string, responseID: string) => void;
-};
-
 export type InterruptReason = "Cancelled" | "Timeout";
 export type ScanResult =
   | {
@@ -42,16 +36,15 @@ export type ScanStrength = (typeof ScanStrength)[keyof typeof ScanStrength];
 
 export type ScanConfig = {
   strength: ScanStrength;
-  callbacks?: ScanCallbacks;
+  inScopeOnly: boolean;
+  maxRequestsPerSecond: number;
+  scanTimeout: number;
 };
 
-export type CheckTarget = {
+export type CheckContext = {
+  sdk: SDK;
   request: Request;
   response?: Response;
-};
-
-export type CheckContext = CheckTarget & {
-  sdk: SDK;
   runtime: ScanRuntime;
   config: ScanConfig;
 };

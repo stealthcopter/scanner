@@ -12,5 +12,7 @@
     "shared": "workspace:*",
     "vitest": "^3.2.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "mitt": "^3.0.1"
+  }
 }

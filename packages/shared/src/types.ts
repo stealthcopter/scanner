@@ -1,4 +1,5 @@
 import {
+  ScanConfig,
   type CheckType,
   type Finding,
   type InterruptReason,
@@ -18,11 +19,17 @@ export type UserConfig = {
   passive: {
     enabled: boolean;
     strength: ScanStrength;
-    overrides: Record<string, boolean>;
+    inScopeOnly: boolean;
+    overrides: Override[];
   };
   active: {
-    overrides: Record<string, boolean>;
+    overrides: Override[];
   };
+};
+
+export type Override = {
+  enabled: boolean;
+  checkID: string;
 };
 
 export type SelectOptions = {
@@ -30,7 +37,7 @@ export type SelectOptions = {
   include?: string[];
   exclude?: string[];
   returnMetadata?: boolean;
-  overrides?: Record<string, boolean>;
+  overrides?: Override[];
 };
 
 export type GetChecksOptions = Pick<
@@ -71,6 +78,12 @@ export type SessionState =
       findings: Finding[];
     }
   | { kind: "Error"; id: string; createdAt: number; error: string };
+
+export type ScanRequestPayload = {
+  requestIDs: string[];
+  scanConfig: ScanConfig;
+  title: string;
+};
 
 export type Result<T> =
   | { kind: "Error"; error: string }

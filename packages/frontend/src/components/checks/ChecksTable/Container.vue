@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ConfigState } from "@/types/config";
 import Failed from "./Failed.vue";
 import Loading from "./Loading.vue";
 import Success from "./Success.vue";
@@ -8,12 +9,21 @@ import { type ChecksState } from "@/types/checks";
 
 defineProps<{
   checksState: ChecksState;
+  configState: ConfigState;
 }>();
 </script>
 
 <template>
-  <Loading v-if="checksState.type === 'Loading'" />
-  <Failed v-else-if="checksState.type === 'Error'" />
-  <Success v-else-if="checksState.type === 'Success'" :state="checksState" />
+  <Loading
+    v-if="checksState.type === 'Loading' || configState.type === 'Loading'"
+  />
+  <Failed
+    v-else-if="checksState.type === 'Error' || configState.type === 'Error'"
+  />
+  <Success
+    v-else-if="checksState.type === 'Success' && configState.type === 'Success'"
+    :state="checksState"
+    :config-state="configState"
+  />
   <InvalidState v-else />
 </template>

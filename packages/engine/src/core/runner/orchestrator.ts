@@ -3,7 +3,6 @@ import { Graph, topologicalSort } from "graph-data-structure";
 
 import {
   type CheckDefinition,
-  type CheckTarget,
   type Finding,
   type ScanConfig,
   type ScanResult,
@@ -33,11 +32,19 @@ export class ScanOrchestrator {
     this.batches = this.getCheckBatches(runner.checks);
   }
 
-  public async execute(targets: CheckTarget[]): Promise<ScanResult> {
+  public async execute(requestIDs: string[]): Promise<ScanResult> {
     const allFindings: Finding[] = [];
 
     try {
-      for (const target of targets) {
+      for (const requestID of requestIDs) {
+        const requestResponse = await this.sdk.requests.get(requestID);
+        if (requestResponse === undefined) {
+          return {
+            kind: "Error",
+            error: `Request '${requestID}' not found`,
+          };
+        }
+
         if (this.runner.state === "Interrupted") {
           return {
             kind: "Interrupted",
@@ -45,7 +52,14 @@ export class ScanOrchestrator {
           };
         }
 
-        const processor = new TargetProcessor(target, this);
+        if (
+          this.config.inScopeOnly &&
+          !this.sdk.requests.inScope(requestResponse.request)
+        ) {
+          continue;
+        }
+
+        const processor = new TargetProcessor(requestResponse, this);
         const result = await processor.process();
         if (result.kind !== "Finished") {
           return result;
@@ -58,11 +72,10 @@ export class ScanOrchestrator {
         kind: "Finished",
         findings: allFindings,
       };
-    } catch (error) {
+    } catch (err) {
       return {
         kind: "Error",
-        error:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        error: err as string,
       };
     }
   }
@@ -77,7 +90,7 @@ export class ScanOrchestrator {
       check.metadata.dependsOn?.forEach((dependencyId) => {
         if (!map.has(dependencyId)) {
           throw new Error(
-            `Check '${check.metadata.id}' has unknown dependency '${dependencyId}'`,
+            `Check '${check.metadata.id}' has unknown dependency '${dependencyId}'`
           );
         }
         graph.addEdge(dependencyId, check.metadata.id);
@@ -87,7 +100,7 @@ export class ScanOrchestrator {
     try {
       const order = topologicalSort(graph);
       return order.map((id) => [map.get(id)!]);
-    } catch (e) {
+    } catch {
       throw new Error("Circular dependency detected in checks");
     }
   }

@@ -7,12 +7,13 @@
   },
   "dependencies": {
     "@caido/primevue": "0.1.14",
-    "@caido/sdk-frontend": "0.48.2-beta.7",
+    "@caido/sdk-frontend": "0.48.2-beta.11",
     "date-fns": "^4.1.0",
     "engine": "workspace:*",
     "pinia": "^3.0.3",
     "primevue": "4.1.0",
     "shared": "workspace:*",
+    "ts-deepmerge": "^7.0.3",
     "vue": "3.5.13"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Card from "primevue/card";
-import Dropdown from "primevue/dropdown";
-import InputSwitch from "primevue/inputswitch";
+import Select from "primevue/select";
+import ToggleSwitch from "primevue/toggleswitch";
 import { toRefs } from "vue";
 
 import { useForm } from "./useForm";
@@ -9,12 +9,12 @@ import { useForm } from "./useForm";
 import { type ConfigState } from "@/types/config";
 
 const props = defineProps<{
-  state: ConfigState;
+  state: ConfigState & { type: "Success" };
 }>();
 
 const { state } = toRefs(props);
 
-const { passiveEnabled, passiveStrength, strengthOptions } = useForm({ state });
+const { passiveEnabled, passiveStrength, passiveInScopeOnly, strengthOptions } = useForm(state);
 </script>
 
 <template>
@@ -48,7 +48,19 @@ const { passiveEnabled, passiveStrength, strengthOptions } = useForm({ state });
                   traffic for vulnerabilities
                 </p>
               </div>
-              <InputSwitch v-model="passiveEnabled" />
+              <ToggleSwitch v-model="passiveEnabled" />
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div class="flex-1">
+                <label class="block text-sm font-medium mb-1"
+                  >In-Scope Only</label
+                >
+                <p class="text-xs text-surface-400">
+                  When enabled, the scanner will only analyze requests that are in scope
+                </p>
+              </div>
+              <ToggleSwitch v-model="passiveInScopeOnly" :disabled="!passiveEnabled" />
             </div>
 
             <div class="flex items-center justify-between">
@@ -61,7 +73,7 @@ const { passiveEnabled, passiveStrength, strengthOptions } = useForm({ state });
                   means faster scanning, less requests, but less accurate.
                 </p>
               </div>
-              <Dropdown
+              <Select
                 v-model="passiveStrength"
                 :options="strengthOptions"
                 option-label="label"

@@ -1,9 +1,8 @@
-import type { RequestSpec } from "caido:utils";
+import type { RequestResponseOpt, RequestSpec } from "caido:utils";
 
 import {
   type CheckContext,
   type CheckDefinition,
-  type CheckTarget,
   type Finding,
   type InterruptReason,
   type ScanTask,
@@ -25,10 +24,10 @@ type ProcessorResult =
  * TargetProcessor is responsible for processing a single scan target.
  */
 export class TargetProcessor {
-  private readonly target: CheckTarget;
+  private readonly target: RequestResponseOpt;
   private readonly orchestrator: ScanOrchestrator;
 
-  constructor(target: CheckTarget, orchestrator: ScanOrchestrator) {
+  constructor(target: RequestResponseOpt, orchestrator: ScanOrchestrator) {
     this.target = target;
     this.orchestrator = orchestrator;
   }
@@ -61,7 +60,7 @@ export class TargetProcessor {
 
   private async processBatch(
     batch: CheckDefinition[],
-    context: CheckContext,
+    context: CheckContext
   ): Promise<ProcessorResult> {
     const findings: Finding[] = [];
     const tasks = batch
@@ -89,12 +88,16 @@ export class TargetProcessor {
         if (result.findings) {
           for (const finding of result.findings) {
             findings.push(finding);
-            this.orchestrator.config.callbacks?.onFinding?.(finding);
+            this.orchestrator.runner.emit("scan:finding", {
+              finding,
+            });
           }
         }
 
         if (result.isDone) {
-          this.orchestrator.config.callbacks?.onCheckFinished?.(task.id);
+          this.orchestrator.runner.emit("scan:check-finished", {
+            checkID: task.id,
+          });
 
           const output = task.getOutput();
           if (output !== undefined) {
@@ -122,12 +125,10 @@ export class TargetProcessor {
         ...this.orchestrator.sdk.requests,
         send: async (request: RequestSpec) => {
           const result = await this.orchestrator.sdk.requests.send(request);
-          if (this.orchestrator.config.callbacks?.onRequest) {
-            this.orchestrator.config.callbacks.onRequest(
-              result.request.getId(),
-              result.response.getId(),
-            );
-          }
+          this.orchestrator.runner.emit("scan:request", {
+            requestID: result.request.getId(),
+            responseID: result.response.getId(),
+          });
 
           return result;
         },
@@ -135,7 +136,8 @@ export class TargetProcessor {
     };
 
     return {
-      ...this.target,
+      request: this.target.request,
+      response: this.target.response,
       sdk: wrappedSdk,
       runtime: {
         html: {
@@ -151,7 +153,7 @@ export class TargetProcessor {
 
   private isScanApplicable(
     scan: CheckDefinition,
-    context: CheckContext,
+    context: CheckContext
   ): boolean {
     const { config } = this.orchestrator;
 

@@ -3,6 +3,7 @@ import { defineStore } from "pinia";
 import { useSDK } from "@/plugins/sdk";
 import { useScannerRepository } from "@/repositories/scanner";
 import { useScannerStore } from "@/stores/scanner";
+import { ScanRequestPayload } from "shared";
 
 export const useScannerService = defineStore("services.scanner", () => {
   const sdk = useSDK();
@@ -32,8 +33,8 @@ export const useScannerService = defineStore("services.scanner", () => {
     });
   };
 
-  const startActiveScan = async (requestIDs: string[]) => {
-    const result = await repository.startActiveScan(requestIDs);
+  const startActiveScan = async (payload: ScanRequestPayload) => {
+    const result = await repository.startActiveScan(payload);
 
     if (result.kind === "Success") {
       store.send({ type: "AddSession", session: result.value });

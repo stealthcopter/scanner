@@ -50,7 +50,7 @@ const getExpectedHostInfo = (
     try {
       const url = new URL(paramValue);
       return { host: url.host, protocol: url.protocol };
-    } catch (e) {
+    } catch {
       // Ignore invalid URLs and fallback to using the request's host
     }
   }
@@ -145,7 +145,7 @@ export default defineScan<{
               ],
             });
           }
-        } catch (e) {
+        } catch {
           // TODO: we might wanna log this somewhere as this is definitely a interesting finding
           // Ignore invalid redirect URLs
         }

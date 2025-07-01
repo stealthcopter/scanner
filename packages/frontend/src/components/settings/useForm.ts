@@ -4,11 +4,7 @@ import { computed, type Ref } from "vue";
 import { useConfigService } from "@/services/config";
 import { type ConfigState } from "@/types/config";
 
-type UseFormProps = {
-  state: Ref<ConfigState>;
-};
-
-export const useForm = ({ state }: UseFormProps) => {
+export const useForm = (state: Ref<ConfigState & { type: "Success" }>) => {
   const configService = useConfigService();
 
   const strengthOptions = [
@@ -18,47 +14,28 @@ export const useForm = ({ state }: UseFormProps) => {
   ];
 
   const passiveEnabled = computed({
-    get: () => {
-      return state.value.type === "Success"
-        ? state.value.config.passive.enabled
-        : false;
-    },
+    get: () => state.value.config.passive.enabled,
     set: async (value: boolean) => {
       await configService.updateConfig({
-        passive: {
-          enabled: value,
-          strength:
-            state.value.type === "Success"
-              ? state.value.config.passive.strength
-              : ScanStrength.MEDIUM,
-          overrides:
-            state.value.type === "Success"
-              ? state.value.config.passive.overrides
-              : {},
-        },
+        passive: { enabled: value },
       });
     },
   });
 
   const passiveStrength = computed({
-    get: () => {
-      return state.value.type === "Success"
-        ? state.value.config.passive.strength
-        : ScanStrength.MEDIUM;
-    },
+    get: () => state.value.config.passive.strength,
     set: async (value: ScanStrength) => {
       await configService.updateConfig({
-        passive: {
-          enabled:
-            state.value.type === "Success"
-              ? state.value.config.passive.enabled
-              : false,
-          strength: value,
-          overrides:
-            state.value.type === "Success"
-              ? state.value.config.passive.overrides
-              : {},
-        },
+        passive: { strength: value },
+      });
+    },
+  });
+
+  const passiveInScopeOnly = computed({
+    get: () => state.value.config.passive.inScopeOnly,
+    set: async (value: boolean) => {
+      await configService.updateConfig({
+        passive: { inScopeOnly: value },
       });
     },
   });
@@ -66,6 +43,7 @@ export const useForm = ({ state }: UseFormProps) => {
   return {
     passiveEnabled,
     passiveStrength,
+    passiveInScopeOnly,
     strengthOptions,
   };
 };
