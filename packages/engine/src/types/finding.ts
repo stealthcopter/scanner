@@ -12,5 +12,12 @@ export type Finding = {
   name: string;
   description: string;
   severity: Severity;
-  requestID: string;
+  correlation: {
+    requestID: string;
+    locations: {
+      start: number;
+      end: number;
+      hint?: string;
+    }[];
+  };
 };

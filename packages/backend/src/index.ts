@@ -1,5 +1,5 @@
 import type { DefineAPI } from "caido:plugin";
-import { type Finding, ScanRunner, type ScanTarget } from "engine";
+import { createRegistry } from "engine";
 
 import exposedEnvScan from "./checks/exposed-env";
 import jsonHtmlResponse from "./checks/json-html-response";
@@ -7,6 +7,7 @@ import openRedirectScan from "./checks/open-redirect";
 import { getChecks } from "./services/checks";
 import { getUserConfig, updateUserConfig } from "./services/config";
 import {
+  cancelScanSession,
   getScanSession,
   getScanSessions,
   startActiveScan,
@@ -29,6 +30,7 @@ export type API = DefineAPI<{
   startActiveScan: typeof startActiveScan;
   getScanSession: typeof getScanSession;
   getScanSessions: typeof getScanSessions;
+  cancelScanSession: typeof cancelScanSession;
 }>;
 
 export function init(sdk: BackendSDK) {
@@ -38,6 +40,7 @@ export function init(sdk: BackendSDK) {
   sdk.api.register("startActiveScan", startActiveScan);
   sdk.api.register("getScanSession", getScanSession);
   sdk.api.register("getScanSessions", getScanSessions);
+  sdk.api.register("cancelScanSession", cancelScanSession);
 
   const checksStore = ChecksStore.get();
   checksStore.register(exposedEnvScan, openRedirectScan, jsonHtmlResponse);
@@ -48,31 +51,44 @@ export function init(sdk: BackendSDK) {
 
     if (!config.passive.enabled) return;
 
-    const passiveScans = checksStore.select({ type: "passive" });
-    if (passiveScans.length === 0) {
+    if (config.passive.inScopeOnly) {
+      const inScope = sdk.requests.inScope(request);
+      if (!inScope) return;
+    }
+
+    const passiveChecks = checksStore.select({
+      type: "passive",
+      overrides: config.passive.overrides,
+    });
+
+    if (passiveChecks.length === 0) {
       return;
     }
 
-    const runner = new ScanRunner();
-    runner.register(...passiveScans);
+    const registry = createRegistry();
+    for (const check of passiveChecks) {
+      registry.register(check);
+    }
 
-    const target: ScanTarget = {
-      request,
-      response,
-    };
-
-    const findings: Finding[] = await runner.run(sdk, [target], {
+    const runnable = registry.create(sdk, {
       strength: config.passive.strength,
+      inScopeOnly: true,
+      concurrency: 1,
+      scanTimeout: 5 * 60 * 1000,
+      checkTimeout: 2 * 60 * 1000,
     });
 
-    for (const finding of findings) {
-      if (finding.requestID === undefined) return;
+    const result = await runnable.run([request.getId()]);
+    if (result.kind !== "Finished") return;
 
-      const request = await sdk.requests.get(finding.requestID);
+    for (const finding of result.findings) {
+      if (finding.correlation.requestID === undefined) return;
+
+      const request = await sdk.requests.get(finding.correlation.requestID);
       if (!request) return;
 
       sdk.findings.create({
-        reporter: "session: Passive",
+        reporter: "Scanner: Passive",
         request: request.request,
         title: finding.name,
         description: finding.description,

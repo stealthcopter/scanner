@@ -14,7 +14,9 @@
     "vitest": "^2.1.8"
   },
   "dependencies": {
-    "graph-data-structure": "^4.5.0",
-    "html5parser": "^2.0.2"
+    "@supercharge/promise-pool": "^3.2.0",
+    "batching-toposort-ts": "^1.0.0",
+    "html5parser": "^2.0.2",
+    "mitt": "^3.0.1"
   }
 }

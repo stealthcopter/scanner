@@ -52,13 +52,17 @@ importers:
         version: 3.2.3(@types/node@24.0.1)(@vitest/ui@3.2.3)(jiti@2.4.2)(jsdom@26.1.0)(yaml@2.8.0)
 
   packages/backend:
+    dependencies:
+      engine:
+        specifier: workspace:*
+        version: link:../engine
+      mitt:
+        specifier: ^3.0.1
+        version: 3.0.1
     devDependencies:
       '@caido/sdk-backend':
         specifier: ^0.48.1
         version: 0.48.1
-      engine:
-        specifier: workspace:*
-        version: link:../engine
       shared:
         specifier: workspace:*
         version: link:../shared
@@ -68,12 +72,18 @@ importers:
 
   packages/engine:
     dependencies:
-      graph-data-structure:
-        specifier: ^4.5.0
-        version: 4.5.0
+      '@supercharge/promise-pool':
+        specifier: ^3.2.0
+        version: 3.2.0
+      batching-toposort-ts:
+        specifier: ^1.0.0
+        version: 1.0.0
       html5parser:
         specifier: ^2.0.2
         version: 2.0.2
+      mitt:
+        specifier: ^3.0.1
+        version: 3.0.1
     devDependencies:
       '@caido/sdk-backend':
         specifier: ^0.48.1
@@ -88,11 +98,11 @@ importers:
         specifier: 0.1.14
         version: 0.1.14(primevue@4.1.0(vue@3.5.13(typescript@5.8.3)))
       '@caido/sdk-frontend':
-        specifier: 0.48.2-beta.7
-        version: 0.48.2-beta.7(@codemirror/state@6.5.2)(@codemirror/view@6.28.1)(vue@3.5.13(typescript@5.8.3))
-      engine:
-        specifier: workspace:*
-        version: link:../engine
+        specifier: 0.48.2-beta.11
+        version: 0.48.2-beta.11(@codemirror/state@6.5.2)(@codemirror/view@6.28.1)(vue@3.5.13(typescript@5.8.3))
+      date-fns:
+        specifier: ^4.1.0
+        version: 4.1.0
       pinia:
         specifier: ^3.0.3
         version: 3.0.3(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
@@ -102,6 +112,9 @@ importers:
       shared:
         specifier: workspace:*
         version: link:../shared
+      ts-deepmerge:
+        specifier: ^7.0.3
+        version: 7.0.3
       vue:
         specifier: 3.5.13
         version: 3.5.13(typescript@5.8.3)
@@ -115,6 +128,9 @@ importers:
       backend:
         specifier: workspace:*
         version: link:../backend
+      engine:
+        specifier: workspace:*
+        version: link:../engine
       vue-tsc:
         specifier: 2.0.29
         version: 2.0.29(typescript@5.8.3)
@@ -186,8 +202,8 @@ packages:
   '@caido/sdk-backend@0.48.1':
     resolution: {integrity: sha512-JvFeOlSqAKbj3OenBn0LPtCNaOV0x6YtaAQijpvYfBJK32Nvbf924Z10bFVCu+Clc5A1qr7HcAvJ/8B/aRikWA==, tarball: https://registry.npmjs.org/@caido/sdk-backend/-/sdk-backend-0.48.1.tgz}
 
-  '@caido/sdk-frontend@0.48.2-beta.7':
-    resolution: {integrity: sha512-jvRIeDYI3xk/kWYErIgmCJp4yyeZL/mwNOX2MS/I9XrgZPq2JmZ8pD7VPPDu2/lKdGIUfPI6n8DnX/Oqco94fQ==, tarball: https://registry.npmjs.org/@caido/sdk-frontend/-/sdk-frontend-0.48.2-beta.7.tgz}
+  '@caido/sdk-frontend@0.48.2-beta.11':
+    resolution: {integrity: sha512-hHLH/XerXOZoAtoqrLzr3cyQpyguE4cvy9nXRibBEaSjtkKd7O4DBqYSkwhn2yL3Dipq3KCEDAviPH72nJarkA==, tarball: https://registry.npmjs.org/@caido/sdk-frontend/-/sdk-frontend-0.48.2-beta.11.tgz}
     peerDependencies:
       '@codemirror/state': ^6.0.0
       '@codemirror/view': ^6.0.0
@@ -917,6 +933,10 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==, tarball: https://registry.npmjs.org/@rtsao/scc/-/scc-1.1.0.tgz}
 
+  '@supercharge/promise-pool@3.2.0':
+    resolution: {integrity: sha512-pj0cAALblTZBPtMltWOlZTQSLT07jIaFNeM8TWoJD1cQMgDB9mcMlVMoetiB35OzNJpqQ2b+QEtwiR9f20mADg==, tarball: https://registry.npmjs.org/@supercharge/promise-pool/-/promise-pool-3.2.0.tgz}
+    engines: {node: '>=8'}
+
   '@types/chai@5.2.2':
     resolution: {integrity: sha512-8kB30R7Hwqf40JPiKhVzodJs2Qc1ZJ5zuT3uzw5Hq/dhNCl3G3l83jfpdI1e20BP348+fV7VIL/+FxaXkqBmWg==, tarball: https://registry.npmjs.org/@types/chai/-/chai-5.2.2.tgz}
 
@@ -1217,6 +1237,10 @@ packages:
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==, tarball: https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz}
 
+  batching-toposort-ts@1.0.0:
+    resolution: {integrity: sha512-rL8TtiuGFsHPWJ2le6d97c+HG6UE90Vvq+YImivWe82qqOuw0nRD/YXRgiJLv5jTjekCzYEhCue6quM/DniOtg==, tarball: https://registry.npmjs.org/batching-toposort-ts/-/batching-toposort-ts-1.0.0.tgz}
+    engines: {node: '>=14.0.0'}
+
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==, tarball: https://registry.npmjs.org/binary-extensions/-/binary-extensions-2.3.0.tgz}
     engines: {node: '>=8'}
@@ -1386,6 +1410,9 @@ packages:
   data-view-byte-offset@1.0.1:
     resolution: {integrity: sha512-BS8PfmtDGnrgYdOonGZQdLZslWIeCGFP9tpan0hi1Co2Zr2NKADsvGYA8XxuG/4UWgJ6Cjtv+YJnB6MM69QGlQ==, tarball: https://registry.npmjs.org/data-view-byte-offset/-/data-view-byte-offset-1.0.1.tgz}
     engines: {node: '>= 0.4'}
+
+  date-fns@4.1.0:
+    resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==, tarball: https://registry.npmjs.org/date-fns/-/date-fns-4.1.0.tgz}
 
   de-indent@1.0.2:
     resolution: {integrity: sha512-e/1zu3xH5MQryN2zdVaF0OrdNLUbvWxzMbi+iNA6Bky7l1RoP8a2fIbRocyHclXt/arDrrR6lL3TqFD9pMQTsg==, tarball: https://registry.npmjs.org/de-indent/-/de-indent-1.0.2.tgz}
@@ -1834,9 +1861,6 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==, tarball: https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.11.tgz}
 
-  graph-data-structure@4.5.0:
-    resolution: {integrity: sha512-OCeIzpK9JnV5js4gtDJgwebRbcOsZpoN9CNIwEooHkV/FNol+OykWPOugSTXBH/QICEW2N6U+6L2d9DcK4YBcw==, tarball: https://registry.npmjs.org/graph-data-structure/-/graph-data-structure-4.5.0.tgz}
-
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==, tarball: https://registry.npmjs.org/graphemer/-/graphemer-1.4.0.tgz}
 
@@ -2104,11 +2128,19 @@ packages:
     resolution: {integrity: sha512-g1MWMLBiz8FKi1e4w0UyVL3w+iJceWAFBAaBnnGKOpNa5f8TLktkbre1+s6oICydWAm+HRUGTmI+//xv2hvXYA==, tarball: https://registry.npmjs.org/json5/-/json5-1.0.2.tgz}
     hasBin: true
 
+  jsverify@0.8.4:
+    resolution: {integrity: sha512-nUG73Sfi8L4eOkc7pv9sflgAm43v+z6XMuePGVdRoBUxBLJiVcMcf3Xgc4h19eHHF3JwsaagOkUu825UnPBLJw==, tarball: https://registry.npmjs.org/jsverify/-/jsverify-0.8.4.tgz}
+    engines: {node: '>= 0.8.0'}
+
   jszip@3.10.1:
     resolution: {integrity: sha512-xXDvecyTpGLrqFrvkrUSoxxfJI5AH7U8zxxtVclpsUtMCq4JQ290LY8AW5c7Ggnr/Y/oK+bQMbqK2qmtk3pN4g==, tarball: https://registry.npmjs.org/jszip/-/jszip-3.10.1.tgz}
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==, tarball: https://registry.npmjs.org/keyv/-/keyv-4.5.4.tgz}
+
+  lazy-seq@1.0.0:
+    resolution: {integrity: sha512-AQ4vRcnULa7FX6R6YTAjKQAE1MuEThidVQm0TEtTpedaBpnOwid5k6go16E5NDkafel1xAsZL73WkwdG03IzhA==, tarball: https://registry.npmjs.org/lazy-seq/-/lazy-seq-1.0.0.tgz}
+    engines: {node: '>= 0.10.0'}
 
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==, tarball: https://registry.npmjs.org/levn/-/levn-0.4.1.tgz}
@@ -2509,6 +2541,10 @@ packages:
     resolution: {integrity: sha512-RmkhL8CAyCRPXCE28MMH0z2PNWQBNk2Q09ZdxM9IOOXwxwZbN+qbWaatPkdkWIKL2ZVDImrN/pK5HTRz2PcS4g==, tarball: https://registry.npmjs.org/raw-body/-/raw-body-3.0.0.tgz}
     engines: {node: '>= 0.8'}
 
+  rc4@0.1.5:
+    resolution: {integrity: sha512-xdDTNV90z5x5u25Oc871Xnvu7yAr4tV7Eluh0VSvrhUkry39q1k+zkz7xroqHbRq+8PiazySHJPArqifUvz9VA==, tarball: https://registry.npmjs.org/rc4/-/rc4-0.1.5.tgz}
+    engines: {node: '>=0.10.0'}
+
   read-cache@1.0.0:
     resolution: {integrity: sha512-Owdv/Ft7IjOgm/i0xvNDZ1LrRANRfew4b2prF3OWMQLxLfu3bS8FVhCsrSCMK4lR56Y9ya+AThoTpDCTxCmpRA==, tarball: https://registry.npmjs.org/read-cache/-/read-cache-1.0.0.tgz}
 
@@ -2851,6 +2887,9 @@ packages:
     resolution: {integrity: sha512-hdF5ZgjTqgAntKkklYw0R03MG2x/bSzTtkxmIRw/sTNV8YXsCJ1tfLAX23lhxhHJlEf3CRCOCGGWw3vI3GaSPw==, tarball: https://registry.npmjs.org/tr46/-/tr46-5.1.1.tgz}
     engines: {node: '>=18'}
 
+  trampa@1.0.1:
+    resolution: {integrity: sha512-93WeyHNuRggPEsfCe+yHxCgM2s6H3Q8Wmlt6b6ObJL8qc7eZlRaFjQxwTrB+zbvGtlDRnAkMoYYo3+2uH/fEwA==, tarball: https://registry.npmjs.org/trampa/-/trampa-1.0.1.tgz}
+
   tree-kill@1.2.2:
     resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==, tarball: https://registry.npmjs.org/tree-kill/-/tree-kill-1.2.2.tgz}
     hasBin: true
@@ -2860,6 +2899,10 @@ packages:
     engines: {node: '>=18.12'}
     peerDependencies:
       typescript: '>=4.8.4'
+
+  ts-deepmerge@7.0.3:
+    resolution: {integrity: sha512-Du/ZW2RfwV/D4cmA5rXafYjBQVuvu4qGiEEla4EmEHVHgRdx68Gftx7i66jn2bzHPwSVZY36Ae6OuDn9el4ZKA==, tarball: https://registry.npmjs.org/ts-deepmerge/-/ts-deepmerge-7.0.3.tgz}
+    engines: {node: '>=14.13.1'}
 
   ts-interface-checker@0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==, tarball: https://registry.npmjs.org/ts-interface-checker/-/ts-interface-checker-0.1.13.tgz}
@@ -2928,6 +2971,10 @@ packages:
     resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==, tarball: https://registry.npmjs.org/typescript/-/typescript-5.8.3.tgz}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  typify-parser@1.1.0:
+    resolution: {integrity: sha512-p5+L1sc6Al3bcStMwiZNxDh4ii4JxL+famEbSIUuOUMVoNn9Nz27AT1jL3x7poMHxqKK0UQIUAp5lGkKbyKkFA==, tarball: https://registry.npmjs.org/typify-parser/-/typify-parser-1.1.0.tgz}
+    engines: {node: '>= 0.10.0'}
 
   unbox-primitive@1.1.0:
     resolution: {integrity: sha512-nWJ91DjeOkej/TA8pXQ3myruKpKEYgqvpw9lz4OPHj/NWFNluYrjbz9j01CJ8yKQd2g4jFoOkINCTW2I5LEEyw==, tarball: https://registry.npmjs.org/unbox-primitive/-/unbox-primitive-1.1.0.tgz}
@@ -3371,7 +3418,7 @@ snapshots:
       '@caido/quickjs-types': 0.18.0
       '@caido/sdk-shared': 0.1.1
 
-  '@caido/sdk-frontend@0.48.2-beta.7(@codemirror/state@6.5.2)(@codemirror/view@6.28.1)(vue@3.5.13(typescript@5.8.3))':
+  '@caido/sdk-frontend@0.48.2-beta.11(@codemirror/state@6.5.2)(@codemirror/view@6.28.1)(vue@3.5.13(typescript@5.8.3))':
     dependencies:
       '@codemirror/state': 6.5.2
       '@codemirror/view': 6.28.1
@@ -3838,6 +3885,8 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
+  '@supercharge/promise-pool@3.2.0': {}
+
   '@types/chai@5.2.2':
     dependencies:
       '@types/deep-eql': 4.0.2
@@ -4261,6 +4310,11 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
+  batching-toposort-ts@1.0.0:
+    dependencies:
+      chai: 5.2.0
+      jsverify: 0.8.4
+
   binary-extensions@2.3.0: {}
 
   birpc@2.4.0: {}
@@ -4437,6 +4491,8 @@ snapshots:
       call-bound: 1.0.4
       es-errors: 1.3.0
       is-data-view: 1.0.2
+
+  date-fns@4.1.0: {}
 
   de-indent@1.0.2: {}
 
@@ -5077,8 +5133,6 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  graph-data-structure@4.5.0: {}
-
   graphemer@1.4.0: {}
 
   has-bigints@1.1.0: {}
@@ -5356,6 +5410,13 @@ snapshots:
     dependencies:
       minimist: 1.2.8
 
+  jsverify@0.8.4:
+    dependencies:
+      lazy-seq: 1.0.0
+      rc4: 0.1.5
+      trampa: 1.0.1
+      typify-parser: 1.1.0
+
   jszip@3.10.1:
     dependencies:
       lie: 3.3.0
@@ -5366,6 +5427,8 @@ snapshots:
   keyv@4.5.4:
     dependencies:
       json-buffer: 3.0.1
+
+  lazy-seq@1.0.0: {}
 
   levn@0.4.1:
     dependencies:
@@ -5699,6 +5762,8 @@ snapshots:
       http-errors: 2.0.0
       iconv-lite: 0.6.3
       unpipe: 1.0.0
+
+  rc4@0.1.5: {}
 
   read-cache@1.0.0:
     dependencies:
@@ -6132,11 +6197,15 @@ snapshots:
       punycode: 2.3.1
     optional: true
 
+  trampa@1.0.1: {}
+
   tree-kill@1.2.2: {}
 
   ts-api-utils@2.1.0(typescript@5.8.3):
     dependencies:
       typescript: 5.8.3
+
+  ts-deepmerge@7.0.3: {}
 
   ts-interface-checker@0.1.13: {}
 
@@ -6232,6 +6301,8 @@ snapshots:
       - supports-color
 
   typescript@5.8.3: {}
+
+  typify-parser@1.1.0: {}
 
   unbox-primitive@1.1.0:
     dependencies:

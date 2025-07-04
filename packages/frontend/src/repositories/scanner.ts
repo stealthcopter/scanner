@@ -1,10 +1,12 @@
+import { type ScanRequestPayload } from "shared";
+
 import { useSDK } from "@/plugins/sdk";
 
 export const useScannerRepository = () => {
   const sdk = useSDK();
 
-  const startActiveScan = async (requestIDs: string[]) => {
-    const response = await sdk.backend.startActiveScan(requestIDs);
+  const startActiveScan = async (payload: ScanRequestPayload) => {
+    const response = await sdk.backend.startActiveScan(payload);
     return response;
   };
 

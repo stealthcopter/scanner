@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { type ScanRequestPayload } from "shared";
 
 import { useSDK } from "@/plugins/sdk";
 import { useScannerRepository } from "@/repositories/scanner";
@@ -32,17 +33,39 @@ export const useScannerService = defineStore("services.scanner", () => {
     });
   };
 
-  const startActiveScan = async (requestIDs: string[]) => {
-    const result = await repository.startActiveScan(requestIDs);
+  const startActiveScan = async (payload: ScanRequestPayload) => {
+    const result = await repository.startActiveScan(payload);
 
     if (result.kind === "Success") {
       store.send({ type: "AddSession", session: result.value });
+      sdk.window.showToast("Scan submitted", { variant: "success" });
     } else {
       sdk.window.showToast(result.error, {
         variant: "error",
       });
     }
+
+    return result;
   };
 
-  return { getState, initialize, startActiveScan };
+  const selectSession = async (sessionId: string) => {
+    store.selectionState.send({ type: "Start", sessionId });
+    const result = await repository.getScanSession(sessionId);
+
+    if (result.kind === "Success") {
+      store.selectionState.send({
+        type: "Success",
+        sessionId,
+        session: result.value,
+      });
+    } else {
+      store.selectionState.send({
+        type: "Error",
+        sessionId,
+        error: result.error,
+      });
+    }
+  };
+
+  return { getState, initialize, startActiveScan, selectSession };
 });

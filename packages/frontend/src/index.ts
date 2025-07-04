@@ -1,12 +1,15 @@
 import { Classic } from "@caido/primevue";
 import { createPinia } from "pinia";
 import PrimeVue from "primevue/config";
-import { createApp } from "vue";
+import { createApp, defineComponent, h } from "vue";
 
 import { SDKPlugin } from "./plugins/sdk";
 import "./styles/index.css";
 import type { FrontendSDK } from "./types";
 import App from "./views/App.vue";
+
+import { ScanLauncher } from "@/components/launcher";
+import { useLauncher } from "@/stores/launcher";
 
 export const init = (sdk: FrontendSDK) => {
   const app = createApp(App);
@@ -31,40 +34,86 @@ export const init = (sdk: FrontendSDK) => {
 
   app.mount(root);
 
+  let sidebarCount = 0;
   sdk.navigation.addPage("/scanner", {
     body: root,
+    onEnter: () => {
+      sidebarCount = 0;
+      sidebarItem.setCount(sidebarCount);
+    },
   });
 
-  sdk.sidebar.registerItem("Scanner", "/scanner", {
+  const sidebarItem = sdk.sidebar.registerItem("Scanner", "/scanner", {
     icon: "fas fa-shield-alt",
   });
 
   sdk.commands.register("run-active-scanner", {
     name: "Run Active Scanner",
-    run: async (context) => {
-      let requestIds: string[] = [];
+    run: (context) => {
+      let requests = [];
 
       if (context.type === "RequestRowContext") {
-        requestIds = context.requests.map((req) => req.id.toString());
+        context.requests.forEach((request) => {
+          requests.push({
+            id: request.id.toString(),
+            host: request.host,
+            port: request.port,
+            path: request.path,
+            query: request.query,
+          });
+        });
       } else if (context.type === "RequestContext" && context.request.id) {
-        requestIds = [context.request.id.toString()];
+        requests.push({
+          id: context.request.id.toString(),
+          host: context.request.host,
+          port: context.request.port,
+          path: context.request.path,
+          query: context.request.query,
+        });
       } else {
         sdk.window.showToast("No requests selected", { variant: "warning" });
         return;
       }
 
-      if (requestIds.length === 0) {
+      requests = requests.filter(
+        (request, index, self) =>
+          index ===
+          self.findIndex(
+            (t) =>
+              t.host === request.host &&
+              t.port === request.port &&
+              t.path === request.path &&
+              t.query === request.query,
+          ),
+      );
+
+      if (requests.length === 0) {
         sdk.window.showToast("No requests selected", { variant: "warning" });
         return;
       }
 
-      const result = await sdk.backend.startActiveScan(requestIds);
-      if (result.kind === "Error") {
-        sdk.window.showToast(`Scan failed: ${result.error}`, {
-          variant: "error",
-        });
-        return;
-      }
+      const launcherStore = useLauncher();
+      launcherStore.restart();
+      launcherStore.form.targets = requests.map((request) => ({
+        ...request,
+        method: "GET",
+      }));
+
+      sdk.window.showDialog(
+        {
+          type: "Custom",
+          component: defineComponent((props) => {
+            return () => h(ScanLauncher, { ...props, sdk });
+          }),
+        },
+        {
+          title: "Scan Launcher",
+          draggable: false,
+          closeOnEscape: true,
+          modal: true,
+          position: "center",
+        },
+      );
     },
     group: "Scanner",
     when: (context) => {

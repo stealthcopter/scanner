@@ -1,3 +1,5 @@
+import { Buffer } from "buffer";
+
 export type UrlBypassTechnique =
   | "NormalUrl"
   | "UserInfoBypass"
@@ -134,7 +136,7 @@ const STRATEGIES: Readonly<Record<UrlBypassTechnique, BypassStrategy>> = {
     description: "Uses a base64 encoded string to bypass the expected host.",
     generate: () => {
       return {
-        value: btoa(`${protocol}//${attackerHost}/`),
+        value: Buffer.from(`${protocol}//${attackerHost}/`).toString("base64"),
         validatesWith: (url) => url.hostname === attackerHost,
       };
     },

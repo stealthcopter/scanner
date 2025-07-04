@@ -1,27 +1,29 @@
 import {
+  type CheckDefinition,
+  type CheckMetadata,
+  type CheckOutput,
+  type CheckTask,
   type DefineUtils,
-  type JSONSerializable,
   type RunState,
-  type ScanContext,
-  type ScanDefinition,
-  type ScanMetadata,
+  type RuntimeContext,
   type ScanTarget,
-  type ScanTask,
   type Step,
   type StepAction,
   type StepName,
   type StepTickResult,
 } from "../types";
 
-export const defineScan = <T>(
+import { CheckDefinitionError, CheckDefinitionErrorCode } from "./errors";
+
+export const defineCheck = <T>(
   definition: (utils: DefineUtils<T>) => {
-    metadata: ScanMetadata;
+    metadata: CheckMetadata;
     initState?: () => T;
     dedupeKey?: (target: ScanTarget) => string;
-    when?: (context: ScanContext) => boolean;
-    output?: (state: T) => JSONSerializable;
+    when?: (target: ScanTarget) => boolean;
+    output?: (state: T, context: RuntimeContext) => CheckOutput;
   },
-): ScanDefinition => {
+): CheckDefinition => {
   const steps: Map<StepName, Step<T>> = new Map();
 
   const step = (name: StepName, action: StepAction<T>) => {
@@ -30,22 +32,35 @@ export const defineScan = <T>(
 
   const { metadata, dedupeKey, initState, when, output } = definition({ step });
 
-  const create = (context: ScanContext): ScanTask => {
+  const create = (context: RuntimeContext): CheckTask => {
     if (steps.size === 0) {
-      throw new Error("No steps defined for scan");
+      throw new CheckDefinitionError(
+        "No steps defined for check",
+        CheckDefinitionErrorCode.NO_STEPS_DEFINED,
+      );
     }
 
     const initialState = initState !== undefined ? initState() : ({} as T);
     const runState: RunState<T> = {
       state: initialState,
-      nextStep: steps.keys().next().value ?? "",
+      nextStep: steps.keys().next().value ?? undefined,
       findings: [],
     };
 
     const tick = async (): Promise<StepTickResult> => {
+      if (runState.nextStep === undefined) {
+        throw new CheckDefinitionError(
+          "No next step",
+          CheckDefinitionErrorCode.NO_NEXT_STEP,
+        );
+      }
+
       const step = steps.get(runState.nextStep);
       if (!step) {
-        throw new Error(`Step ${runState.nextStep} not found`);
+        throw new CheckDefinitionError(
+          `Step ${runState.nextStep} not found`,
+          CheckDefinitionErrorCode.STEP_NOT_FOUND,
+        );
       }
 
       const result = await step.action(runState.state, context);
@@ -55,6 +70,7 @@ export const defineScan = <T>(
 
       switch (result.kind) {
         case "Done":
+          runState.nextStep = undefined;
           if (result.state !== undefined) {
             runState.state = result.state;
           }
@@ -66,21 +82,17 @@ export const defineScan = <T>(
       }
     };
 
-    const serialize = () => {
-      return JSON.stringify(runState);
-    };
-
-    const getOutput = (): JSONSerializable | undefined => {
+    const getOutput = (): CheckOutput => {
       if (output === undefined) {
         return undefined;
       }
-      return output(runState.state);
+
+      return output(runState.state, context);
     };
 
     return {
-      id: metadata.id,
+      metadata,
       tick,
-      serialize,
       getFindings: () => runState.findings,
       getOutput,
     };
@@ -88,8 +100,8 @@ export const defineScan = <T>(
 
   return {
     metadata,
+    create,
     dedupeKey,
     when,
-    create,
   };
 };

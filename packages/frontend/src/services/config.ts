@@ -1,8 +1,10 @@
 import { defineStore } from "pinia";
 import { type UserConfig } from "shared";
+import { merge } from "ts-deepmerge";
 
 import { useConfigRepository } from "@/repositories/config";
 import { useConfigStore } from "@/stores/config";
+import { type DeepPartial } from "@/types/utils";
 
 export const useConfigService = defineStore("services.config", () => {
   const repository = useConfigRepository();
@@ -22,12 +24,20 @@ export const useConfigService = defineStore("services.config", () => {
     }
   };
 
-  const updateConfig = async (update: Partial<UserConfig>) => {
-    const result = await repository.updateConfig(update);
-    if (result.kind === "Success") {
-      store.send({ type: "UpdateConfig", config: update });
-    } else {
-      store.send({ type: "Error", error: result.error });
+  const updateConfig = async (update: DeepPartial<UserConfig>) => {
+    const currState = store.getState();
+    if (currState.type === "Success") {
+      const updatedConfig = merge.withOptions(
+        { mergeArrays: false },
+        currState.config,
+        update,
+      ) as UserConfig;
+      const result = await repository.updateConfig(updatedConfig);
+      if (result.kind === "Success") {
+        store.send({ type: "UpdateConfig", config: updatedConfig });
+      } else {
+        store.send({ type: "Error", error: result.error });
+      }
     }
   };
 
