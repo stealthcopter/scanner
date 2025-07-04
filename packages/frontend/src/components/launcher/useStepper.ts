@@ -1,4 +1,5 @@
-import { Component, computed, ref } from "vue";
+import { type Component, computed, ref } from "vue";
+
 import { ConfigStep } from "./ConfigStep";
 import { TargetsStep } from "./TargetsStep";
 
@@ -19,7 +20,8 @@ export const useStepper = () => {
     {
       id: "targets",
       label: "Targets",
-      description: "Review and delete targets you don't want to include in the scan. Multi-select is supported.",
+      description:
+        "Review and delete targets you don't want to include in the scan. Multi-select is supported.",
       icon: "fas fa-bullseye",
       component: TargetsStep,
     },

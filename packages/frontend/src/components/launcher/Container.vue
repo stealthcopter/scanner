@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import Button from "primevue/button";
+
 import { useStepper } from "./useStepper";
-import { useLauncher } from "@/stores/launcher";
-import { FrontendSDK } from "@/types";
+
 import { provideSDK } from "@/plugins/sdk";
+import { useLauncher } from "@/stores/launcher";
+import { type FrontendSDK } from "@/types";
 
 const {
   activeStep,
@@ -26,7 +28,7 @@ const launcher = useLauncher();
 </script>
 
 <template>
-  <div class="flex w-[900px] h-[550px]" id="launcher_dialog">
+  <div class="flex w-[900px] h-[550px]">
     <!-- Sidebar Navigation -->
     <div class="w-48 p-2">
       <nav class="space-y-2">
@@ -35,10 +37,10 @@ const launcher = useLauncher();
           :key="step.id"
           :label="step.label"
           :icon="step.icon"
-          @click="setActiveStep(step.id)"
           :severity="activeStep === step.id ? 'secondary' : 'info'"
           :outlined="activeStep !== step.id"
           class="w-full justify-start"
+          @click="setActiveStep(step.id)"
         />
       </nav>
     </div>
@@ -67,9 +69,9 @@ const launcher = useLauncher();
             v-if="canGoPrevious"
             label="Previous"
             icon="fas fa-chevron-left"
-            @click="goPrevious"
             severity="info"
             outlined
+            @click="goPrevious"
           />
           <div v-else></div>
 
@@ -78,16 +80,16 @@ const launcher = useLauncher();
               v-if="!isLastStep"
               label="Next"
               icon="fas fa-chevron-right"
-              iconPos="right"
-              @click="goNext"
+              icon-pos="right"
               severity="info"
+              @click="goNext"
             />
             <Button
               v-else
               label="Run Scan"
               icon="fas fa-play"
-              @click="launcher.onSubmit(props.sdk)"
               severity="success"
+              @click="launcher.onSubmit(props.sdk)"
             />
           </div>
         </div>

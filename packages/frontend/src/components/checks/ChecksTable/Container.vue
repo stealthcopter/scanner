@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ConfigState } from "@/types/config";
 import Failed from "./Failed.vue";
 import Loading from "./Loading.vue";
 import Success from "./Success.vue";
 
 import InvalidState from "@/components/common/InvalidState.vue";
 import { type ChecksState } from "@/types/checks";
+import { type ConfigState } from "@/types/config";
 
 defineProps<{
   checksState: ChecksState;

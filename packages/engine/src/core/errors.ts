@@ -37,6 +37,7 @@ export enum ScanRunnableErrorCode {
   INTERRUPTED = "INTERRUPTED",
   REQUEST_NOT_FOUND = "REQUEST_NOT_FOUND",
   SCAN_ALREADY_RUNNING = "SCAN_ALREADY_RUNNING",
+  RUNTIME_ERROR = "RUNTIME_ERROR",
 }
 
 export class ScanRunnableError extends Error {
@@ -55,5 +56,14 @@ export class ScanRunnableInterruptedError extends ScanRunnableError {
   constructor(reason: InterruptReason) {
     super("Scan interrupted", ScanRunnableErrorCode.INTERRUPTED);
     this.reason = reason;
+  }
+}
+
+export class ScanRuntimeError extends ScanRunnableError {
+  public errors: Error[];
+
+  constructor(errors: Error[]) {
+    super("Scan runtime error", ScanRunnableErrorCode.RUNTIME_ERROR);
+    this.errors = errors;
   }
 }

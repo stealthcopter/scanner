@@ -1,9 +1,10 @@
-import { ScanConfig, ScanStrength } from "engine";
-import { reactive } from "vue";
+import { type ScanConfig, ScanStrength } from "engine";
 import { defineStore } from "pinia";
-import { BasicRequest, ScanRequestPayload } from "shared";
-import { FrontendSDK } from "@/types";
+import { type BasicRequest, type ScanRequestPayload } from "shared";
+import { reactive } from "vue";
+
 import { useScannerService } from "@/services/scanner";
+import { type FrontendSDK } from "@/types";
 
 type FormState = {
   targets: BasicRequest[];
@@ -33,7 +34,7 @@ export const useLauncher = defineStore("stores.launcher", () => {
     title: form.title,
   });
 
-  const onSubmit = async (sdk: FrontendSDK) => {
+  const onSubmit = (sdk: FrontendSDK) => {
     const payload = toRequestPayload();
     scannerService.startActiveScan(payload);
 
@@ -42,7 +43,7 @@ export const useLauncher = defineStore("stores.launcher", () => {
       key: "Escape",
       code: "Escape",
       bubbles: true,
-      cancelable: true
+      cancelable: true,
     });
     document.dispatchEvent(escapeEvent);
   };

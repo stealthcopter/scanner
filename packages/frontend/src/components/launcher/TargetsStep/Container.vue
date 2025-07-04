@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { TargetsList } from '@/components/launcher/TargetsStep/TargetsList';
-
+import { TargetsList } from "@/components/launcher/TargetsStep/TargetsList";
 </script>
 
 <template>

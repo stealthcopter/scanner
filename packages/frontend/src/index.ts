@@ -7,8 +7,9 @@ import { SDKPlugin } from "./plugins/sdk";
 import "./styles/index.css";
 import type { FrontendSDK } from "./types";
 import App from "./views/App.vue";
-import { useLauncher } from "@/stores/launcher";
+
 import { ScanLauncher } from "@/components/launcher";
+import { useLauncher } from "@/stores/launcher";
 
 export const init = (sdk: FrontendSDK) => {
   const app = createApp(App);
@@ -18,7 +19,7 @@ export const init = (sdk: FrontendSDK) => {
 
   app.use(PrimeVue, {
     unstyled: true,
-    pt: Classic
+    pt: Classic,
   });
 
   app.use(SDKPlugin, sdk);
@@ -32,7 +33,6 @@ export const init = (sdk: FrontendSDK) => {
   root.id = `plugin--scanner`;
 
   app.mount(root);
-
 
   let sidebarCount = 0;
   sdk.navigation.addPage("/scanner", {
@@ -49,7 +49,7 @@ export const init = (sdk: FrontendSDK) => {
 
   sdk.commands.register("run-active-scanner", {
     name: "Run Active Scanner",
-    run: async (context) => {
+    run: (context) => {
       let requests = [];
 
       if (context.type === "RequestRowContext") {
@@ -83,8 +83,8 @@ export const init = (sdk: FrontendSDK) => {
               t.host === request.host &&
               t.port === request.port &&
               t.path === request.path &&
-              t.query === request.query
-          )
+              t.query === request.query,
+          ),
       );
 
       if (requests.length === 0) {
@@ -112,7 +112,7 @@ export const init = (sdk: FrontendSDK) => {
           closeOnEscape: true,
           modal: true,
           position: "center",
-        }
+        },
       );
     },
     group: "Scanner",

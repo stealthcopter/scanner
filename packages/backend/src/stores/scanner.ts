@@ -1,4 +1,4 @@
-import { ScanRunnable, type Finding, type InterruptReason } from "engine";
+import { type Finding, type InterruptReason, type ScanRunnable } from "engine";
 import { type SessionState } from "shared";
 
 export type ScanMessage =
@@ -98,7 +98,7 @@ export class ScannerStore {
 
 const processPending = (
   state: SessionState & { kind: "Pending" },
-  message: ScanMessage
+  message: ScanMessage,
 ): SessionState => {
   if (message.type === "Start") {
     return {
@@ -118,7 +118,7 @@ const processPending = (
 
 const processRunning = (
   state: SessionState & { kind: "Running" },
-  message: ScanMessage
+  message: ScanMessage,
 ): SessionState => {
   if (message.type === "Finish") {
     return {
@@ -181,21 +181,21 @@ const processRunning = (
 
 const processDone = (
   state: SessionState & { kind: "Done" },
-  message: ScanMessage
+  message: ScanMessage,
 ): SessionState => {
   throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
 };
 
 const processError = (
   state: SessionState & { kind: "Error" },
-  message: ScanMessage
+  message: ScanMessage,
 ): SessionState => {
   throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
 };
 
 const processInterrupted = (
   state: SessionState & { kind: "Interrupted" },
-  message: ScanMessage
+  message: ScanMessage,
 ): SessionState => {
   throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
 };

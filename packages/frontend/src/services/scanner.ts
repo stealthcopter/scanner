@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
+import { type ScanRequestPayload } from "shared";
 
 import { useSDK } from "@/plugins/sdk";
 import { useScannerRepository } from "@/repositories/scanner";
 import { useScannerStore } from "@/stores/scanner";
-import { ScanRequestPayload } from "shared";
 
 export const useScannerService = defineStore("services.scanner", () => {
   const sdk = useSDK();

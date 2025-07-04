@@ -14,7 +14,8 @@ const props = defineProps<{
 
 const { state } = toRefs(props);
 
-const { passiveEnabled, passiveStrength, passiveInScopeOnly, strengthOptions } = useForm(state);
+const { passiveEnabled, passiveStrength, passiveInScopeOnly, strengthOptions } =
+  useForm(state);
 </script>
 
 <template>
@@ -57,10 +58,14 @@ const { passiveEnabled, passiveStrength, passiveInScopeOnly, strengthOptions } =
                   >In-Scope Only</label
                 >
                 <p class="text-xs text-surface-400">
-                  When enabled, the scanner will only analyze requests that are in scope
+                  When enabled, the scanner will only analyze requests that are
+                  in scope
                 </p>
               </div>
-              <ToggleSwitch v-model="passiveInScopeOnly" :disabled="!passiveEnabled" />
+              <ToggleSwitch
+                v-model="passiveInScopeOnly"
+                :disabled="!passiveEnabled"
+              />
             </div>
 
             <div class="flex items-center justify-between">

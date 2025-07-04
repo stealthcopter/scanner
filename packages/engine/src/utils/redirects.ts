@@ -1,5 +1,6 @@
 import { type Response } from "caido:utils";
-import { RuntimeContext } from '../types/runner';
+
+import { type RuntimeContext } from "../types/runner";
 
 export type RedirectionType =
   | "http"
@@ -20,7 +21,7 @@ export type RedirectionInfo =
  */
 export function findRedirection(
   response: Response,
-  context: RuntimeContext
+  context: RuntimeContext,
 ): RedirectionInfo {
   // HTTP redirects (3xx status codes with Location header)
   const statusCode = response.getCode();

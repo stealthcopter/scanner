@@ -1,8 +1,9 @@
+import { createRegistry } from "engine";
 import {
   error,
   ok,
-  ScanRequestPayload,
   type Result,
+  type ScanRequestPayload,
   type SessionState,
 } from "shared";
 
@@ -10,12 +11,11 @@ import { ChecksStore } from "../stores/checks";
 import { ConfigStore } from "../stores/config";
 import { ScannerStore } from "../stores/scanner";
 import { type BackendSDK } from "../types";
-import { createRegistry } from "engine";
 
-export const startActiveScan = async (
+export const startActiveScan = (
   sdk: BackendSDK,
-  payload: ScanRequestPayload
-): Promise<Result<SessionState>> => {
+  payload: ScanRequestPayload,
+): Result<SessionState> => {
   const { requestIDs, scanConfig } = payload;
 
   if (requestIDs.length === 0) {
@@ -148,7 +148,7 @@ export const startActiveScan = async (
 
 export const getScanSession = (
   _: BackendSDK,
-  id: string
+  id: string,
 ): Result<SessionState> => {
   const session = ScannerStore.get().getSession(id);
   if (!session) {
@@ -165,7 +165,7 @@ export const getScanSessions = (_: BackendSDK): Result<SessionState[]> => {
 
 export const cancelScanSession = (
   _: BackendSDK,
-  id: string
+  id: string,
 ): Result<boolean> => {
   const result = ScannerStore.get().cancelRunnable(id);
   return ok(result);

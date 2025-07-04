@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
 import Button from "primevue/button";
-import { useLauncher } from "@/stores/launcher";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
+import { type BasicRequest } from "shared";
 import { ref } from "vue";
+
 import { useSDK } from "@/plugins/sdk";
-import { BasicRequest } from "shared";
+import { useLauncher } from "@/stores/launcher";
 
 const sdk = useSDK();
 const launcher = useLauncher();
@@ -16,13 +17,13 @@ const selectedTargets = ref<BasicRequest[]>([]);
 const handleDeleteSelected = () => {
   const selectedIds = selectedTargets.value.map((target) => target.id);
   const remainingTargets = form.targets.filter(
-    (target) => !selectedIds.includes(target.id)
+    (target) => !selectedIds.includes(target.id),
   );
 
   if (remainingTargets.length === 0) {
     sdk.window.showToast(
       "Cannot delete all requests. At least one request must remain.",
-      { variant: "warning" }
+      { variant: "warning" },
     );
     return;
   }
@@ -51,12 +52,12 @@ const handleDeleteSelected = () => {
       v-model:selection="selectedTargets"
       :value="form.targets"
       scrollable
-      stripedRows
-      scrollHeight="25rem"
-      tableStyle="table-layout: fixed"
-      selectionMode="multiple"
-      :metaKeySelection="true"
-      dataKey="id"
+      striped-rows
+      scroll-height="25rem"
+      table-style="table-layout: fixed"
+      selection-mode="multiple"
+      :meta-key-selection="true"
+      data-key="id"
       class="flex-1"
     >
       <Column field="method" header="Method" style="width: 10%">

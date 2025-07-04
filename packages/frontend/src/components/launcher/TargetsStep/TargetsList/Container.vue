@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { useLauncher } from "@/stores/launcher";
 import Empty from "./Empty.vue";
 import Table from "./Table.vue";
+
+import { useLauncher } from "@/stores/launcher";
 
 const { form } = useLauncher();
 </script>

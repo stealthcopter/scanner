@@ -7,6 +7,7 @@ import {
   ScanRunnableError,
   ScanRunnableErrorCode,
   ScanRunnableInterruptedError,
+  ScanRuntimeError,
 } from "../core/errors";
 import { type CheckDefinition, type CheckOutput } from "../types/check";
 import { type Finding } from "../types/finding";
@@ -41,7 +42,7 @@ export const createRunnable = ({
 
   const isCheckApplicable = (
     check: CheckDefinition,
-    context: RuntimeContext
+    context: RuntimeContext,
   ): boolean => {
     if (
       check.metadata.minStrength !== undefined &&
@@ -81,7 +82,7 @@ export const createRunnable = ({
 
   const processBatch = async (
     batch: CheckDefinition[],
-    context: RuntimeContext
+    context: RuntimeContext,
   ): Promise<void> => {
     const tasks = batch
       .filter((check) => isCheckApplicable(check, context))
@@ -119,7 +120,7 @@ export const createRunnable = ({
       });
 
     if (errors.length > 0) {
-      throw errors[0];
+      throw new ScanRuntimeError(errors);
     }
   };
 
@@ -128,7 +129,7 @@ export const createRunnable = ({
       if (hasRun) {
         throw new ScanRunnableError(
           "Scan is either currently running or has been run before. Please create another runnable instance to run a new scan.",
-          ScanRunnableErrorCode.SCAN_ALREADY_RUNNING
+          ScanRunnableErrorCode.SCAN_ALREADY_RUNNING,
         );
       }
 
@@ -141,7 +142,7 @@ export const createRunnable = ({
           if (target === undefined) {
             throw new ScanRunnableError(
               `Request ${requestID} not found`,
-              ScanRunnableErrorCode.REQUEST_NOT_FOUND
+              ScanRunnableErrorCode.REQUEST_NOT_FOUND,
             );
           }
 
@@ -223,7 +224,7 @@ const getCheckBatches = (checks: CheckDefinition[]): CheckDefinition[][] => {
       for (const dependencyId of dependencies) {
         if (!checkMap.has(dependencyId)) {
           throw new Error(
-            `Check '${check.metadata.id}' has unknown dependency '${dependencyId}'`
+            `Check '${check.metadata.id}' has unknown dependency '${dependencyId}'`,
           );
         }
         if (!dag[dependencyId]) {
@@ -242,7 +243,7 @@ const getCheckBatches = (checks: CheckDefinition[]): CheckDefinition[][] => {
         throw new Error(`Check '${checkId}' not found in checkMap`);
       }
       return check;
-    })
+    }),
   );
 };
 

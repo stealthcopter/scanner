@@ -1,4 +1,5 @@
-import { getCurrentInstance, inject, provide, type Plugin } from "vue";
+import { getCurrentInstance, inject, type Plugin, provide } from "vue";
+
 import type { FrontendSDK } from "@/types";
 
 export const KEY = "sdk";

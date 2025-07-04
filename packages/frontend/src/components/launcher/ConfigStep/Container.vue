@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import { formatDuration } from "date-fns";
 import { ScanStrength } from "engine";
 import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
 import SelectButton from "primevue/selectbutton";
 import ToggleSwitch from "primevue/toggleswitch";
 import { computed, ref } from "vue";
-import { formatDuration } from "date-fns";
 
 import { useLauncher } from "@/stores/launcher";
 

@@ -28,7 +28,7 @@ const getUrlParams = (query: string): string[] => {
     const value = params.get(key) ?? "";
 
     const hasKeywordInName = keywords.some((keyword) =>
-      keyLower.includes(keyword)
+      keyLower.includes(keyword),
     );
     const hasUrlInValue =
       value.startsWith("http://") ||
@@ -41,7 +41,7 @@ const getUrlParams = (query: string): string[] => {
 
 const getExpectedHostInfo = (
   request: Request,
-  paramValue: string | undefined
+  paramValue: string | undefined,
 ): {
   host: string;
   protocol: string;
@@ -98,7 +98,7 @@ export default defineCheck<{
 
     const { host: expectedHost, protocol } = getExpectedHostInfo(
       context.target.request,
-      paramValue
+      paramValue,
     );
 
     let generator = createUrlBypassGenerator({
@@ -129,7 +129,7 @@ export default defineCheck<{
         try {
           const redirectUrl = new URL(
             redirectInfo.location,
-            context.target.request.getUrl()
+            context.target.request.getUrl(),
           );
           if (instance.validatesWith(redirectUrl)) {
             context.sdk.console.log("found finding");

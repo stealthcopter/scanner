@@ -1,4 +1,5 @@
 import type { DefineAPI } from "caido:plugin";
+import { createRegistry } from "engine";
 
 import exposedEnvScan from "./checks/exposed-env";
 import jsonHtmlResponse from "./checks/json-html-response";
@@ -14,7 +15,6 @@ import {
 import { ChecksStore } from "./stores/checks";
 import { ConfigStore } from "./stores/config";
 import { type BackendSDK } from "./types";
-import { createRegistry } from "engine";
 
 export { type BackendEvents } from "./types";
 

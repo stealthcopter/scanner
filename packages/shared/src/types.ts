@@ -1,8 +1,8 @@
 import {
-  ScanConfig,
   type CheckType,
   type Finding,
   type InterruptReason,
+  type ScanConfig,
   type ScanStrength,
 } from "engine";
 
@@ -92,7 +92,7 @@ export type BasicRequest = {
   path: string;
   query: string;
   method: string;
-}
+};
 
 export type Result<T> =
   | { kind: "Error"; error: string }

@@ -7,9 +7,7 @@ defineProps<{
   check: CheckMetadata;
 }>();
 
-const {
-  getAggressivityText,
-} = useTable({});
+const { getAggressivityText } = useTable({});
 </script>
 
 <template>

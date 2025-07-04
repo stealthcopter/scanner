@@ -1,5 +1,6 @@
+import { type ScanRequestPayload } from "shared";
+
 import { useSDK } from "@/plugins/sdk";
-import { ScanRequestPayload } from "shared";
 
 export const useScannerRepository = () => {
   const sdk = useSDK();

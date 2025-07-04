@@ -22,14 +22,14 @@ export class ChecksStore {
    * Selects a list of check metadata based on the provided filtering criteria.
    */
   public select(
-    options: SelectOptions & { returnMetadata: true }
+    options: SelectOptions & { returnMetadata: true },
   ): CheckMetadata[];
 
   /**
    * Selects a list of check definitions based on the provided filtering criteria.
    */
   public select(
-    options?: SelectOptions & { returnMetadata?: false | undefined }
+    options?: SelectOptions & { returnMetadata?: false | undefined },
   ): CheckDefinition[];
 
   /**
@@ -37,14 +37,14 @@ export class ChecksStore {
    * Returns either an array of CheckDefinition or CheckMetadata objects based on the options.
    */
   public select(
-    options: SelectOptions = {}
+    options: SelectOptions = {},
   ): CheckDefinition[] | CheckMetadata[] {
     let selectedChecks: CheckDefinition[];
 
     if (options.include) {
       const includeSet = new Set(options.include);
       selectedChecks = this.checks.filter((check) =>
-        includeSet.has(check.metadata.id)
+        includeSet.has(check.metadata.id),
       );
     } else {
       selectedChecks = [...this.checks];
@@ -71,7 +71,7 @@ export class ChecksStore {
     if (options.exclude) {
       const excludeSet = new Set(options.exclude);
       selectedChecks = selectedChecks.filter(
-        (check) => !excludeSet.has(check.metadata.id)
+        (check) => !excludeSet.has(check.metadata.id),
       );
     }
 
