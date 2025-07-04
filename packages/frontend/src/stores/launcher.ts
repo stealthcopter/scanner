@@ -1,19 +1,12 @@
 import { ScanConfig, ScanStrength } from "engine";
 import { reactive } from "vue";
 import { defineStore } from "pinia";
-import { ScanRequestPayload } from "shared";
+import { BasicRequest, ScanRequestPayload } from "shared";
 import { FrontendSDK } from "@/types";
 import { useScannerService } from "@/services/scanner";
 
 type FormState = {
-  targets: {
-    id: string;
-    host: string;
-    port: number;
-    path: string;
-    query: string;
-    method: string;
-  }[];
+  targets: BasicRequest[];
   config: ScanConfig;
   title: string;
 };
@@ -24,9 +17,10 @@ export const useLauncher = defineStore("stores.launcher", () => {
     targets: [],
     config: {
       strength: ScanStrength.MEDIUM,
-      maxRequestsPerSecond: 10,
       inScopeOnly: true,
-      scanTimeout: 600,
+      scanTimeout: 10 * 60 * 1000,
+      checkTimeout: 2 * 60 * 1000,
+      concurrency: 2,
     },
     title: "Active Scan",
   };
@@ -42,7 +36,6 @@ export const useLauncher = defineStore("stores.launcher", () => {
   const onSubmit = async (sdk: FrontendSDK) => {
     const payload = toRequestPayload();
     scannerService.startActiveScan(payload);
-    sdk.window.showToast("Scan submitted", { variant: "success" });
 
     // todo: thats the only way currently to close a dialog, fix once we have a better way
     const escapeEvent = new KeyboardEvent("keydown", {

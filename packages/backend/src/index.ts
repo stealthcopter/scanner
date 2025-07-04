@@ -1,5 +1,4 @@
 import type { DefineAPI } from "caido:plugin";
-import { ScanRunner } from "engine";
 
 import exposedEnvScan from "./checks/exposed-env";
 import jsonHtmlResponse from "./checks/json-html-response";
@@ -7,6 +6,7 @@ import openRedirectScan from "./checks/open-redirect";
 import { getChecks } from "./services/checks";
 import { getUserConfig, updateUserConfig } from "./services/config";
 import {
+  cancelScanSession,
   getScanSession,
   getScanSessions,
   startActiveScan,
@@ -14,6 +14,7 @@ import {
 import { ChecksStore } from "./stores/checks";
 import { ConfigStore } from "./stores/config";
 import { type BackendSDK } from "./types";
+import { createRegistry } from "engine";
 
 export { type BackendEvents } from "./types";
 
@@ -29,6 +30,7 @@ export type API = DefineAPI<{
   startActiveScan: typeof startActiveScan;
   getScanSession: typeof getScanSession;
   getScanSessions: typeof getScanSessions;
+  cancelScanSession: typeof cancelScanSession;
 }>;
 
 export function init(sdk: BackendSDK) {
@@ -38,6 +40,7 @@ export function init(sdk: BackendSDK) {
   sdk.api.register("startActiveScan", startActiveScan);
   sdk.api.register("getScanSession", getScanSession);
   sdk.api.register("getScanSessions", getScanSessions);
+  sdk.api.register("cancelScanSession", cancelScanSession);
 
   const checksStore = ChecksStore.get();
   checksStore.register(exposedEnvScan, openRedirectScan, jsonHtmlResponse);
@@ -62,22 +65,26 @@ export function init(sdk: BackendSDK) {
       return;
     }
 
-    const runner = new ScanRunner();
-    runner.register(...passiveChecks);
+    const registry = createRegistry();
+    for (const check of passiveChecks) {
+      registry.register(check);
+    }
 
-    const result = await runner.start(sdk, [request.getId()], {
+    const runnable = registry.create(sdk, {
       strength: config.passive.strength,
       inScopeOnly: true,
-      maxRequestsPerSecond: 10,
-      scanTimeout: 10000,
+      concurrency: 1,
+      scanTimeout: 5 * 60 * 1000,
+      checkTimeout: 2 * 60 * 1000,
     });
 
+    const result = await runnable.run([request.getId()]);
     if (result.kind !== "Finished") return;
 
     for (const finding of result.findings) {
-      if (finding.requestID === undefined) return;
+      if (finding.correlation.requestID === undefined) return;
 
-      const request = await sdk.requests.get(finding.requestID);
+      const request = await sdk.requests.get(finding.correlation.requestID);
       if (!request) return;
 
       sdk.findings.create({

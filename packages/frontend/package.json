@@ -9,7 +9,6 @@
     "@caido/primevue": "0.1.14",
     "@caido/sdk-frontend": "0.48.2-beta.11",
     "date-fns": "^4.1.0",
-    "engine": "workspace:*",
     "pinia": "^3.0.3",
     "primevue": "4.1.0",
     "shared": "workspace:*",
@@ -19,6 +18,7 @@
   "devDependencies": {
     "@caido/sdk-backend": "^0.46.0",
     "@codemirror/view": "6.28.1",
+    "engine": "workspace:*",
     "backend": "workspace:*",
     "vue-tsc": "2.0.29"
   }

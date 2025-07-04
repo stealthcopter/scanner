@@ -1,8 +1,8 @@
-import { defineScan, done, Severity } from "engine";
+import { defineCheck, done, Severity } from "engine";
 
-export default defineScan(({ step }) => {
+export default defineCheck(({ step }) => {
   step("checkJsonHtmlResponse", (_, context) => {
-    const response = context.response;
+    const response = context.target.response;
     if (!response) {
       return done();
     }
@@ -31,7 +31,10 @@ export default defineScan(({ step }) => {
             name: "JSON Response with HTML Content-Type",
             description: `Response contains valid JSON data but has 'text/html' Content-Type header. This may lead to XSS attacks.`,
             severity: Severity.INFO,
-            requestID: context.request.getId(),
+            correlation: {
+              requestID: context.target.request.getId(),
+              locations: [],
+            },
           },
         ],
       });

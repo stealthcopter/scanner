@@ -3,22 +3,15 @@ import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Button from "primevue/button";
 import { useLauncher } from "@/stores/launcher";
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { useSDK } from "@/plugins/sdk";
+import { BasicRequest } from "shared";
 
 const sdk = useSDK();
 const launcher = useLauncher();
 const { form } = launcher;
 
-const selectedTargets = ref<
-  {
-    id: string;
-  }[]
->([]);
-
-const sortedTargets = computed(() => {
-  return form.targets.sort((a, b) => a.host.localeCompare(b.host));
-});
+const selectedTargets = ref<BasicRequest[]>([]);
 
 const handleDeleteSelected = () => {
   const selectedIds = selectedTargets.value.map((target) => target.id);
@@ -35,14 +28,13 @@ const handleDeleteSelected = () => {
   }
 
   form.targets = remainingTargets;
-  selectedTargets.value = [];
 };
 </script>
 <template>
   <div class="flex flex-col h-full">
     <div class="mb-2 flex justify-between items-center h-8 flex-shrink-0">
       <div class="text-sm text-surface-400">
-        {{ sortedTargets.length }} unique requests
+        {{ form.targets.length }} unique requests
       </div>
       <div class="h-8 flex items-center">
         <Button
@@ -57,35 +49,34 @@ const handleDeleteSelected = () => {
     </div>
     <DataTable
       v-model:selection="selectedTargets"
-      :value="sortedTargets"
-      :virtualScrollerOptions="{ itemSize: 44 }"
+      :value="form.targets"
       scrollable
       stripedRows
-      scrollHeight="flex"
+      scrollHeight="25rem"
       tableStyle="table-layout: fixed"
       selectionMode="multiple"
       :metaKeySelection="true"
       dataKey="id"
       class="flex-1"
     >
-      <Column field="method" header="Method" style="width: 10%; height: 44px">
+      <Column field="method" header="Method" style="width: 10%">
         <template #body="{ data }">
           <div class="text-sm truncate">{{ data.method }}</div>
         </template>
       </Column>
-      <Column field="host" header="Host" style="width: 30%; height: 44px">
+      <Column field="host" header="Host" style="width: 30%">
         <template #body="{ data }">
           <div class="text-sm font-medium truncate">
             {{ data.host }}:{{ data.port }}
           </div>
         </template>
       </Column>
-      <Column field="path" header="Path" style="width: 35%; height: 44px">
+      <Column field="path" header="Path" style="width: 35%">
         <template #body="{ data }">
           <div class="text-sm truncate">{{ data.path }}</div>
         </template>
       </Column>
-      <Column field="query" header="Query" style="width: 35%; height: 44px">
+      <Column field="query" header="Query" style="width: 35%">
         <template #body="{ data }">
           <div class="text-sm truncate">{{ data.query }}</div>
         </template>

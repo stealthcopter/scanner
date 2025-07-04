@@ -26,7 +26,7 @@ export const useStepper = () => {
     {
       id: "configuration",
       label: "Configuration",
-      description: "Configure the scan settings.",
+      description: "Configure the scan parameters.",
       icon: "fas fa-cog",
       component: ConfigStep,
     },

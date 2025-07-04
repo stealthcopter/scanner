@@ -1,4 +1,4 @@
-import { type Finding, type InterruptReason } from "engine";
+import { ScanRunnable, type Finding, type InterruptReason } from "engine";
 import { type SessionState } from "shared";
 
 export type ScanMessage =
@@ -13,6 +13,7 @@ export type ScanMessage =
 export class ScannerStore {
   private static _store?: ScannerStore;
   private sessions: SessionState[] = [];
+  private runnables: Map<string, ScanRunnable> = new Map();
 
   private constructor() {
     this.sessions = [];
@@ -24,6 +25,27 @@ export class ScannerStore {
     }
 
     return ScannerStore._store;
+  }
+
+  setRunnable(id: string, runnable: ScanRunnable) {
+    this.runnables.set(id, runnable);
+  }
+
+  cancelRunnable(id: string): boolean {
+    const runnable = this.runnables.get(id);
+    if (!runnable) return false;
+
+    runnable.cancel("Cancelled");
+    this.runnables.delete(id);
+    return true;
+  }
+
+  deleteRunnable(id: string): boolean {
+    const runnable = this.runnables.get(id);
+    if (!runnable) return false;
+
+    this.runnables.delete(id);
+    return true;
   }
 
   createSession(): SessionState {
@@ -76,7 +98,7 @@ export class ScannerStore {
 
 const processPending = (
   state: SessionState & { kind: "Pending" },
-  message: ScanMessage,
+  message: ScanMessage
 ): SessionState => {
   if (message.type === "Start") {
     return {
@@ -96,7 +118,7 @@ const processPending = (
 
 const processRunning = (
   state: SessionState & { kind: "Running" },
-  message: ScanMessage,
+  message: ScanMessage
 ): SessionState => {
   if (message.type === "Finish") {
     return {
@@ -159,21 +181,21 @@ const processRunning = (
 
 const processDone = (
   state: SessionState & { kind: "Done" },
-  message: ScanMessage,
+  message: ScanMessage
 ): SessionState => {
   throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
 };
 
 const processError = (
   state: SessionState & { kind: "Error" },
-  message: ScanMessage,
+  message: ScanMessage
 ): SessionState => {
   throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
 };
 
 const processInterrupted = (
   state: SessionState & { kind: "Interrupted" },
-  message: ScanMessage,
+  message: ScanMessage
 ): SessionState => {
   throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
 };

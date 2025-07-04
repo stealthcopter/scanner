@@ -1,4 +1,10 @@
-import { continueWith, defineScan, done, ScanStrength, Severity } from "engine";
+import {
+  continueWith,
+  defineCheck,
+  done,
+  ScanStrength,
+  Severity,
+} from "engine";
 
 type ScanState = {
   envFiles: string[];
@@ -65,10 +71,10 @@ const isValidEnvContent = (bodyText: string, contentType: string): boolean => {
   return commentPattern.test(trimmedBody) || keyValuePattern.test(trimmedBody);
 };
 
-export default defineScan<ScanState>(({ step }) => {
+export default defineCheck<ScanState>(({ step }) => {
   step("setupScan", (_, context) => {
     const envFiles = getEnvFilesToTest(context.config.strength);
-    const basePath = getBasePath(context.request.getPath());
+    const basePath = getBasePath(context.target.request.getPath());
 
     return continueWith({
       nextStep: "testEnvFile",
@@ -88,7 +94,7 @@ export default defineScan<ScanState>(({ step }) => {
     }
 
     const envPath = state.basePath + "/" + currentFile;
-    const request = context.request.toSpec();
+    const request = context.target.request.toSpec();
 
     request.setPath(envPath);
     request.setMethod("GET");
@@ -106,9 +112,12 @@ export default defineScan<ScanState>(({ step }) => {
             findings: [
               {
                 name: "Exposed Environment File",
-                description: `Environment file is publicly accessible at ${envPath}. This file may contain sensitive configuration data, API keys, or credentials.`,
+                description: `Environment file is publicly accessible at \`${envPath}\`. This file may contain sensitive configuration data, API keys, or credentials.`,
                 severity: Severity.CRITICAL,
-                requestID: context.request.getId(),
+                correlation: {
+                  requestID: context.target.request.getId(),
+                  locations: [],
+                },
               },
             ],
           });

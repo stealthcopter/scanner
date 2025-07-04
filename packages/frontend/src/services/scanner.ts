@@ -38,11 +38,14 @@ export const useScannerService = defineStore("services.scanner", () => {
 
     if (result.kind === "Success") {
       store.send({ type: "AddSession", session: result.value });
+      sdk.window.showToast("Scan submitted", { variant: "success" });
     } else {
       sdk.window.showToast(result.error, {
         variant: "error",
       });
     }
+
+    return result;
   };
 
   const selectSession = async (sessionId: string) => {

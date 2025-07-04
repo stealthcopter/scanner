@@ -85,6 +85,15 @@ export type ScanRequestPayload = {
   title: string;
 };
 
+export type BasicRequest = {
+  id: string;
+  host: string;
+  port: number;
+  path: string;
+  query: string;
+  method: string;
+}
+
 export type Result<T> =
   | { kind: "Error"; error: string }
   | { kind: "Success"; value: T };

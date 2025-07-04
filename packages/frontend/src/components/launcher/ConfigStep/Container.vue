@@ -2,15 +2,14 @@
 import { ScanStrength } from "engine";
 import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
-import Select from "primevue/select";
+import SelectButton from "primevue/selectbutton";
 import ToggleSwitch from "primevue/toggleswitch";
 import { computed, ref } from "vue";
+import { formatDuration } from "date-fns";
 
 import { useLauncher } from "@/stores/launcher";
 
 const { form } = useLauncher();
-
-const scanTimeoutInput = ref<string>("300");
 
 const strengthOptions = ref([
   { label: "Low", value: ScanStrength.LOW },
@@ -19,20 +18,12 @@ const strengthOptions = ref([
 ]);
 
 const formatTimeout = computed(() => {
-  const seconds = Number(scanTimeoutInput.value);
+  const seconds = form.config.scanTimeout;
   if (isNaN(seconds) || seconds < 0) {
     return "";
   }
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
 
-  if (minutes === 0) {
-    return `${seconds} seconds`;
-  } else if (remainingSeconds === 0) {
-    return `${minutes} minute${minutes !== 1 ? "s" : ""}`;
-  } else {
-    return `${minutes} minute${minutes !== 1 ? "s" : ""} ${remainingSeconds} second${remainingSeconds !== 1 ? "s" : ""}`;
-  }
+  return formatDuration({ seconds });
 });
 </script>
 
@@ -52,20 +43,11 @@ const formatTimeout = computed(() => {
 
     <div class="space-y-2">
       <label class="block text-sm font-medium">Scan Strength</label>
-      <Select
+      <SelectButton
         v-model="form.config.strength"
         :options="strengthOptions"
         option-label="label"
         option-value="value"
-        placeholder="Select Item"
-        class="w-full"
-        :pt="{
-          overlay: {
-            style: {
-              zIndex: 5000,
-            },
-          },
-        }"
       />
       <p class="text-xs text-surface-400">
         Controls the aggressiveness of active scanning checks. Higher means more
@@ -74,16 +56,15 @@ const formatTimeout = computed(() => {
     </div>
 
     <div class="space-y-2">
-      <label class="block text-sm font-medium">Max Requests/Second</label>
+      <label class="block text-sm font-medium">Concurrency</label>
       <InputNumber
-        v-model="form.config.maxRequestsPerSecond"
+        v-model="form.config.concurrency"
         :min="1"
         :max="100"
         class="w-full"
       />
       <p class="text-xs text-surface-400">
-        Limit the number of requests sent per second to avoid overwhelming the
-        target
+        Limit the number of concurrent requests to avoid overwhelming the target
       </p>
     </div>
 
@@ -91,12 +72,11 @@ const formatTimeout = computed(() => {
       <label class="block text-sm font-medium"
         >Scan Timeout ({{ formatTimeout }})</label
       >
-      <InputText
-        v-model="scanTimeoutInput"
+      <InputNumber
+        v-model="form.config.scanTimeout"
+        :min="1"
         class="w-full"
-        inputmode="numeric"
-        pattern="[0-9]*"
-        :placeholder="'300'"
+        placeholder="600"
       />
       <p class="text-xs text-surface-400">
         Maximum time to wait for the entire scan to complete before timing out

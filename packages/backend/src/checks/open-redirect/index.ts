@@ -2,7 +2,7 @@ import { type Request } from "caido:utils";
 import {
   continueWith,
   createUrlBypassGenerator,
-  defineScan,
+  defineCheck,
   done,
   findRedirection,
   ScanStrength,
@@ -28,7 +28,7 @@ const getUrlParams = (query: string): string[] => {
     const value = params.get(key) ?? "";
 
     const hasKeywordInName = keywords.some((keyword) =>
-      keyLower.includes(keyword),
+      keyLower.includes(keyword)
     );
     const hasUrlInValue =
       value.startsWith("http://") ||
@@ -41,7 +41,7 @@ const getUrlParams = (query: string): string[] => {
 
 const getExpectedHostInfo = (
   request: Request,
-  paramValue: string | undefined,
+  paramValue: string | undefined
 ): {
   host: string;
   protocol: string;
@@ -63,11 +63,11 @@ const getExpectedHostInfo = (
   return { host: expectedHost, protocol };
 };
 
-export default defineScan<{
+export default defineCheck<{
   urlParams: string[];
 }>(({ step }) => {
   step("findUrlParams", (_, context) => {
-    const query = context.request.getQuery();
+    const query = context.target.request.getQuery();
     const urlParams = getUrlParams(query);
 
     if (urlParams.length === 0) {
@@ -92,13 +92,13 @@ export default defineScan<{
 
     const attackerHost = "example.com";
 
-    const originalQueryForParamValue = context.request.getQuery() || "";
+    const originalQueryForParamValue = context.target.request.getQuery() || "";
     const paramsForParamValue = new URLSearchParams(originalQueryForParamValue);
     const paramValue = paramsForParamValue.get(currentParam) ?? undefined;
 
     const { host: expectedHost, protocol } = getExpectedHostInfo(
-      context.request,
-      paramValue,
+      context.target.request,
+      paramValue
     );
 
     let generator = createUrlBypassGenerator({
@@ -116,31 +116,33 @@ export default defineScan<{
     for (const payloadRecipe of generator) {
       const instance = payloadRecipe.generate();
 
-      const originalQuery = context.request.getQuery() || "";
+      const originalQuery = context.target.request.getQuery() || "";
       const params = new URLSearchParams(originalQuery);
       params.set(currentParam, instance.value);
 
-      const spec = context.request.toSpec();
+      const spec = context.target.request.toSpec();
       spec.setQuery(params.toString());
 
       const { request, response } = await context.sdk.requests.send(spec);
-      const responseContext = { ...context, response };
-
-      const redirectInfo = findRedirection(responseContext);
+      const redirectInfo = findRedirection(response, context);
       if (redirectInfo.hasRedirection && redirectInfo.location) {
         try {
           const redirectUrl = new URL(
             redirectInfo.location,
-            context.request.getUrl(),
+            context.target.request.getUrl()
           );
           if (instance.validatesWith(redirectUrl)) {
+            context.sdk.console.log("found finding");
             return done({
               findings: [
                 {
                   name: "Open Redirect",
                   description: `Parameter \`${currentParam}\` allows ${redirectInfo.type} redirect via the \`${payloadRecipe.technique}\` technique.\n\n**Payload used:**\n\`\`\`\n${instance.value}\n\`\`\`\n\n${payloadRecipe.description}`,
                   severity: Severity.MEDIUM,
-                  requestID: request.getId(),
+                  correlation: {
+                    requestID: request.getId(),
+                    locations: [],
+                  },
                 },
               ],
             });
