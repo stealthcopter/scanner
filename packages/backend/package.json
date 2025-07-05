@@ -12,7 +12,7 @@
     "vitest": "^3.2.3"
   },
   "dependencies": {
-    "mitt": "^3.0.1",
-    "engine": "workspace:*"
+    "engine": "workspace:*",
+    "mitt": "^3.0.1"
   }
 }

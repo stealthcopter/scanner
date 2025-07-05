@@ -19,7 +19,7 @@ export const createTaskExecutor = ({
   emit,
   getInterruptReason,
 }: {
-  emit: (event: keyof ScanEvents, data: ScanEvents[keyof ScanEvents]) => void;
+  emit: <T extends keyof ScanEvents>(event: T, data: ScanEvents[T]) => void;
   getInterruptReason: () => InterruptReason | undefined;
 }): TaskExecutor => {
   const execute = async (task: CheckTask): Promise<TaskExecutionResult> => {

@@ -34,11 +34,21 @@ export const createRunnable = ({
   const { on, emit } = mitt<ScanEvents>();
   const batches = getCheckBatches(checks);
   const findings: Finding[] = [];
-  const dedupeKeys = new Map<string, Set<string>>();
   const dependencies = new Map<string, CheckOutput>();
+  let dedupeKeys = new Map<string, Set<string>>();
   let hasRun = false;
 
   let interruptReason: InterruptReason | undefined;
+
+  const externalDedupeKeys = (externalDedupeKeys: Map<string, Set<string>>) => {
+    if (hasRun) {
+      throw new ScanRunnableError(
+        "Cannot set dedupe keys after scan has started",
+        ScanRunnableErrorCode.SCAN_ALREADY_RUNNING,
+      );
+    }
+    dedupeKeys = externalDedupeKeys;
+  };
 
   const isCheckApplicable = (
     check: CheckDefinition,
@@ -205,6 +215,7 @@ export const createRunnable = ({
     cancel: (reason) => {
       interruptReason = reason;
     },
+    externalDedupeKeys: externalDedupeKeys,
     on: (event, callback) => on(event, callback),
     emit: (event, data) => emit(event, data),
   };

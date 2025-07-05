@@ -15,6 +15,7 @@ import {
 import { ChecksStore } from "./stores/checks";
 import { ConfigStore } from "./stores/config";
 import { type BackendSDK } from "./types";
+import { TaskQueue } from "./utils/task-queue";
 
 export { type BackendEvents } from "./types";
 
@@ -45,11 +46,16 @@ export function init(sdk: BackendSDK) {
   const checksStore = ChecksStore.get();
   checksStore.register(exposedEnvScan, openRedirectScan, jsonHtmlResponse);
 
-  sdk.events.onInterceptResponse(async (sdk, request, response) => {
-    const configStore = ConfigStore.get();
-    const config = configStore.getUserConfig();
+  const configStore = ConfigStore.get();
+  const config = configStore.getUserConfig();
+  const passiveTaskQueue = new TaskQueue(config.passive.scansConcurrency);
 
+  const passiveDedupeKeys = new Map<string, Set<string>>();
+  sdk.events.onInterceptResponse(async (sdk, request) => {
+    const config = configStore.getUserConfig();
     if (!config.passive.enabled) return;
+
+    passiveTaskQueue.setConcurrency(config.passive.scansConcurrency);
 
     if (config.passive.inScopeOnly) {
       const inScope = sdk.requests.inScope(request);
@@ -65,34 +71,38 @@ export function init(sdk: BackendSDK) {
       return;
     }
 
-    const registry = createRegistry();
-    for (const check of passiveChecks) {
-      registry.register(check);
-    }
+    passiveTaskQueue.add(async () => {
+      const registry = createRegistry();
+      for (const check of passiveChecks) {
+        registry.register(check);
+      }
 
-    const runnable = registry.create(sdk, {
-      strength: config.passive.strength,
-      inScopeOnly: true,
-      concurrency: 1,
-      scanTimeout: 5 * 60 * 1000,
-      checkTimeout: 2 * 60 * 1000,
-    });
-
-    const result = await runnable.run([request.getId()]);
-    if (result.kind !== "Finished") return;
-
-    for (const finding of result.findings) {
-      if (finding.correlation.requestID === undefined) return;
-
-      const request = await sdk.requests.get(finding.correlation.requestID);
-      if (!request) return;
-
-      sdk.findings.create({
-        reporter: "Scanner: Passive",
-        request: request.request,
-        title: finding.name,
-        description: finding.description,
+      const runnable = registry.create(sdk, {
+        strength: config.passive.strength,
+        inScopeOnly: true,
+        concurrency: 1,
+        scanTimeout: 5 * 60 * 1000,
+        checkTimeout: 2 * 60 * 1000,
       });
-    }
+
+      runnable.externalDedupeKeys(passiveDedupeKeys);
+
+      const result = await runnable.run([request.getId()]);
+      if (result.kind !== "Finished") return;
+
+      for (const finding of result.findings) {
+        if (finding.correlation.requestID === undefined) return;
+
+        const request = await sdk.requests.get(finding.correlation.requestID);
+        if (!request) return;
+
+        sdk.findings.create({
+          reporter: "Scanner: Passive",
+          request: request.request,
+          title: finding.name,
+          description: finding.description,
+        });
+      }
+    });
   });
 }

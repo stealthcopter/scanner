@@ -20,6 +20,7 @@ export type UserConfig = {
     enabled: boolean;
     strength: ScanStrength;
     inScopeOnly: boolean;
+    scansConcurrency: number;
     overrides: Override[];
   };
   active: {

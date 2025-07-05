@@ -18,8 +18,8 @@ import { CheckDefinitionError, CheckDefinitionErrorCode } from "./errors";
 export const defineCheck = <T>(
   definition: (utils: DefineUtils<T>) => {
     metadata: CheckMetadata;
+    dedupeKey: (target: ScanTarget) => string;
     initState?: () => T;
-    dedupeKey?: (target: ScanTarget) => string;
     when?: (target: ScanTarget) => boolean;
     output?: (state: T, context: RuntimeContext) => CheckOutput;
   },

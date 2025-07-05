@@ -12,6 +12,7 @@ export class ConfigStore {
         enabled: false,
         strength: ScanStrength.HIGH,
         inScopeOnly: false,
+        scansConcurrency: 3,
         overrides: [],
       },
       active: {

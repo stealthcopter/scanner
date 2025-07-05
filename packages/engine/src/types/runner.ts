@@ -23,6 +23,7 @@ export type ScanRegistry = {
 export type ScanRunnable = {
   run: (requestIDs: string[]) => Promise<ScanResult>;
   cancel: (reason: InterruptReason) => void;
+  externalDedupeKeys: (dedupeKeys: Map<string, Set<string>>) => void;
   on: <T extends keyof ScanEvents>(
     event: T,
     callback: (data: ScanEvents[T]) => void,
