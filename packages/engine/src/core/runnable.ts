@@ -42,6 +42,14 @@ export const createRunnable = ({
 
   let interruptReason: InterruptReason | undefined;
 
+  const createDedupeKeysSnapshot = (): Map<string, Set<string>> => {
+    const snapshot = new Map<string, Set<string>>();
+    for (const [checkId, keySet] of dedupeKeys) {
+      snapshot.set(checkId, new Set(keySet));
+    }
+    return snapshot;
+  };
+
   const externalDedupeKeys = (externalDedupeKeys: Map<string, Set<string>>) => {
     if (hasRun) {
       throw new ScanRunnableError(
@@ -54,7 +62,8 @@ export const createRunnable = ({
 
   const isCheckApplicable = (
     check: CheckDefinition,
-    context: RuntimeContext
+    context: RuntimeContext,
+    targetDedupeKeys: Map<string, Set<string>> = dedupeKeys
   ): boolean => {
     if (
       check.metadata.minStrength !== undefined &&
@@ -71,10 +80,10 @@ export const createRunnable = ({
       const checkId = check.metadata.id;
       const key = check.dedupeKey(context.target);
 
-      let checkCache = dedupeKeys.get(checkId);
+      let checkCache = targetDedupeKeys.get(checkId);
       if (checkCache === undefined) {
         checkCache = new Set<string>();
-        dedupeKeys.set(checkId, checkCache);
+        targetDedupeKeys.set(checkId, checkCache);
       }
 
       if (checkCache.has(key)) {
@@ -162,7 +171,6 @@ export const createRunnable = ({
 
       try {
         hasRun = true;
-        dedupeKeys = new Map<string, Set<string>>();
         emit("scan:started", {});
 
         for (const requestID of requestIDs) {
@@ -217,7 +225,6 @@ export const createRunnable = ({
       }
     },
     estimate: async (requestIDs: string[]): Promise<ScanEstimateResult> => {
-      dedupeKeys = new Map<string, Set<string>>();
       let checksCount = 0;
       for (const requestID of requestIDs) {
         const target = await sdk.requests.get(requestID);
@@ -230,8 +237,9 @@ export const createRunnable = ({
           response: target.response,
         });
 
+        const snapshotDedupeKeys = createDedupeKeysSnapshot();
         const tasks = batches.map((batch) =>
-          batch.filter((check) => isCheckApplicable(check, context))
+          batch.filter((check) => isCheckApplicable(check, context, snapshotDedupeKeys))
         );
 
         checksCount += tasks.flat().length;
