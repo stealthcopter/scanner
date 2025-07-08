@@ -10,7 +10,7 @@ import Card from "primevue/card";
     <template #content>
       <div class="flex justify-center items-center h-full">
         <span class="text-red-400"
-          >An error occured while fetching request</span
+          >An error occurred while loading response</span
         >
       </div>
     </template>

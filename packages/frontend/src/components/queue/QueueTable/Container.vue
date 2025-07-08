@@ -69,7 +69,6 @@ const selection = defineModel<QueueTask | undefined>("selection", {
         striped-rows
         size="small"
         class="flex-1"
-        data-key="id"
       >
         <template #empty>
           <div class="flex justify-center items-center h-32">

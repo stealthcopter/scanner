@@ -16,6 +16,7 @@ const page = ref<"Dashboard" | "Queue" | "Checks" | "Settings">("Dashboard");
 const items = [
   {
     label: "Dashboard",
+    class: "mx-1",
     isActive: () => page.value === "Dashboard",
     command: () => {
       page.value = "Dashboard";
@@ -23,6 +24,7 @@ const items = [
   },
   {
     label: "Queue",
+    class: "mx-1",
     isActive: () => page.value === "Queue",
     command: () => {
       page.value = "Queue";
@@ -30,6 +32,7 @@ const items = [
   },
   {
     label: "Checks",
+    class: "mx-1",
     isActive: () => page.value === "Checks",
     command: () => {
       page.value = "Checks";
@@ -37,6 +40,7 @@ const items = [
   },
   {
     label: "Settings",
+    class: "mx-1",
     isActive: () => page.value === "Settings",
     command: () => {
       page.value = "Settings";
@@ -74,7 +78,7 @@ onMounted(() => {
 
 <template>
   <div class="h-full flex flex-col gap-1">
-    <MenuBar :model="items" class="h-12">
+    <MenuBar :model="items" class="h-12 gap-2">
       <template #start>
         <div class="px-4 font-bold">Scanner</div>
       </template>
@@ -86,7 +90,7 @@ onMounted(() => {
           :outlined="item.isActive()"
           :text="!item.isActive()"
           :label="item.label"
-          @click="item.command"
+          @mousedown="item.command"
         />
       </template>
     </MenuBar>

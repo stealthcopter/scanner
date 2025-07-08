@@ -87,7 +87,6 @@ const {
         size="small"
         class="flex-1"
         expandable-rows
-        data-key="id"
       >
         <template #empty>
           <div class="flex justify-center items-center h-32">

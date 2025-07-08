@@ -4,16 +4,16 @@ import Loading from "./Loading.vue";
 import None from "./None.vue";
 import Show from "./Show.vue";
 
-import { type QueueSelectionState } from "@/types/queue";
+import { type EditorState } from "../useEditor";
 
 defineProps<{
-  selectionState: QueueSelectionState;
+  editorState: EditorState;
 }>();
 </script>
 
 <template>
-  <None v-if="selectionState.type === 'None'" />
-  <Loading v-else-if="selectionState.type === 'Loading'" />
-  <Failed v-else-if="selectionState.type === 'Error'" />
-  <Show v-else :selection-state="selectionState" />
+  <None v-if="editorState.type === 'None'" />
+  <Loading v-else-if="editorState.type === 'Loading'" />
+  <Failed v-else-if="editorState.type === 'Error'" />
+  <Show v-else :editor-state="editorState" />
 </template>

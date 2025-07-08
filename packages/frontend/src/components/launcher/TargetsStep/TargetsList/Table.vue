@@ -57,7 +57,6 @@ const handleDeleteSelected = () => {
       table-style="table-layout: fixed"
       selection-mode="multiple"
       :meta-key-selection="true"
-      data-key="id"
       class="flex-1"
     >
       <Column field="method" header="Method" style="width: 10%">

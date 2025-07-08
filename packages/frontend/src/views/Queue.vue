@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import Splitter from "primevue/splitter";
-import SplitterPanel from "primevue/splitterpanel";
 
-import { RequestEditor, ResponseEditor } from "@/components/common/editors";
+import { Editors } from "@/components/common/editors";
 import { QueueTable } from "@/components/queue/QueueTable";
 import { useQueueService } from "@/services/queue";
 
@@ -23,26 +21,24 @@ const selection = computed({
     queueService.selectTask(selection?.id ?? "");
   },
 });
+
+const selectedRequestID = computed(() => selection.value?.requestID);
 </script>
 
 <template>
-  <div v-if="state.type === 'Success'" class="h-full">
-    <Splitter layout="vertical" class="h-full">
-      <SplitterPanel :size="80">
-        <QueueTable :state="state" v-model:selection="selection" />
-      </SplitterPanel>
+  <div class="h-full flex flex-col gap-1">
+    <div class="w-full h-1/2">
+      <QueueTable
+        v-if="state.type === 'Success'"
+        :state="state"
+        v-model:selection="selection"
+      />
+    </div>
 
-      <SplitterPanel :size="20" v-if="selection !== undefined">
-        <Splitter layout="horizontal">
-          <SplitterPanel :size="50">
-            <RequestEditor :selectionState="queueService.selectionState" />
-          </SplitterPanel>
-          <SplitterPanel :size="50">
-            <ResponseEditor :selectionState="queueService.selectionState" />
-          </SplitterPanel>
-        </Splitter>
-      </SplitterPanel>
-    </Splitter>
+    <div class="w-full h-1/2 flex flex-col gap-1">
+      <div class="w-full flex-1 min-h-0">
+        <Editors :request-id="selectedRequestID" />
+      </div>
+    </div>
   </div>
-  <InvalidState v-else />
 </template>
