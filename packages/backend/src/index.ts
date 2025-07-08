@@ -6,11 +6,7 @@ import jsonHtmlResponse from "./checks/json-html-response";
 import openRedirectScan from "./checks/open-redirect";
 import { getChecks } from "./services/checks";
 import { getUserConfig, updateUserConfig } from "./services/config";
-import {
-  clearQueueTasks,
-  getQueueTask,
-  getQueueTasks,
-} from "./services/queue";
+import { clearQueueTasks, getQueueTask, getQueueTasks } from "./services/queue";
 import {
   cancelScanSession,
   getRequestResponse,
@@ -115,12 +111,7 @@ export function init(sdk: BackendSDK) {
         queueStore.updateTaskStatus(passiveTaskID, "running");
         sdk.api.send("passive:queue-started", passiveTaskID);
 
-        const result = await runnable.run([request.getId()]);
-
-        // TODO: handle error, show UI warnings
-        if (result.kind !== "Finished") return;
-
-        for (const finding of result.findings) {
+        runnable.on("scan:finding", async ({ finding }) => {
           if (finding.correlation.requestID === undefined) return;
 
           const request = await sdk.requests.get(finding.correlation.requestID);
@@ -132,7 +123,10 @@ export function init(sdk: BackendSDK) {
             title: finding.name,
             description: finding.description,
           });
-        }
+        });
+
+        // TODO: handle error, show UI warnings if result kind is not finished
+        await runnable.run([request.getId()]);
       } catch (error) {
         // TODO: handle error, show UI warnings
         sdk.console.log("error", error);
