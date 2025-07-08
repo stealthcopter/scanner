@@ -9,7 +9,7 @@ export class ConfigStore {
   private constructor() {
     this.config = {
       passive: {
-        enabled: false,
+        enabled: true,
         strength: ScanStrength.HIGH,
         inScopeOnly: false,
         scansConcurrency: 3,

@@ -1,7 +1,12 @@
 type TaskFn<T = unknown> = () => Promise<T>;
 
+type CancellableTask = {
+  task: () => void;
+  cancel: (reason: string) => void;
+};
+
 export class TaskQueue {
-  private queue: Array<() => void> = [];
+  private queue: CancellableTask[] = [];
   private activeTasks = 0;
   private concurrency: number;
 
@@ -14,21 +19,25 @@ export class TaskQueue {
     this.processNext();
   }
 
-  public add<T>(task: TaskFn<T>): Promise<T> {
+  public add<T>(taskFn: TaskFn<T>): Promise<T> {
     return new Promise((resolve, reject) => {
-      const queuedTask = async () => {
-        try {
-          const result = await task();
-          resolve(result);
-        } catch (error) {
-          reject(error);
-        } finally {
-          this.activeTasks--;
-          this.processNext();
-        }
-      };
+      this.queue.push({
+        task: async () => {
+          try {
+            const result = await taskFn();
+            resolve(result);
+          } catch (error) {
+            reject(error);
+          } finally {
+            this.activeTasks--;
+            this.processNext();
+          }
+        },
+        cancel: (reason: string) => {
+          reject(new Error(reason));
+        },
+      });
 
-      this.queue.push(queuedTask);
       this.processNext();
     });
   }
@@ -39,9 +48,14 @@ export class TaskQueue {
     }
 
     this.activeTasks++;
-    const task = this.queue.shift();
-    if (task) {
-      task();
+    const cancellableTask = this.queue.shift();
+    if (cancellableTask) {
+      cancellableTask.task();
     }
+  }
+
+  public clear(): void {
+    this.queue.forEach((t) => t.cancel("Queue cleared"));
+    this.queue = [];
   }
 }

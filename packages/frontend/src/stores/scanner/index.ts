@@ -6,6 +6,6 @@ import { useSessionsState } from "./useSessionsState";
 export const useScannerStore = defineStore("stores.scanner", () => {
   return {
     ...useSessionsState(),
-    ...useSelectionState(),
+    ...useSelectionState()
   };
 });

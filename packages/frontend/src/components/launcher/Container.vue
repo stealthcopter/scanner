@@ -20,6 +20,7 @@ const {
 
 const props = defineProps<{
   sdk: FrontendSDK;
+  incrementCount: () => void;
 }>();
 
 provideSDK(props.sdk);
@@ -28,9 +29,8 @@ const launcher = useLauncher();
 </script>
 
 <template>
-  <div class="flex w-[900px] h-[550px]">
-    <!-- Sidebar Navigation -->
-    <div class="w-48 p-2">
+  <div class="flex w-[900px] h-[500px] gap-4">
+    <div class="w-48">
       <nav class="space-y-2">
         <Button
           v-for="step in steps"
@@ -45,10 +45,8 @@ const launcher = useLauncher();
       </nav>
     </div>
 
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col px-4">
-      <!-- Header -->
-      <div class="py-2">
+    <div class="flex-1 flex flex-col">
+      <div>
         <h1 class="text-xl font-semibold text-gray-100 m-0">
           {{ currentStep?.label }}
         </h1>
@@ -57,13 +55,11 @@ const launcher = useLauncher();
         </p>
       </div>
 
-      <!-- Step Content -->
-      <div class="flex-1 overflow-auto">
+      <div class="flex-1">
         <component :is="currentStep?.component" />
       </div>
 
-      <!-- Footer Actions -->
-      <div class="py-2">
+      <div>
         <div class="flex items-center justify-between">
           <Button
             v-if="canGoPrevious"
@@ -89,7 +85,7 @@ const launcher = useLauncher();
               label="Run Scan"
               icon="fas fa-play"
               severity="success"
-              @click="launcher.onSubmit(props.sdk)"
+              @click="launcher.onSubmit(props.sdk, props.incrementCount)"
             />
           </div>
         </div>

@@ -8,15 +8,24 @@ import { useConfigService } from "@/services/config";
 import { useScannerService } from "@/services/scanner";
 import Checks from "@/views/Checks.vue";
 import Dashboard from "@/views/Dashboard.vue";
+import Queue from "@/views/Queue.vue";
 import Settings from "@/views/Settings.vue";
+import { useQueueService } from "@/services/queue";
 
-const page = ref<"Dashboard" | "Checks" | "Settings">("Dashboard");
+const page = ref<"Dashboard" | "Queue" | "Checks" | "Settings">("Dashboard");
 const items = [
   {
     label: "Dashboard",
     isActive: () => page.value === "Dashboard",
     command: () => {
       page.value = "Dashboard";
+    },
+  },
+  {
+    label: "Queue",
+    isActive: () => page.value === "Queue",
+    command: () => {
+      page.value = "Queue";
     },
   },
   {
@@ -39,6 +48,8 @@ const component = computed(() => {
   switch (page.value) {
     case "Dashboard":
       return Dashboard;
+    case "Queue":
+      return Queue;
     case "Checks":
       return Checks;
     case "Settings":
@@ -51,11 +62,13 @@ const component = computed(() => {
 const scannerService = useScannerService();
 const checksService = useChecksService();
 const configService = useConfigService();
+const queueService = useQueueService();
 
 onMounted(() => {
   scannerService.initialize();
   checksService.initialize();
   configService.initialize();
+  queueService.initialize();
 });
 </script>
 

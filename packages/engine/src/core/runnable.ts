@@ -12,6 +12,8 @@ import {
 import { type CheckDefinition, type CheckOutput } from "../types/check";
 import { type Finding } from "../types/finding";
 import {
+  ScanEstimateResult,
+  ScanResult,
   type InterruptReason,
   type RuntimeContext,
   type ScanEvents,
@@ -25,7 +27,7 @@ import { createTaskExecutor } from "./execution";
 export const createRunnable = ({
   sdk,
   checks,
-  context: createContext,
+  context: createBaseContext,
 }: {
   sdk: SDK;
   checks: CheckDefinition[];
@@ -44,7 +46,7 @@ export const createRunnable = ({
     if (hasRun) {
       throw new ScanRunnableError(
         "Cannot set dedupe keys after scan has started",
-        ScanRunnableErrorCode.SCAN_ALREADY_RUNNING,
+        ScanRunnableErrorCode.SCAN_ALREADY_RUNNING
       );
     }
     dedupeKeys = externalDedupeKeys;
@@ -52,7 +54,7 @@ export const createRunnable = ({
 
   const isCheckApplicable = (
     check: CheckDefinition,
-    context: RuntimeContext,
+    context: RuntimeContext
   ): boolean => {
     if (
       check.metadata.minStrength !== undefined &&
@@ -85,6 +87,24 @@ export const createRunnable = ({
     return true;
   };
 
+  const createRuntimeContext = (target: ScanTarget): RuntimeContext => {
+    return {
+      ...createBaseContext(target),
+      runtime: {
+        html: {
+          parse: (raw: string) => {
+            return parseHtmlFromString(raw);
+          },
+        },
+        dependencies: {
+          get: (key: string) => {
+            return dependencies.get(key);
+          },
+        },
+      },
+    };
+  };
+
   const taskExecutor = createTaskExecutor({
     emit,
     getInterruptReason: () => interruptReason,
@@ -92,7 +112,7 @@ export const createRunnable = ({
 
   const processBatch = async (
     batch: CheckDefinition[],
-    context: RuntimeContext,
+    context: RuntimeContext
   ): Promise<void> => {
     const tasks = batch
       .filter((check) => isCheckApplicable(check, context))
@@ -135,16 +155,14 @@ export const createRunnable = ({
   };
 
   return {
-    async run(requestIDs: string[]) {
+    run: async (requestIDs: string[]): Promise<ScanResult> => {
       if (hasRun) {
-        throw new ScanRunnableError(
-          "Scan is either currently running or has been run before. Please create another runnable instance to run a new scan.",
-          ScanRunnableErrorCode.SCAN_ALREADY_RUNNING,
-        );
+        return { kind: "Error", error: "Scan is already running" };
       }
 
       try {
         hasRun = true;
+        dedupeKeys = new Map<string, Set<string>>();
         emit("scan:started", {});
 
         for (const requestID of requestIDs) {
@@ -152,28 +170,14 @@ export const createRunnable = ({
           if (target === undefined) {
             throw new ScanRunnableError(
               `Request ${requestID} not found`,
-              ScanRunnableErrorCode.REQUEST_NOT_FOUND,
+              ScanRunnableErrorCode.REQUEST_NOT_FOUND
             );
           }
 
-          const context: RuntimeContext = {
-            ...createContext({
-              request: target.request,
-              response: target.response,
-            }),
-            runtime: {
-              html: {
-                parse: (raw: string) => {
-                  return parseHtmlFromString(raw);
-                },
-              },
-              dependencies: {
-                get: (key: string) => {
-                  return dependencies.get(key);
-                },
-              },
-            },
-          };
+          const context = createRuntimeContext({
+            request: target.request,
+            response: target.response,
+          });
 
           const originalSend = context.sdk.requests.send;
           context.sdk.requests.send = async (request) => {
@@ -212,6 +216,29 @@ export const createRunnable = ({
         emit("scan:finished", {});
       }
     },
+    estimate: async (requestIDs: string[]): Promise<ScanEstimateResult> => {
+      dedupeKeys = new Map<string, Set<string>>();
+      let checksCount = 0;
+      for (const requestID of requestIDs) {
+        const target = await sdk.requests.get(requestID);
+        if (target === undefined) {
+          return { kind: "Error", error: `Request ${requestID} not found` };
+        }
+
+        const context = createRuntimeContext({
+          request: target.request,
+          response: target.response,
+        });
+
+        const tasks = batches.map((batch) =>
+          batch.filter((check) => isCheckApplicable(check, context))
+        );
+
+        checksCount += tasks.flat().length;
+      }
+
+      return { kind: "Success", checksCount };
+    },
     cancel: (reason) => {
       interruptReason = reason;
     },
@@ -235,7 +262,7 @@ const getCheckBatches = (checks: CheckDefinition[]): CheckDefinition[][] => {
       for (const dependencyId of dependencies) {
         if (!checkMap.has(dependencyId)) {
           throw new Error(
-            `Check '${check.metadata.id}' has unknown dependency '${dependencyId}'`,
+            `Check '${check.metadata.id}' has unknown dependency '${dependencyId}'`
           );
         }
         if (!dag[dependencyId]) {
@@ -254,7 +281,7 @@ const getCheckBatches = (checks: CheckDefinition[]): CheckDefinition[][] => {
         throw new Error(`Check '${checkId}' not found in checkMap`);
       }
       return check;
-    }),
+    })
   );
 };
 

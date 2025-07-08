@@ -14,7 +14,7 @@ import { type BackendSDK } from "../types";
 
 export const startActiveScan = (
   sdk: BackendSDK,
-  payload: ScanRequestPayload,
+  payload: ScanRequestPayload
 ): Result<SessionState> => {
   const { requestIDs, scanConfig } = payload;
 
@@ -43,11 +43,6 @@ export const startActiveScan = (
     const { id } = initialSession;
 
     try {
-      const startedSession = scannerStore.send(id, {
-        type: "Start",
-      });
-      sdk.api.send("session:created", id, startedSession);
-
       const registry = createRegistry();
       for (const check of activeChecks) {
         registry.register(check);
@@ -55,6 +50,20 @@ export const startActiveScan = (
 
       const runnable = registry.create(sdk, scanConfig);
       scannerStore.setRunnable(id, runnable);
+
+      const estimate = await runnable.estimate(requestIDs);
+      if (estimate.kind === "Error") {
+        return error(estimate.error);
+      }
+
+      const startedSession = scannerStore.send(id, {
+        type: "Start",
+        checksCount: estimate.checksCount,
+      });
+
+      sdk.api.send("session:created", id, startedSession, {
+        checksCount: estimate.checksCount,
+      });
 
       runnable.on("scan:started", () => {
         sdk.console.log("onStarted");
@@ -102,9 +111,7 @@ export const startActiveScan = (
         sdk.api.send("session:updated", id, requestSentSession);
       });
 
-      sdk.console.log("running");
       const result = await runnable.run(requestIDs);
-      sdk.console.log("done, result=" + JSON.stringify(result, null, 2));
       scannerStore.deleteRunnable(id);
 
       switch (result.kind) {
@@ -134,7 +141,6 @@ export const startActiveScan = (
         }
       }
     } catch (err) {
-      sdk.console.log("error", err);
       const errorSession = scannerStore.send(id, {
         type: "Error",
         error: err as string,
@@ -148,7 +154,7 @@ export const startActiveScan = (
 
 export const getScanSession = (
   _: BackendSDK,
-  id: string,
+  id: string
 ): Result<SessionState> => {
   const session = ScannerStore.get().getSession(id);
   if (!session) {
@@ -165,8 +171,51 @@ export const getScanSessions = (_: BackendSDK): Result<SessionState[]> => {
 
 export const cancelScanSession = (
   _: BackendSDK,
-  id: string,
+  id: string
 ): Result<boolean> => {
   const result = ScannerStore.get().cancelRunnable(id);
   return ok(result);
+};
+
+export const getRequestResponse = async (
+  sdk: BackendSDK,
+  requestId: string
+): Promise<
+  Result<{
+    request: { id: string; raw: string };
+    response: { id: string; raw: string };
+  }>
+> => {
+  const result = await sdk.requests.get(requestId);
+
+  if (!result) {
+    return error("Request not found");
+  }
+
+  const { request, response } = result;
+
+  if (!response) {
+    return error("Response not found");
+  }
+
+  return ok({
+    request: {
+      id: request.getId(),
+      raw: Uint8ArrayToString(request.toSpecRaw().getRaw()),
+    },
+    response: {
+      id: response.getId(),
+      raw: response.getRaw().toText(),
+    },
+  });
+};
+
+export const Uint8ArrayToString = (data: Uint8Array) => {
+  let output = "";
+  const chunkSize = 256;
+  for (let i = 0; i < data.length; i += chunkSize) {
+    output += String.fromCharCode(...data.subarray(i, i + chunkSize));
+  }
+
+  return output;
 };

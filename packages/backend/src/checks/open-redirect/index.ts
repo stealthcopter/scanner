@@ -132,7 +132,6 @@ export default defineCheck<{
             context.target.request.getUrl(),
           );
           if (instance.validatesWith(redirectUrl)) {
-            context.sdk.console.log("found finding");
             return done({
               findings: [
                 {

@@ -1,0 +1,116 @@
+<script setup lang="ts">
+import Button from "primevue/button";
+import Card from "primevue/card";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
+
+import { useQueueService } from "@/services/queue";
+import { type QueueState } from "@/types/queue";
+import { QueueTask } from "shared";
+
+defineProps<{
+  state: QueueState & { type: "Success" };
+}>();
+
+const queueService = useQueueService();
+
+const clearQueue = () => {
+  queueService.clearQueue();
+};
+
+const getStatusIcon = (status: string) => {
+  return status === "running" ? "fas fa-spinner fa-spin" : "fas fa-clock";
+};
+
+const getStatusLabel = (status: string) => {
+  return status === "running" ? "Running" : "Pending";
+};
+
+const selection = defineModel<QueueTask | undefined>("selection", {
+  required: true,
+});
+</script>
+
+<template>
+  <Card
+    class="h-full"
+    :pt="{
+      body: { class: 'h-full p-0' },
+      content: { class: 'h-full flex flex-col' },
+    }"
+  >
+    <template #content>
+      <div class="flex justify-between items-center p-4 gap-4">
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold">Passive Scanning Queue</h3>
+          <p class="text-sm text-surface-300 flex-1">
+            Monitor passive vulnerability scanning tasks in progress.
+          </p>
+        </div>
+
+        <div class="flex gap-2 items-center">
+          <Button
+            @click="clearQueue"
+            label="Clear Queue"
+            severity="secondary"
+            size="small"
+            icon="fas fa-trash"
+            outlined
+          />
+        </div>
+      </div>
+
+      <DataTable
+        :value="state.tasks"
+        scrollable
+        v-model:selection="selection"
+        selection-mode="single"
+        scroll-height="flex"
+        striped-rows
+        size="small"
+        class="flex-1"
+        data-key="id"
+      >
+        <template #empty>
+          <div class="flex justify-center items-center h-32">
+            <span class="text-surface-400">No tasks in queue</span>
+          </div>
+        </template>
+
+        <Column field="id" header="Task ID" class="min-w-48">
+          <template #body="{ data }">
+            <div class="font-mono text-sm">{{ data.id }}</div>
+          </template>
+        </Column>
+
+        <Column field="requestID" header="Request ID" class="min-w-48">
+          <template #body="{ data }">
+            <div class="font-mono text-sm">{{ data.requestID }}</div>
+          </template>
+        </Column>
+
+        <Column field="status" header="Status" class="w-32">
+          <template #body="{ data }">
+            <div class="flex items-center gap-2">
+              <i :class="getStatusIcon(data.status)" class="text-sm"></i>
+              <span class="capitalize text-sm">{{
+                getStatusLabel(data.status)
+              }}</span>
+            </div>
+          </template>
+        </Column>
+
+        <Column header="Progress" class="min-w-64">
+          <template #body="{ data }">
+            <div class="text-sm">
+              <span v-if="data.status === 'running'">
+                Scanning for vulnerabilities...
+              </span>
+              <span v-else class="text-surface-400">Waiting in queue</span>
+            </div>
+          </template>
+        </Column>
+      </DataTable>
+    </template>
+  </Card>
+</template>

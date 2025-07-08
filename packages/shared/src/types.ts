@@ -49,6 +49,7 @@ export type GetChecksOptions = Pick<
 export type SessionProgress = {
   checksCompleted: number;
   requestsSent: number;
+  checksCount: number;
 };
 
 export type SessionState =
@@ -93,6 +94,12 @@ export type BasicRequest = {
   path: string;
   query: string;
   method: string;
+};
+
+export type QueueTask = {
+  id: string;
+  requestID: string;
+  status: "pending" | "running";
 };
 
 export type Result<T> =

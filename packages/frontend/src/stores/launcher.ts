@@ -34,7 +34,7 @@ export const useLauncher = defineStore("stores.launcher", () => {
     title: form.title,
   });
 
-  const onSubmit = (sdk: FrontendSDK) => {
+  const onSubmit = (sdk: FrontendSDK, incrementCount: () => void) => {
     const payload = toRequestPayload();
     scannerService.startActiveScan(payload);
 
@@ -46,6 +46,8 @@ export const useLauncher = defineStore("stores.launcher", () => {
       cancelable: true,
     });
     document.dispatchEvent(escapeEvent);
+
+    incrementCount();
   };
 
   const restart = () => {

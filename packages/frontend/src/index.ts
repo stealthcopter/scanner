@@ -47,6 +47,11 @@ export const init = (sdk: FrontendSDK) => {
     icon: "fas fa-shield-alt",
   });
 
+  const incrementCount = () => {
+    sidebarCount++;
+    sidebarItem.setCount(sidebarCount);
+  };
+
   sdk.commands.register("run-active-scanner", {
     name: "Run Active Scanner",
     run: (context) => {
@@ -103,7 +108,7 @@ export const init = (sdk: FrontendSDK) => {
         {
           type: "Custom",
           component: defineComponent((props) => {
-            return () => h(ScanLauncher, { ...props, sdk });
+            return () => h(ScanLauncher, { ...props, sdk, incrementCount });
           }),
         },
         {

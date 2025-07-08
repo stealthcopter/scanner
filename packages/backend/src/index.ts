@@ -7,13 +7,20 @@ import openRedirectScan from "./checks/open-redirect";
 import { getChecks } from "./services/checks";
 import { getUserConfig, updateUserConfig } from "./services/config";
 import {
+  clearQueueTasks,
+  getQueueTask,
+  getQueueTasks,
+} from "./services/queue";
+import {
   cancelScanSession,
+  getRequestResponse,
   getScanSession,
   getScanSessions,
   startActiveScan,
 } from "./services/scanner";
 import { ChecksStore } from "./stores/checks";
 import { ConfigStore } from "./stores/config";
+import { QueueStore } from "./stores/queue";
 import { type BackendSDK } from "./types";
 import { TaskQueue } from "./utils/task-queue";
 
@@ -27,28 +34,40 @@ export type API = DefineAPI<{
   getUserConfig: typeof getUserConfig;
   updateUserConfig: typeof updateUserConfig;
 
+  // Queue
+  getQueueTasks: typeof getQueueTasks;
+  getQueueTask: typeof getQueueTask;
+  clearQueueTasks: typeof clearQueueTasks;
+
   // Scanner
   startActiveScan: typeof startActiveScan;
   getScanSession: typeof getScanSession;
   getScanSessions: typeof getScanSessions;
   cancelScanSession: typeof cancelScanSession;
+  getRequestResponse: typeof getRequestResponse;
 }>;
 
 export function init(sdk: BackendSDK) {
   sdk.api.register("getChecks", getChecks);
   sdk.api.register("getUserConfig", getUserConfig);
   sdk.api.register("updateUserConfig", updateUserConfig);
+  sdk.api.register("getQueueTasks", getQueueTasks);
+  sdk.api.register("getQueueTask", getQueueTask);
+  sdk.api.register("clearQueueTasks", clearQueueTasks);
   sdk.api.register("startActiveScan", startActiveScan);
   sdk.api.register("getScanSession", getScanSession);
   sdk.api.register("getScanSessions", getScanSessions);
   sdk.api.register("cancelScanSession", cancelScanSession);
+  sdk.api.register("getRequestResponse", getRequestResponse);
 
   const checksStore = ChecksStore.get();
   checksStore.register(exposedEnvScan, openRedirectScan, jsonHtmlResponse);
 
   const configStore = ConfigStore.get();
+  const queueStore = QueueStore.get();
   const config = configStore.getUserConfig();
   const passiveTaskQueue = new TaskQueue(config.passive.scansConcurrency);
+  queueStore.setPassiveTaskQueue(passiveTaskQueue);
 
   const passiveDedupeKeys = new Map<string, Set<string>>();
   sdk.events.onInterceptResponse(async (sdk, request) => {
@@ -71,6 +90,10 @@ export function init(sdk: BackendSDK) {
       return;
     }
 
+    const passiveTaskID = "pt-" + Math.random().toString(36).substring(2);
+    queueStore.addTask(passiveTaskID, request.getId());
+    sdk.api.send("passive:queue-new", passiveTaskID, request.getId());
+
     passiveTaskQueue.add(async () => {
       const registry = createRegistry();
       for (const check of passiveChecks) {
@@ -87,21 +110,36 @@ export function init(sdk: BackendSDK) {
 
       runnable.externalDedupeKeys(passiveDedupeKeys);
 
-      const result = await runnable.run([request.getId()]);
-      if (result.kind !== "Finished") return;
+      try {
+        queueStore.addActiveRunnable(passiveTaskID, runnable);
+        queueStore.updateTaskStatus(passiveTaskID, "running");
+        sdk.api.send("passive:queue-started", passiveTaskID);
 
-      for (const finding of result.findings) {
-        if (finding.correlation.requestID === undefined) return;
+        const result = await runnable.run([request.getId()]);
 
-        const request = await sdk.requests.get(finding.correlation.requestID);
-        if (!request) return;
+        // TODO: handle error, show UI warnings
+        if (result.kind !== "Finished") return;
 
-        sdk.findings.create({
-          reporter: "Scanner: Passive",
-          request: request.request,
-          title: finding.name,
-          description: finding.description,
-        });
+        for (const finding of result.findings) {
+          if (finding.correlation.requestID === undefined) return;
+
+          const request = await sdk.requests.get(finding.correlation.requestID);
+          if (!request) return;
+
+          sdk.findings.create({
+            reporter: "Scanner: Passive",
+            request: request.request,
+            title: finding.name,
+            description: finding.description,
+          });
+        }
+      } catch (error) {
+        // TODO: handle error, show UI warnings
+        sdk.console.log("error", error);
+      } finally {
+        queueStore.removeActiveRunnable(passiveTaskID);
+        queueStore.removeTask(passiveTaskID);
+        sdk.api.send("passive:queue-finished", passiveTaskID);
       }
     });
   });

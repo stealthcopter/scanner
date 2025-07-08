@@ -22,11 +22,12 @@ export type ScanRegistry = {
 
 export type ScanRunnable = {
   run: (requestIDs: string[]) => Promise<ScanResult>;
+  estimate: (requestIDs: string[]) => Promise<ScanEstimateResult>;
   cancel: (reason: InterruptReason) => void;
   externalDedupeKeys: (dedupeKeys: Map<string, Set<string>>) => void;
   on: <T extends keyof ScanEvents>(
     event: T,
-    callback: (data: ScanEvents[T]) => void,
+    callback: (data: ScanEvents[T]) => void
   ) => void;
   emit: (event: keyof ScanEvents, data: ScanEvents[keyof ScanEvents]) => void;
 };
@@ -41,6 +42,16 @@ export type ScanResult =
       kind: "Interrupted";
       reason: InterruptReason;
       findings: Finding[];
+    }
+  | {
+      kind: "Error";
+      error: string;
+    };
+
+export type ScanEstimateResult =
+  | {
+      kind: "Success";
+      checksCount: number;
     }
   | {
       kind: "Error";

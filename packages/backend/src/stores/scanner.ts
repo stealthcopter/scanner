@@ -2,7 +2,7 @@ import { type Finding, type InterruptReason, type ScanRunnable } from "engine";
 import { type SessionState } from "shared";
 
 export type ScanMessage =
-  | { type: "Start" }
+  | { type: "Start"; checksCount: number }
   | { type: "AddFinding"; finding: Finding }
   | { type: "AddRequestSent" }
   | { type: "AddCheckCompleted" }
@@ -110,6 +110,7 @@ const processPending = (
       progress: {
         checksCompleted: 0,
         requestsSent: 0,
+        checksCount: message.checksCount,
       },
     };
   }
@@ -131,6 +132,7 @@ const processRunning = (
       progress: {
         checksCompleted: state.progress.checksCompleted,
         requestsSent: state.progress.requestsSent,
+        checksCount: state.progress.checksCount,
       },
     };
   }
