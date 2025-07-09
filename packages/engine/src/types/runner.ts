@@ -66,11 +66,11 @@ export type ScanEvents = {
   "scan:check-started": { checkID: string };
   "scan:check-finished": { checkID: string };
   "scan:request-completed": {
-    id: string;
+    pendingRequestID: string;
     requestID: string;
     responseID: string;
   };
-  "scan:request-pending": { id: string };
+  "scan:request-pending": { pendingRequestID: string };
 };
 
 export type ScanTarget = {

@@ -6,6 +6,7 @@ import tailwindCaido from "@caido/tailwindcss";
 import path from "path";
 import prefixwrap from "postcss-prefixwrap";
 
+
 const id = "scanner";
 export default defineConfig({
   id,

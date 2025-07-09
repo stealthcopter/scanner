@@ -2,7 +2,7 @@
 import { computed } from "vue";
 
 import { Editors } from "@/components/common/editors";
-import { QueueTable } from "@/components/queue/QueueTable";
+import { QueueTable } from "@/components/queue";
 import { useQueueService } from "@/services/queue";
 
 const queueService = useQueueService();

@@ -45,7 +45,7 @@ const launcher = useLauncher();
       </nav>
     </div>
 
-    <div class="flex-1 flex flex-col">
+    <div class="flex-1 flex flex-col gap-2">
       <div>
         <h1 class="text-xl font-semibold text-gray-100 m-0">
           {{ currentStep?.label }}

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { ChecksTable } from "@/components/checks/ChecksTable";
+import { ChecksTable } from "@/components/checks";
 import { useChecksService } from "@/services/checks";
 import { useConfigService } from "@/services/config";
 

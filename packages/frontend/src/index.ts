@@ -134,4 +134,6 @@ export const init = (sdk: FrontendSDK) => {
     commandId: "run-active-scanner",
     leadingIcon: "fas fa-shield-alt",
   });
+
+  sdk.navigation.goTo("/scanner")
 };

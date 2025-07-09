@@ -53,10 +53,11 @@ export type SessionProgress = {
 };
 
 export type SessionState =
-  | { kind: "Pending"; id: string; createdAt: number }
+  | { kind: "Pending"; id: string; createdAt: number; title: string }
   | {
       kind: "Running";
       id: string;
+      title: string;
       createdAt: number;
       startedAt: number;
       findings: Finding[];
@@ -65,6 +66,7 @@ export type SessionState =
   | {
       kind: "Done";
       id: string;
+      title: string;
       createdAt: number;
       startedAt: number;
       finishedAt: number;
@@ -74,12 +76,19 @@ export type SessionState =
   | {
       kind: "Interrupted";
       id: string;
+      title: string;
       createdAt: number;
       startedAt: number;
       reason: InterruptReason;
       findings: Finding[];
     }
-  | { kind: "Error"; id: string; createdAt: number; error: string };
+  | {
+      kind: "Error";
+      id: string;
+      title: string;
+      createdAt: number;
+      error: string;
+    };
 
 export type ScanRequestPayload = {
   requestIDs: string[];

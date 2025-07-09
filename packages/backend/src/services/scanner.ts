@@ -16,7 +16,7 @@ export const startActiveScan = (
   sdk: BackendSDK,
   payload: ScanRequestPayload
 ): Result<SessionState> => {
-  const { requestIDs, scanConfig } = payload;
+  const { requestIDs, scanConfig, title } = payload;
 
   if (requestIDs.length === 0) {
     return error("No targets provided");
@@ -36,7 +36,7 @@ export const startActiveScan = (
   }
 
   const scannerStore = ScannerStore.get();
-  const initialSession = scannerStore.createSession();
+  const initialSession = scannerStore.createSession(title);
 
   // TODO: move this to separate file and reuse in passive scan
   (async () => {
@@ -102,13 +102,17 @@ export const startActiveScan = (
         sdk.api.send("session:updated", id, checkFinishedSession);
       });
 
-      runnable.on("scan:request-completed", ({ requestID, responseID }) => {
-        sdk.console.log("onRequest=" + requestID + " " + responseID);
+      runnable.on("scan:request-pending", ({ pendingRequestID }) => {
+        sdk.console.log("onRequestPending=" + pendingRequestID);
 
-        const requestSentSession = scannerStore.send(id, {
+        const requestPendingSession = scannerStore.send(id, {
           type: "AddRequestSent",
         });
-        sdk.api.send("session:updated", id, requestSentSession);
+        sdk.api.send("session:updated", id, requestPendingSession);
+      });
+
+      runnable.on("scan:finished", () => {
+        sdk.console.log("onFinished");
       });
 
       const result = await runnable.run(requestIDs);

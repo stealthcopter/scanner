@@ -48,12 +48,13 @@ export class ScannerStore {
     return true;
   }
 
-  createSession(): SessionState {
-    const id = crypto.randomUUID();
+  createSession(title: string): SessionState {
+    const id = "ascan-" + Math.random().toString(36).substring(2, 15);
     const session: SessionState = {
       kind: "Pending",
       id,
       createdAt: Date.now(),
+      title,
     };
     this.sessions.push(session);
     return session;
@@ -104,6 +105,7 @@ const processPending = (
     return {
       kind: "Running",
       id: state.id,
+      title: state.title,
       createdAt: state.createdAt,
       startedAt: Date.now(),
       findings: [],
@@ -125,6 +127,7 @@ const processRunning = (
     return {
       kind: "Done",
       id: state.id,
+      title: state.title,
       createdAt: state.createdAt,
       startedAt: state.startedAt,
       finishedAt: Date.now(),
@@ -164,6 +167,7 @@ const processRunning = (
     return {
       kind: "Error",
       id: state.id,
+      title: state.title,
       createdAt: state.createdAt,
       error: message.error,
     };
@@ -172,6 +176,7 @@ const processRunning = (
     return {
       kind: "Interrupted",
       id: state.id,
+      title: state.title,
       createdAt: state.createdAt,
       startedAt: state.startedAt,
       findings: state.findings,

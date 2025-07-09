@@ -31,7 +31,7 @@ export const createRunnable = ({
 }: {
   sdk: SDK;
   checks: CheckDefinition[];
-  context: (target: ScanTarget) => Omit<RuntimeContext, "runtime">;
+  context: (target: ScanTarget) => Omit<RuntimeContext, "runtime" | "sdk">;
 }): ScanRunnable => {
   const { on, emit } = mitt<ScanEvents>();
   const batches = getCheckBatches(checks);
@@ -96,9 +96,13 @@ export const createRunnable = ({
     return true;
   };
 
-  const createRuntimeContext = (target: ScanTarget): RuntimeContext => {
+  const createRuntimeContext = (
+    target: ScanTarget,
+    sdk: SDK
+  ): RuntimeContext => {
     return {
       ...createBaseContext(target),
+      sdk,
       runtime: {
         html: {
           parse: (raw: string) => {
@@ -182,26 +186,34 @@ export const createRunnable = ({
             );
           }
 
-          const context = createRuntimeContext({
-            request: target.request,
-            response: target.response,
-          });
+          const wrappedSdk = {
+            ...sdk,
+            requests: {
+              ...sdk.requests,
+              send: async (request) => {
+                const pendingRequestID = generateId();
+                emit("scan:request-pending", {
+                  pendingRequestID,
+                });
 
-          const originalSend = context.sdk.requests.send;
-          context.sdk.requests.send = async (request) => {
-            const id = generateId();
-            emit("scan:request-pending", {
-              id,
-            });
+                const result = await sdk.requests.send(request);
+                emit("scan:request-completed", {
+                  pendingRequestID,
+                  requestID: result.request.getId(),
+                  responseID: result.response.getId(),
+                });
+                return result;
+              },
+            },
+          } as SDK;
 
-            const result = await originalSend(request);
-            emit("scan:request-completed", {
-              id,
-              requestID: result.request.getId(),
-              responseID: result.response.getId(),
-            });
-            return result;
-          };
+          let context = createRuntimeContext(
+            {
+              request: target.request,
+              response: target.response,
+            },
+            wrappedSdk
+          );
 
           for (const batch of batches) {
             if (interruptReason) {
@@ -219,27 +231,35 @@ export const createRunnable = ({
           return { kind: "Interrupted", reason: error.reason, findings };
         }
 
-        return { kind: "Error", error: error as string };
+        return {
+          kind: "Error",
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
       } finally {
         emit("scan:finished", {});
       }
     },
     estimate: async (requestIDs: string[]): Promise<ScanEstimateResult> => {
       let checksCount = 0;
+      const snapshotDedupeKeys = createDedupeKeysSnapshot();
       for (const requestID of requestIDs) {
         const target = await sdk.requests.get(requestID);
         if (target === undefined) {
           return { kind: "Error", error: `Request ${requestID} not found` };
         }
 
-        const context = createRuntimeContext({
-          request: target.request,
-          response: target.response,
-        });
+        const context = createRuntimeContext(
+          {
+            request: target.request,
+            response: target.response,
+          },
+          sdk
+        );
 
-        const snapshotDedupeKeys = createDedupeKeysSnapshot();
         const tasks = batches.map((batch) =>
-          batch.filter((check) => isCheckApplicable(check, context, snapshotDedupeKeys))
+          batch.filter((check) =>
+            isCheckApplicable(check, context, snapshotDedupeKeys)
+          )
         );
 
         checksCount += tasks.flat().length;

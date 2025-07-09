@@ -71,12 +71,12 @@ const selection = defineModel<QueueTask | undefined>("selection", {
         class="flex-1"
       >
         <template #empty>
-          <div class="flex justify-center items-center h-32">
+          <div class="flex justify-center items-center">
             <span class="text-surface-400">No tasks in queue</span>
           </div>
         </template>
 
-        <Column field="id" header="Task ID" class="min-w-48">
+        <Column field="id" header="ID" class="min-w-48">
           <template #body="{ data }">
             <div class="font-mono text-sm">{{ data.id }}</div>
           </template>

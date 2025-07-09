@@ -47,7 +47,6 @@ export const createRegistry = (): ScanRegistry => {
       checks,
       context: (target) => ({
         target,
-        sdk,
         config,
       }),
     });
