@@ -26,6 +26,13 @@ export type UserConfig = {
   active: {
     overrides: Override[];
   };
+  presets: Preset[];
+};
+
+export type Preset = {
+  name: string;
+  active: Override[];
+  passive: Override[];
 };
 
 export type Override = {
@@ -46,10 +53,59 @@ export type GetChecksOptions = Pick<
   "type" | "include" | "exclude"
 >;
 
+export type SentRequest =
+  | {
+      status: "pending";
+      pendingRequestID: string;
+      sentAt: number;
+    }
+  | {
+      status: "completed";
+      pendingRequestID: string;
+      requestID: string;
+      sentAt: number;
+      completedAt: number;
+    }
+  | {
+      status: "failed";
+      pendingRequestID: string;
+      error: string;
+      sentAt: number;
+      completedAt: number;
+    };
+
+export type CheckExecution =
+  | {
+      kind: "Running";
+      checkID: string;
+      targetRequestID: string;
+      startedAt: number;
+      requestsSent: SentRequest[];
+      findings: Finding[];
+    }
+  | {
+      kind: "Completed";
+      checkID: string;
+      targetRequestID: string;
+      startedAt: number;
+      completedAt: number;
+      requestsSent: SentRequest[];
+      findings: Finding[];
+    }
+  | {
+      kind: "Failed";
+      checkID: string;
+      targetRequestID: string;
+      startedAt: number;
+      failedAt: number;
+      error: string;
+      requestsSent: SentRequest[];
+      findings: Finding[];
+    };
+
 export type SessionProgress = {
-  checksCompleted: number;
-  requestsSent: number;
-  checksCount: number;
+  checksTotal: number;
+  checksHistory: CheckExecution[];
 };
 
 export type SessionState =
@@ -60,7 +116,6 @@ export type SessionState =
       title: string;
       createdAt: number;
       startedAt: number;
-      findings: Finding[];
       progress: SessionProgress;
     }
   | {
@@ -70,7 +125,6 @@ export type SessionState =
       createdAt: number;
       startedAt: number;
       finishedAt: number;
-      findings: Finding[];
       progress: SessionProgress;
     }
   | {
@@ -79,8 +133,8 @@ export type SessionState =
       title: string;
       createdAt: number;
       startedAt: number;
+      progress: SessionProgress;
       reason: InterruptReason;
-      findings: Finding[];
     }
   | {
       kind: "Error";

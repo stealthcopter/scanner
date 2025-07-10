@@ -19,6 +19,7 @@ import {
   type ScanEvents,
   type ScanRunnable,
   type ScanTarget,
+  type ScanConfig,
 } from "../types/runner";
 import { parseHtmlFromString } from "../utils/html/parser";
 
@@ -27,20 +28,19 @@ import { createTaskExecutor } from "./execution";
 export const createRunnable = ({
   sdk,
   checks,
-  context: createBaseContext,
+  config,
 }: {
   sdk: SDK;
   checks: CheckDefinition[];
-  context: (target: ScanTarget) => Omit<RuntimeContext, "runtime" | "sdk">;
+  config: ScanConfig;
 }): ScanRunnable => {
   const { on, emit } = mitt<ScanEvents>();
   const batches = getCheckBatches(checks);
   const findings: Finding[] = [];
   const dependencies = new Map<string, CheckOutput>();
   let dedupeKeys = new Map<string, Set<string>>();
-  let hasRun = false;
-
   let interruptReason: InterruptReason | undefined;
+  let hasRun = false;
 
   const createDedupeKeysSnapshot = (): Map<string, Set<string>> => {
     const snapshot = new Map<string, Set<string>>();
@@ -101,7 +101,8 @@ export const createRunnable = ({
     sdk: SDK
   ): RuntimeContext => {
     return {
-      ...createBaseContext(target),
+      target,
+      config,
       sdk,
       runtime: {
         html: {
@@ -133,7 +134,7 @@ export const createRunnable = ({
 
     const { errors } = await PromisePool.for(tasks)
       .withConcurrency(context.config.concurrency)
-      .withTaskTimeout(context.config.checkTimeout)
+      .withTaskTimeout(context.config.checkTimeout * 1000)
       .handleError((error, _, pool) => {
         if (error instanceof ScanRunnableInterruptedError) {
           pool.stop();
@@ -143,20 +144,36 @@ export const createRunnable = ({
         throw error;
       })
       .onTaskFinished((task) => {
-        emit("scan:check-finished", { checkID: task.metadata.id });
+        emit("scan:check-finished", {
+          checkID: task.metadata.id,
+          targetRequestID: context.target.request.getId(),
+        });
       })
       .onTaskStarted((task) => {
-        emit("scan:check-started", { checkID: task.metadata.id });
+        emit("scan:check-started", {
+          checkID: task.metadata.id,
+          targetRequestID: context.target.request.getId(),
+        });
       })
       .process(async (task) => {
-        const result = await taskExecutor.executeUntilDone(task);
+        context.activeCheckID = task.metadata.id;
 
+        const result = await taskExecutor.tickUntilDone(task);
         if (result.findings) {
           findings.push(...result.findings);
         }
 
-        if (result.output !== undefined) {
+        if (result.status === "done") {
           dependencies.set(task.metadata.id, result.output);
+        }
+
+        if (result.status === "failed") {
+          emit("scan:check-failed", {
+            checkID: task.metadata.id,
+            targetRequestID: context.target.request.getId(),
+            errorCode: result.errorCode,
+            errorMessage: result.errorMessage,
+          });
         }
 
         return result;
@@ -173,74 +190,115 @@ export const createRunnable = ({
         return { kind: "Error", error: "Scan is already running" };
       }
 
-      try {
-        hasRun = true;
-        emit("scan:started", {});
+      const runScan = async (): Promise<ScanResult> => {
+        try {
+          hasRun = true;
+          emit("scan:started", {});
 
-        for (const requestID of requestIDs) {
-          const target = await sdk.requests.get(requestID);
-          if (target === undefined) {
-            throw new ScanRunnableError(
-              `Request ${requestID} not found`,
-              ScanRunnableErrorCode.REQUEST_NOT_FOUND
-            );
-          }
-
-          const wrappedSdk = {
-            ...sdk,
-            requests: {
-              ...sdk.requests,
-              send: async (request) => {
-                const pendingRequestID = generateId();
-                emit("scan:request-pending", {
-                  pendingRequestID,
-                });
-
-                const result = await sdk.requests.send(request);
-                emit("scan:request-completed", {
-                  pendingRequestID,
-                  requestID: result.request.getId(),
-                  responseID: result.response.getId(),
-                });
-                return result;
-              },
-            },
-          } as SDK;
-
-          let context = createRuntimeContext(
-            {
-              request: target.request,
-              response: target.response,
-            },
-            wrappedSdk
-          );
-
-          for (const batch of batches) {
-            if (interruptReason) {
-              throw new ScanRunnableInterruptedError(interruptReason);
+          for (const requestID of requestIDs) {
+            const target = await sdk.requests.get(requestID);
+            if (target === undefined) {
+              throw new ScanRunnableError(
+                `Request ${requestID} not found`,
+                ScanRunnableErrorCode.REQUEST_NOT_FOUND
+              );
             }
 
-            await processBatch(batch, context);
+            const wrappedSdk = {
+              ...sdk,
+              requests: {
+                ...sdk.requests,
+                send: async (request) => {
+                  if (!context.activeCheckID) {
+                    throw new ScanRunnableError(
+                      "No active check ID. You should never reach this state, please report this as a bug.",
+                      ScanRunnableErrorCode.NO_ACTIVE_CHECK_ID
+                    );
+                  }
+
+                  const pendingRequestID = Math.random().toString(36).substring(2, 15);
+                  emit("scan:request-pending", {
+                    pendingRequestID,
+                    targetRequestID: requestID,
+                    checkID: context.activeCheckID,
+                  });
+
+                  try {
+                    const result = await sdk.requests.send(request);
+                    emit("scan:request-completed", {
+                      pendingRequestID,
+                      requestID: result.request.getId(),
+                      responseID: result.response.getId(),
+                      checkID: context.activeCheckID,
+                      targetRequestID: requestID,
+                    });
+                    return result;
+                  } catch (error) {
+                    const errorMessage =
+                      error instanceof Error ? error.message : "Unknown error";
+
+                    emit("scan:request-failed", {
+                      pendingRequestID,
+                      error: errorMessage,
+                      targetRequestID: requestID,
+                      checkID: context.activeCheckID,
+                    });
+
+                    throw new ScanRunnableError(
+                      `Request ID: ${requestID} failed: ${errorMessage}`,
+                      ScanRunnableErrorCode.REQUEST_FAILED
+                    );
+                  }
+                },
+              },
+            } as SDK;
+
+            let context = createRuntimeContext(
+              {
+                request: target.request,
+                response: target.response,
+              },
+              wrappedSdk
+            );
+
+            for (const batch of batches) {
+              await processBatch(batch, context);
+            }
           }
-        }
 
-        return { kind: "Finished", findings };
-      } catch (error) {
-        if (error instanceof ScanRunnableInterruptedError) {
-          emit("scan:interrupted", { reason: error.reason });
-          return { kind: "Interrupted", reason: error.reason, findings };
-        }
+          return { kind: "Finished", findings };
+        } catch (error) {
+          if (error instanceof ScanRunnableInterruptedError) {
+            emit("scan:interrupted", { reason: error.reason });
+            return { kind: "Interrupted", reason: error.reason, findings };
+          }
 
-        return {
-          kind: "Error",
-          error: error instanceof Error ? error.message : "Unknown error",
-        };
-      } finally {
-        emit("scan:finished", {});
+          return {
+            kind: "Error",
+            error: error instanceof Error ? error.message : "Unknown error",
+          };
+        } finally {
+          emit("scan:finished", {});
+        }
+      };
+
+      if (config.scanTimeout > 0) {
+        const timeoutPromise = new Promise<ScanResult>((resolve) => {
+          setTimeout(() => {
+            if (!interruptReason) {
+              interruptReason = "Timeout";
+            }
+            resolve({ kind: "Interrupted", reason: "Timeout", findings });
+          }, config.scanTimeout * 1000);
+        });
+
+        return Promise.race([runScan(), timeoutPromise]);
+      } else {
+        return runScan();
       }
     },
     estimate: async (requestIDs: string[]): Promise<ScanEstimateResult> => {
-      let checksCount = 0;
+      let checksTotal = 0;
       const snapshotDedupeKeys = createDedupeKeysSnapshot();
       for (const requestID of requestIDs) {
         const target = await sdk.requests.get(requestID);
@@ -262,13 +320,20 @@ export const createRunnable = ({
           )
         );
 
-        checksCount += tasks.flat().length;
+        checksTotal += tasks.flat().length;
       }
 
-      return { kind: "Success", checksCount };
+      return { kind: "Success", checksTotal };
     },
-    cancel: (reason) => {
+    cancel: async (reason) => {
+      if (interruptReason || !hasRun) {
+        return;
+      }
+
       interruptReason = reason;
+      await new Promise<void>((resolve) => {
+        on("scan:interrupted", () => resolve());
+      });
     },
     externalDedupeKeys: externalDedupeKeys,
     on: (event, callback) => on(event, callback),
@@ -311,8 +376,4 @@ const getCheckBatches = (checks: CheckDefinition[]): CheckDefinition[][] => {
       return check;
     })
   );
-};
-
-const generateId = () => {
-  return Math.random().toString(36).substring(2, 15);
 };

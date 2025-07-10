@@ -59,36 +59,30 @@ const launcher = useLauncher();
         <component :is="currentStep?.component" />
       </div>
 
-      <div>
-        <div class="flex items-center justify-between">
-          <Button
-            v-if="canGoPrevious"
-            label="Previous"
-            icon="fas fa-chevron-left"
-            severity="info"
-            outlined
-            @click="goPrevious"
-          />
-          <div v-else></div>
-
-          <div class="flex space-x-3">
-            <Button
-              v-if="!isLastStep"
-              label="Next"
-              icon="fas fa-chevron-right"
-              icon-pos="right"
-              severity="info"
-              @click="goNext"
-            />
-            <Button
-              v-else
-              label="Run Scan"
-              icon="fas fa-play"
-              severity="success"
-              @click="launcher.onSubmit(props.sdk, props.incrementCount)"
-            />
-          </div>
-        </div>
+      <div class="flex items-center justify-end gap-2">
+        <Button
+          v-if="canGoPrevious"
+          label="Previous"
+          icon="fas fa-chevron-left"
+          severity="info"
+          outlined
+          @click="goPrevious"
+        />
+        <Button
+          v-if="!isLastStep"
+          label="Next"
+          icon="fas fa-chevron-right"
+          icon-pos="right"
+          severity="info"
+          outlined
+          @click="goNext"
+        />
+        <Button
+          label="Run Scan"
+          icon="fas fa-play"
+          severity="success"
+          @click="launcher.onSubmit(props.sdk, props.incrementCount)"
+        />
       </div>
     </div>
   </div>

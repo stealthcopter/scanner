@@ -6,38 +6,44 @@ import DataTable from "primevue/datatable";
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import InputText from "primevue/inputtext";
+import Button from "primevue/button";
 import Select from "primevue/select";
-import { ref } from "vue";
+import Dialog from "primevue/dialog";
+import ContextMenu from "primevue/contextmenu";
 
 import CheckExpansion from "./Expansion.vue";
 import { useTable } from "./useTable";
-
-import { type ChecksState } from "@/types/checks";
-
-defineProps<{
-  state: ChecksState & { type: "Success" };
-}>();
-
-const search = ref("");
-const typeFilter = ref("all");
-const expandedRows = ref([]);
-
-const typeOptions = [
-  { label: "All Checks", value: "all" },
-  { label: "Passive", value: "passive" },
-  { label: "Active", value: "active" },
-];
+import { useCheckPresets } from "./usePresets";
 
 const {
+  search,
+  typeFilter,
+  typeOptions,
+  expandedRows,
   filters,
-  getFilteredChecks,
+  checks,
   getPassiveEnabled,
   getActiveEnabled,
   togglePassiveCheck,
   toggleActiveCheck,
-} = useTable({ search, typeFilter });
+} = useTable();
+
+const {
+  showNewPresetDialog,
+  newPresetName,
+  menu,
+  menuModel,
+  presets,
+  handleNewPreset,
+  handleSaveNewPreset,
+  handleCancelNewPreset,
+  onPresetContextMenu,
+  applyPreset,
+} = useCheckPresets();
 </script>
+
 <template>
+  <ContextMenu ref="menu" :model="menuModel" />
   <Card
     class="h-full"
     :pt="{
@@ -78,7 +84,7 @@ const {
 
       <DataTable
         v-model:expanded-rows="expandedRows"
-        :value="getFilteredChecks(state.checks)"
+        :value="checks"
         scrollable
         scroll-height="flex"
         striped-rows
@@ -144,7 +150,79 @@ const {
         <template #expansion="{ data }">
           <CheckExpansion :check="data" />
         </template>
+
+        <template #footer>
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-4">
+              <div class="text-sm text-surface-300">Presets</div>
+              <div class="flex flex-wrap gap-2">
+                <Button
+                  v-for="preset in presets"
+                  :key="preset.name"
+                  :label="preset.name"
+                  size="small"
+                  severity="info"
+                  outlined
+                  @click="applyPreset(preset)"
+                  @contextmenu="onPresetContextMenu($event, preset)"
+                />
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <Button
+                label="New Preset"
+                size="small"
+                severity="secondary"
+                outlined
+                icon="fas fa-plus"
+                class="text-xs"
+                @click="handleNewPreset"
+              />
+            </div>
+          </div>
+        </template>
       </DataTable>
     </template>
   </Card>
+
+  <Dialog
+    v-model:visible="showNewPresetDialog"
+    modal
+    header="Create New Preset"
+    :style="{ width: '25rem' }"
+  >
+    <div class="flex flex-col gap-4">
+      <div>
+        <label for="presetName" class="block text-sm font-medium mb-2">
+          Preset Name
+        </label>
+        <InputText
+          id="presetName"
+          v-model="newPresetName"
+          placeholder="Enter preset name"
+          class="w-full"
+          @keyup.enter="handleSaveNewPreset"
+        />
+      </div>
+      <div class="text-sm text-surface-400">
+        This will save the current configuration of enabled/disabled checks as a
+        new preset.
+      </div>
+    </div>
+    <template #footer>
+      <div class="flex justify-end gap-2">
+        <Button
+          label="Cancel"
+          severity="secondary"
+          outlined
+          @click="handleCancelNewPreset"
+        />
+        <Button
+          label="Save"
+          :disabled="!newPresetName.trim()"
+          @click="handleSaveNewPreset"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>

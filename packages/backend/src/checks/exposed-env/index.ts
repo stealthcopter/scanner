@@ -6,11 +6,6 @@ import {
   Severity,
 } from "engine";
 
-type ScanState = {
-  envFiles: string[];
-  basePath: string;
-};
-
 const ENV_FILES = [
   ".env",
   ".env.local",
@@ -71,7 +66,10 @@ const isValidEnvContent = (bodyText: string, contentType: string): boolean => {
   return commentPattern.test(trimmedBody) || keyValuePattern.test(trimmedBody);
 };
 
-export default defineCheck<ScanState>(({ step }) => {
+export default defineCheck<{
+  envFiles: string[];
+  basePath: string;
+}>(({ step }) => {
   step("setupScan", (_, context) => {
     const envFiles = getEnvFilesToTest(context.config.strength);
     const basePath = getBasePath(context.target.request.getPath());

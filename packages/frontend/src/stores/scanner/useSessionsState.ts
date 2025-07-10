@@ -1,4 +1,4 @@
-import { type SessionState } from "shared";
+import { SessionProgress, type SessionState } from "shared";
 import { reactive } from "vue";
 
 import { type SessionsState } from "@/types/scanner";
@@ -13,6 +13,13 @@ type Message =
   | { type: "Success"; sessions: SessionState[] }
   | { type: "AddSession"; session: SessionState }
   | { type: "UpdateSession"; session: SessionState }
+  | {
+      type: "UpdateSessionProgress";
+      sessionId: string;
+      progress: Partial<SessionProgress>;
+    }
+  | { type: "CancelSession"; sessionId: string }
+  | { type: "DeleteSession"; sessionId: string }
   | { type: "Clear" };
 
 export const useSessionsState = () => {
@@ -46,7 +53,7 @@ export const useSessionsState = () => {
 
 const processIdle = (
   state: SessionsState & { type: "Idle" },
-  message: Message,
+  message: Message
 ): SessionsState => {
   switch (message.type) {
     case "Start":
@@ -55,6 +62,9 @@ const processIdle = (
     case "Success":
     case "AddSession":
     case "UpdateSession":
+    case "CancelSession":
+    case "UpdateSessionProgress":
+    case "DeleteSession":
     case "Clear":
       return state;
   }
@@ -62,7 +72,7 @@ const processIdle = (
 
 const processError = (
   state: SessionsState & { type: "Error" },
-  message: Message,
+  message: Message
 ): SessionsState => {
   switch (message.type) {
     case "Start":
@@ -73,13 +83,16 @@ const processError = (
     case "Success":
     case "AddSession":
     case "UpdateSession":
+    case "CancelSession":
+    case "UpdateSessionProgress":
+    case "DeleteSession":
       return state;
   }
 };
 
 const processSuccess = (
   state: SessionsState & { type: "Success" },
-  message: Message,
+  message: Message
 ): SessionsState => {
   switch (message.type) {
     case "AddSession":
@@ -91,7 +104,23 @@ const processSuccess = (
       return {
         ...state,
         sessions: state.sessions.map((session) =>
-          session.id === message.session.id ? message.session : session,
+          session.id === message.session.id ? message.session : session
+        ),
+      };
+    case "UpdateSessionProgress":
+      return {
+        ...state,
+        sessions: state.sessions.map((session) =>
+          session.id === message.sessionId
+            ? { ...session, progress: message.progress } as SessionState
+            : session
+        ),
+      };
+    case "DeleteSession":
+      return {
+        ...state,
+        sessions: state.sessions.filter(
+          (session) => session.id !== message.sessionId
         ),
       };
     case "Clear":
@@ -99,13 +128,14 @@ const processSuccess = (
     case "Start":
     case "Error":
     case "Success":
+    case "CancelSession":
       return state;
   }
 };
 
 const processLoading = (
   state: SessionsState & { type: "Loading" },
-  message: Message,
+  message: Message
 ): SessionsState => {
   switch (message.type) {
     case "Error":
@@ -115,6 +145,9 @@ const processLoading = (
     case "Start":
     case "AddSession":
     case "UpdateSession":
+    case "UpdateSessionProgress":
+    case "CancelSession":
+    case "DeleteSession":
     case "Clear":
       return state;
   }

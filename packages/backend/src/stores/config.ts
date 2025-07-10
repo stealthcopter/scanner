@@ -18,6 +18,102 @@ export class ConfigStore {
       active: {
         overrides: [],
       },
+      // TODO: improve presets
+      presets: [
+        {
+          name: "Light",
+          active: [
+            {
+              checkID: "exposed-env",
+              enabled: true,
+            },
+            {
+              checkID: "json-html-response",
+              enabled: true,
+            },
+            {
+              checkID: "open-redirect",
+              enabled: false,
+            },
+          ],
+          passive: [
+            {
+              checkID: "exposed-env",
+              enabled: false,
+            },
+            {
+              checkID: "json-html-response",
+              enabled: true,
+            },
+            {
+              checkID: "open-redirect",
+              enabled: false,
+            },
+          ],
+        },
+        {
+          name: "Balanced",
+          active: [
+            {
+              checkID: "exposed-env",
+              enabled: true,
+            },
+            {
+              checkID: "json-html-response",
+              enabled: true,
+            },
+            {
+              checkID: "open-redirect",
+              enabled: true,
+            },
+          ],
+          passive: [
+            {
+              checkID: "exposed-env",
+              enabled: true,
+            },
+            {
+              checkID: "json-html-response",
+              enabled: true,
+            },
+            {
+              checkID: "open-redirect",
+              enabled: false,
+            },
+          ],
+        },
+        {
+          name: "Heavy",
+          active: [
+            {
+              checkID: "exposed-env",
+              enabled: true,
+            },
+            {
+              checkID: "json-html-response",
+              enabled: true,
+            },
+            {
+              checkID: "open-redirect",
+              enabled: true,
+            },
+          ],
+          passive: [
+            {
+              checkID: "exposed-env",
+              enabled: true,
+            },
+            {
+              checkID: "json-html-response",
+              enabled: true,
+            },
+            {
+              checkID: "open-redirect",
+              enabled: true,
+            },
+          ],
+        },
+      ],
     };
   }
 

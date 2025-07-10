@@ -74,11 +74,11 @@ export const defineCheck = <T>(
           if (result.state !== undefined) {
             runState.state = result.state;
           }
-          return { isDone: true, findings: result.findings };
+          return { status: "done", findings: result.findings };
         case "Continue":
           runState.state = result.state;
           runState.nextStep = result.nextStep;
-          return { isDone: false, findings: result.findings };
+          return { status: "continue", findings: result.findings };
       }
     };
 
@@ -95,6 +95,7 @@ export const defineCheck = <T>(
       tick,
       getFindings: () => runState.findings,
       getOutput,
+      getTarget: () => context.target,
     };
   };
 

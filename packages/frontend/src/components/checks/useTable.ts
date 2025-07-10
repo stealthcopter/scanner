@@ -1,26 +1,37 @@
 import type { CheckMetadata } from "engine";
 import type { DataTableFilterMeta } from "primevue/datatable";
-import { computed, type Ref } from "vue";
+import { computed, ref } from "vue";
 
+import { useChecksService } from "@/services/checks";
 import { useConfigService } from "@/services/config";
 
-export const useTable = (options: {
-  search?: Ref<string>;
-  typeFilter?: Ref<string>;
-}) => {
-  const { search, typeFilter } = options;
+export const useTable = () => {
+  const search = ref("");
+  const typeFilter = ref("all");
+  const expandedRows = ref([]);
+
+  const typeOptions = [
+    { label: "All Checks", value: "all" },
+    { label: "Passive", value: "passive" },
+    { label: "Active", value: "active" },
+  ];
+
+  const checksService = useChecksService();
   const configService = useConfigService();
 
   const filters = computed<DataTableFilterMeta>(() => ({
-    global: { value: search?.value ?? "", matchMode: "contains" },
+    global: { value: search.value ?? "", matchMode: "contains" },
   }));
 
-  const getFilteredChecks = (checks: CheckMetadata[]) => {
-    return checks.filter((check) => {
-      const typeMatches = filterByType(check.type, typeFilter?.value ?? "all");
+  const checks = computed(() => {
+    const checksState = checksService.getState();
+    if (checksState.type !== "Success") return [];
+
+    return checksState.checks.filter((check) => {
+      const typeMatches = filterByType(check.type, typeFilter.value ?? "all");
       return typeMatches;
     });
-  };
+  });
 
   const getAggressivityText = (check: CheckMetadata) => {
     const { minRequests, maxRequests } = check.aggressivity;
@@ -110,9 +121,12 @@ export const useTable = (options: {
   };
 
   return {
+    search,
+    typeFilter,
+    expandedRows,
+    typeOptions,
     filters,
-    getFilteredChecks,
-    filterByType,
+    checks,
     getPassiveEnabled,
     getActiveEnabled,
     getAggressivityText,

@@ -6,6 +6,7 @@ import { type ParsedHtml } from "../utils/html/types";
 import { type CheckDefinition } from "./check";
 import { type Finding } from "./finding";
 import { type JSONSerializable } from "./utils";
+import { ScanRunnableErrorCode } from "packages/engine/src/core/errors";
 
 export const ScanStrength = {
   LOW: 0,
@@ -23,7 +24,7 @@ export type ScanRegistry = {
 export type ScanRunnable = {
   run: (requestIDs: string[]) => Promise<ScanResult>;
   estimate: (requestIDs: string[]) => Promise<ScanEstimateResult>;
-  cancel: (reason: InterruptReason) => void;
+  cancel: (reason: InterruptReason) => Promise<void>;
   externalDedupeKeys: (dedupeKeys: Map<string, Set<string>>) => void;
   on: <T extends keyof ScanEvents>(
     event: T,
@@ -51,7 +52,7 @@ export type ScanResult =
 export type ScanEstimateResult =
   | {
       kind: "Success";
-      checksCount: number;
+      checksTotal: number;
     }
   | {
       kind: "Error";
@@ -62,15 +63,37 @@ export type ScanEvents = {
   "scan:started": unknown;
   "scan:finished": unknown;
   "scan:interrupted": { reason: InterruptReason };
-  "scan:finding": { finding: Finding };
-  "scan:check-started": { checkID: string };
-  "scan:check-finished": { checkID: string };
+  "scan:finding": {
+    targetRequestID: string;
+    checkID: string;
+    finding: Finding;
+  };
+  "scan:check-started": { checkID: string; targetRequestID: string };
+  "scan:check-finished": { checkID: string; targetRequestID: string };
+  "scan:check-failed": {
+    checkID: string;
+    targetRequestID: string;
+    errorCode: ScanRunnableErrorCode;
+    errorMessage: string;
+  };
+  "scan:request-pending": {
+    pendingRequestID: string;
+    targetRequestID: string;
+    checkID: string;
+  };
   "scan:request-completed": {
     pendingRequestID: string;
     requestID: string;
     responseID: string;
+    checkID: string;
+    targetRequestID: string;
   };
-  "scan:request-pending": { pendingRequestID: string };
+  "scan:request-failed": {
+    pendingRequestID: string;
+    targetRequestID: string;
+    checkID: string;
+    error: string;
+  };
 };
 
 export type ScanTarget = {
@@ -80,6 +103,7 @@ export type ScanTarget = {
 
 export type RuntimeContext = {
   target: ScanTarget;
+  activeCheckID?: string;
   sdk: SDK;
   runtime: {
     html: {

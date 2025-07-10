@@ -1,12 +1,45 @@
 import { type Finding, type InterruptReason, type ScanRunnable } from "engine";
-import { type SessionState } from "shared";
+import {
+  type SessionState,
+  type CheckExecution,
+  type SentRequest,
+} from "shared";
 
 export type ScanMessage =
-  | { type: "Start"; checksCount: number }
-  | { type: "AddFinding"; finding: Finding }
-  | { type: "AddRequestSent" }
-  | { type: "AddCheckCompleted" }
-  | { type: "Finish"; findings: Finding[] }
+  | { type: "Start"; checksTotal: number }
+  | {
+      type: "AddFinding";
+      finding: Finding;
+      relatedTargetID: string;
+      relatedCheckID: string;
+    }
+  | {
+      type: "AddRequestSent";
+      request: SentRequest & { status: "pending" };
+      relatedTargetID: string;
+      relatedCheckID: string;
+    }
+  | {
+      type: "AddRequestCompleted";
+      request: SentRequest & { status: "completed" };
+      relatedTargetID: string;
+      relatedCheckID: string;
+    }
+  | {
+      type: "AddRequestFailed";
+      request: SentRequest & { status: "failed" };
+      relatedTargetID: string;
+      relatedCheckID: string;
+    }
+  | { type: "AddCheckRunning"; checkID: string; targetRequestID: string }
+  | { type: "AddCheckCompleted"; checkID: string; targetRequestID: string }
+  | {
+      type: "AddCheckFailed";
+      checkID: string;
+      targetRequestID: string;
+      error: string;
+    }
+  | { type: "Finish" }
   | { type: "Interrupted"; reason: InterruptReason }
   | { type: "Error"; error: string };
 
@@ -27,25 +60,20 @@ export class ScannerStore {
     return ScannerStore._store;
   }
 
-  setRunnable(id: string, runnable: ScanRunnable) {
+  registerRunnable(id: string, runnable: ScanRunnable) {
     this.runnables.set(id, runnable);
   }
 
-  cancelRunnable(id: string): boolean {
+  async cancelRunnable(id: string): Promise<boolean> {
     const runnable = this.runnables.get(id);
     if (!runnable) return false;
 
-    runnable.cancel("Cancelled");
-    this.runnables.delete(id);
+    await runnable.cancel("Cancelled");
     return true;
   }
 
-  deleteRunnable(id: string): boolean {
-    const runnable = this.runnables.get(id);
-    if (!runnable) return false;
-
-    this.runnables.delete(id);
-    return true;
+  unregisterRunnable(id: string): boolean {
+    return this.runnables.delete(id);
   }
 
   createSession(title: string): SessionState {
@@ -64,145 +92,392 @@ export class ScannerStore {
     return this.sessions.find((session) => session.id === id);
   }
 
-  send(id: string, message: ScanMessage): SessionState {
-    const session = this.sessions.find((session) => session.id === id);
-    if (!session) throw new Error(`Session ${id} not found`);
-
-    let newState: SessionState;
-    switch (session.kind) {
-      case "Pending":
-        newState = processPending(session, message);
-        break;
-      case "Running":
-        newState = processRunning(session, message);
-        break;
-      case "Done":
-        newState = processDone(session, message);
-        break;
-      case "Error":
-        newState = processError(session, message);
-        break;
-      case "Interrupted":
-        newState = processInterrupted(session, message);
-        break;
+  deleteSession(id: string): boolean {
+    const runnable = this.runnables.get(id);
+    if (runnable) {
+      runnable.cancel("Cancelled");
+      this.runnables.delete(id);
     }
 
-    this.sessions = this.sessions.map((s) => (s.id === id ? newState : s));
+    const index = this.sessions.findIndex((session) => session.id === id);
+    if (index === -1) return false;
+    this.sessions.splice(index, 1);
+    return true;
+  }
 
+  send(id: string, message: ScanMessage): SessionState | undefined {
+    const session = this.sessions.find((session) => session.id === id);
+    if (!session) return undefined;
+
+    const newState = this.processMessage(session, message);
+    this.sessions = this.sessions.map((s) => (s.id === id ? newState : s));
     return newState;
+  }
+
+  private processMessage(
+    session: SessionState,
+    message: ScanMessage
+  ): SessionState {
+    switch (message.type) {
+      case "Start":
+        return this.handleStart(session, message);
+      case "AddFinding":
+        return this.handleAddFinding(session, message);
+      case "AddRequestSent":
+        return this.handleAddRequestSent(session, message);
+      case "AddRequestCompleted":
+        return this.handleAddRequestCompleted(session, message);
+      case "AddRequestFailed":
+        return this.handleAddRequestFailed(session, message);
+      case "AddCheckRunning":
+        return this.handleAddCheckRunning(session, message);
+      case "AddCheckCompleted":
+        return this.handleAddCheckCompleted(session, message);
+      case "AddCheckFailed":
+        return this.handleAddCheckFailed(session, message);
+      case "Finish":
+        return this.handleFinish(session, message);
+      case "Interrupted":
+        return this.handleInterrupted(session, message);
+      case "Error":
+        return this.handleError(session, message);
+      default:
+        throw new Error(`Unknown message type: ${(message as any).type}`);
+    }
+  }
+
+  private handleStart(
+    session: SessionState,
+    message: ScanMessage & { type: "Start" }
+  ): SessionState {
+    if (session.kind !== "Pending") {
+      throw new Error(`Cannot start session in state: ${session.kind}`);
+    }
+
+    return {
+      kind: "Running",
+      id: session.id,
+      title: session.title,
+      createdAt: session.createdAt,
+      startedAt: Date.now(),
+      progress: {
+        checksTotal: message.checksTotal,
+        checksHistory: [],
+      },
+    };
+  }
+
+  private handleAddFinding(
+    session: SessionState,
+    message: ScanMessage & { type: "AddFinding" }
+  ): SessionState {
+    if (session.kind !== "Running") {
+      throw new Error(`Cannot add finding in state: ${session.kind}`);
+    }
+
+    return {
+      ...session,
+      progress: {
+        ...session.progress,
+        checksHistory: this.updateCheckExecution(
+          session.progress.checksHistory,
+          message.relatedCheckID,
+          message.relatedTargetID,
+          (execution) => {
+            if (execution.kind !== "Running") return execution;
+
+            return {
+              ...execution,
+              findings: [...execution.findings, message.finding],
+            };
+          }
+        ),
+      },
+    };
+  }
+
+  private handleAddRequestSent(
+    session: SessionState,
+    message: ScanMessage & { type: "AddRequestSent" }
+  ): SessionState {
+    if (session.kind !== "Running") {
+      throw new Error(`Cannot add request sent in state: ${session.kind}`);
+    }
+
+    return {
+      ...session,
+      progress: {
+        ...session.progress,
+        checksHistory: this.updateCheckExecution(
+          session.progress.checksHistory,
+          message.relatedCheckID,
+          message.relatedTargetID,
+          (execution) => {
+            if (execution.kind !== "Running") return execution;
+
+            const newRequest: SentRequest = {
+              status: "pending",
+              pendingRequestID: message.request.pendingRequestID,
+              sentAt: Date.now(),
+            };
+
+            return {
+              ...execution,
+              requestsSent: [...execution.requestsSent, newRequest],
+            };
+          }
+        ),
+      },
+    };
+  }
+
+  private handleAddRequestCompleted(
+    session: SessionState,
+    message: ScanMessage & { type: "AddRequestCompleted" }
+  ): SessionState {
+    if (session.kind !== "Running") {
+      throw new Error(`Cannot add request completed in state: ${session.kind}`);
+    }
+
+    return {
+      ...session,
+      progress: {
+        ...session.progress,
+        checksHistory: this.updateCheckExecution(
+          session.progress.checksHistory,
+          message.relatedCheckID,
+          message.relatedTargetID,
+          (execution) => {
+            if (execution.kind !== "Running") return execution;
+
+            return {
+              ...execution,
+              requestsSent: execution.requestsSent.map((request) =>
+                request.pendingRequestID === message.request.pendingRequestID
+                  ? {
+                      status: "completed" as const,
+                      pendingRequestID: message.request.pendingRequestID,
+                      requestID: message.request.requestID,
+                      sentAt: request.sentAt,
+                      completedAt: Date.now(),
+                    }
+                  : request
+              ),
+            };
+          }
+        ),
+      },
+    };
+  }
+
+  private handleAddRequestFailed(
+    session: SessionState,
+    message: ScanMessage & { type: "AddRequestFailed" }
+  ): SessionState {
+    if (session.kind !== "Running") {
+      throw new Error(`Cannot add request failed in state: ${session.kind}`);
+    }
+
+    return {
+      ...session,
+      progress: {
+        ...session.progress,
+        checksHistory: this.updateCheckExecution(
+          session.progress.checksHistory,
+          message.relatedCheckID,
+          message.relatedTargetID,
+          (execution) => {
+            if (execution.kind !== "Running") return execution;
+
+            return {
+              ...execution,
+              requestsSent: execution.requestsSent.map((request) =>
+                request.pendingRequestID === message.request.pendingRequestID
+                  ? {
+                      status: "failed" as const,
+                      pendingRequestID: message.request.pendingRequestID,
+                      error: message.request.error,
+                      sentAt: request.sentAt,
+                      completedAt: Date.now(),
+                    }
+                  : request
+              ),
+            };
+          }
+        ),
+      },
+    };
+  }
+
+  private handleAddCheckRunning(
+    session: SessionState,
+    message: ScanMessage & { type: "AddCheckRunning" }
+  ): SessionState {
+    if (session.kind !== "Running") {
+      throw new Error(`Cannot add check running in state: ${session.kind}`);
+    }
+
+    const newExecution: CheckExecution = {
+      kind: "Running",
+      checkID: message.checkID,
+      targetRequestID: message.targetRequestID,
+      startedAt: Date.now(),
+      requestsSent: [],
+      findings: [],
+    };
+
+    return {
+      ...session,
+      progress: {
+        ...session.progress,
+        checksHistory: [...session.progress.checksHistory, newExecution],
+      },
+    };
+  }
+
+  private handleAddCheckCompleted(
+    session: SessionState,
+    message: ScanMessage & { type: "AddCheckCompleted" }
+  ): SessionState {
+    if (session.kind !== "Running") {
+      throw new Error(`Cannot add check completed in state: ${session.kind}`);
+    }
+
+    return {
+      ...session,
+      progress: {
+        ...session.progress,
+        checksHistory: this.updateCheckExecution(
+          session.progress.checksHistory,
+          message.checkID,
+          message.targetRequestID,
+          (execution) => {
+            if (execution.kind !== "Running") return execution;
+
+            return {
+              kind: "Completed",
+              checkID: execution.checkID,
+              targetRequestID: execution.targetRequestID,
+              startedAt: execution.startedAt,
+              completedAt: Date.now(),
+              requestsSent: execution.requestsSent,
+              findings: execution.findings,
+            };
+          }
+        ),
+      },
+    };
+  }
+
+  private handleAddCheckFailed(
+    session: SessionState,
+    message: ScanMessage & { type: "AddCheckFailed" }
+  ): SessionState {
+    if (session.kind !== "Running") {
+      throw new Error(`Cannot add check failed in state: ${session.kind}`);
+    }
+
+    return {
+      ...session,
+      progress: {
+        ...session.progress,
+        checksHistory: this.updateCheckExecution(
+          session.progress.checksHistory,
+          message.checkID,
+          message.targetRequestID,
+          (execution) => {
+            if (execution.kind !== "Running") return execution;
+
+            return {
+              kind: "Failed",
+              checkID: execution.checkID,
+              targetRequestID: execution.targetRequestID,
+              startedAt: execution.startedAt,
+              failedAt: Date.now(),
+              error: message.error,
+              requestsSent: execution.requestsSent,
+              findings: execution.findings,
+            };
+          }
+        ),
+      },
+    };
+  }
+
+  private handleFinish(
+    session: SessionState,
+    message: ScanMessage & { type: "Finish" }
+  ): SessionState {
+    if (session.kind !== "Running") {
+      throw new Error(`Cannot finish session in state: ${session.kind}`);
+    }
+
+    return {
+      kind: "Done",
+      id: session.id,
+      title: session.title,
+      createdAt: session.createdAt,
+      startedAt: session.startedAt,
+      finishedAt: Date.now(),
+      progress: session.progress,
+    };
+  }
+
+  private handleInterrupted(
+    session: SessionState,
+    message: ScanMessage & { type: "Interrupted" }
+  ): SessionState {
+    if (session.kind !== "Running") {
+      throw new Error(`Cannot interrupt session in state: ${session.kind}`);
+    }
+
+    return {
+      kind: "Interrupted",
+      id: session.id,
+      title: session.title,
+      createdAt: session.createdAt,
+      startedAt: session.startedAt,
+      progress: session.progress,
+      reason: message.reason,
+    };
+  }
+
+  private handleError(
+    session: SessionState,
+    message: ScanMessage & { type: "Error" }
+  ): SessionState {
+    if (
+      session.kind === "Done" ||
+      session.kind === "Error" ||
+      session.kind === "Interrupted"
+    ) {
+      throw new Error(`Cannot error session in state: ${session.kind}`);
+    }
+
+    return {
+      kind: "Error",
+      id: session.id,
+      title: session.title,
+      createdAt: session.createdAt,
+      error: message.error,
+    };
+  }
+
+  private updateCheckExecution(
+    checksHistory: CheckExecution[],
+    checkID: string,
+    targetRequestID: string,
+    updater: (execution: CheckExecution) => CheckExecution
+  ): CheckExecution[] {
+    return checksHistory.map((execution) =>
+      execution.checkID === checkID &&
+      execution.targetRequestID === targetRequestID
+        ? updater(execution)
+        : execution
+    );
   }
 
   listSessions(): SessionState[] {
     return [...this.sessions];
   }
 }
-
-const processPending = (
-  state: SessionState & { kind: "Pending" },
-  message: ScanMessage,
-): SessionState => {
-  if (message.type === "Start") {
-    return {
-      kind: "Running",
-      id: state.id,
-      title: state.title,
-      createdAt: state.createdAt,
-      startedAt: Date.now(),
-      findings: [],
-      progress: {
-        checksCompleted: 0,
-        requestsSent: 0,
-        checksCount: message.checksCount,
-      },
-    };
-  }
-  throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
-};
-
-const processRunning = (
-  state: SessionState & { kind: "Running" },
-  message: ScanMessage,
-): SessionState => {
-  if (message.type === "Finish") {
-    return {
-      kind: "Done",
-      id: state.id,
-      title: state.title,
-      createdAt: state.createdAt,
-      startedAt: state.startedAt,
-      finishedAt: Date.now(),
-      findings: message.findings,
-      progress: {
-        checksCompleted: state.progress.checksCompleted,
-        requestsSent: state.progress.requestsSent,
-        checksCount: state.progress.checksCount,
-      },
-    };
-  }
-  if (message.type === "AddFinding") {
-    return {
-      ...state,
-      findings: [...state.findings, message.finding],
-    };
-  }
-  if (message.type === "AddRequestSent") {
-    return {
-      ...state,
-      progress: {
-        ...state.progress,
-        requestsSent: state.progress.requestsSent + 1,
-      },
-    };
-  }
-  if (message.type === "AddCheckCompleted") {
-    return {
-      ...state,
-      progress: {
-        ...state.progress,
-        checksCompleted: state.progress.checksCompleted + 1,
-      },
-    };
-  }
-  if (message.type === "Error") {
-    return {
-      kind: "Error",
-      id: state.id,
-      title: state.title,
-      createdAt: state.createdAt,
-      error: message.error,
-    };
-  }
-  if (message.type === "Interrupted") {
-    return {
-      kind: "Interrupted",
-      id: state.id,
-      title: state.title,
-      createdAt: state.createdAt,
-      startedAt: state.startedAt,
-      findings: state.findings,
-      reason: message.reason,
-    };
-  }
-  throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
-};
-
-const processDone = (
-  state: SessionState & { kind: "Done" },
-  message: ScanMessage,
-): SessionState => {
-  throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
-};
-
-const processError = (
-  state: SessionState & { kind: "Error" },
-  message: ScanMessage,
-): SessionState => {
-  throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
-};
-
-const processInterrupted = (
-  state: SessionState & { kind: "Interrupted" },
-  message: ScanMessage,
-): SessionState => {
-  throw new Error(`Invalid message '${message.type}' in state '${state.kind}'`);
-};

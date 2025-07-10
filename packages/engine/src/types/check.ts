@@ -60,7 +60,7 @@ export type Step<T> = {
 };
 
 export type StepTickResult = {
-  isDone: boolean;
+  status: "done" | "continue";
   findings?: Finding[];
 };
 
@@ -69,6 +69,7 @@ export type CheckTask = {
   tick: () => Promise<StepTickResult>;
   getFindings: () => Finding[];
   getOutput: () => CheckOutput;
+  getTarget: () => ScanTarget;
 };
 
 export type RunState<T> = {

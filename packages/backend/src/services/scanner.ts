@@ -22,6 +22,10 @@ export const startActiveScan = (
     return error("No targets provided");
   }
 
+  if (title.length === 0) {
+    return error("Title is required");
+  }
+
   const configStore = ConfigStore.get();
   const userConfig = configStore.getUserConfig();
 
@@ -49,81 +53,169 @@ export const startActiveScan = (
       }
 
       const runnable = registry.create(sdk, scanConfig);
-      scannerStore.setRunnable(id, runnable);
+      scannerStore.registerRunnable(id, runnable);
 
       const estimate = await runnable.estimate(requestIDs);
       if (estimate.kind === "Error") {
-        return error(estimate.error);
+        throw new Error(estimate.error);
       }
 
       const startedSession = scannerStore.send(id, {
         type: "Start",
-        checksCount: estimate.checksCount,
+        checksTotal: estimate.checksTotal,
       });
 
       sdk.api.send("session:created", id, startedSession, {
-        checksCount: estimate.checksCount,
+        checksTotal: estimate.checksTotal,
       });
 
-      runnable.on("scan:started", () => {
-        sdk.console.log("onStarted");
-      });
+      runnable.on(
+        "scan:finding",
+        async ({ finding, targetRequestID, checkID }) => {
+          const findingAddedSession = scannerStore.send(id, {
+            type: "AddFinding",
+            finding,
+            relatedTargetID: targetRequestID,
+            relatedCheckID: checkID,
+          });
+          if (!findingAddedSession) return;
 
-      runnable.on("scan:check-started", ({ checkID }) => {
-        sdk.console.log("onCheckStarted=" + checkID);
-      });
+          sdk.api.send("session:updated", id, findingAddedSession);
 
-      runnable.on("scan:finding", async ({ finding }) => {
-        sdk.console.log("onFinding=" + finding.correlation.requestID);
+          const result = await sdk.requests.get(finding.correlation.requestID);
+          if (!result) return;
 
-        const findingAddedSession = scannerStore.send(id, {
-          type: "AddFinding",
-          finding,
-        });
-        sdk.api.send("session:updated", id, findingAddedSession);
+          sdk.findings.create({
+            request: result.request,
+            reporter: "Scanner: Active",
+            title: finding.name,
+            description: finding.description,
+          });
+        }
+      );
 
-        const result = await sdk.requests.get(finding.correlation.requestID);
-        if (!result) return;
-
-        sdk.findings.create({
-          request: result.request,
-          reporter: "Scanner: Active",
-          title: finding.name,
-          description: finding.description,
-        });
-      });
-
-      runnable.on("scan:check-finished", ({ checkID }) => {
-        sdk.console.log("onCheckFinished=" + checkID);
-
+      runnable.on("scan:check-finished", ({ checkID, targetRequestID }) => {
         const checkFinishedSession = scannerStore.send(id, {
           type: "AddCheckCompleted",
+          checkID,
+          targetRequestID,
         });
-        sdk.api.send("session:updated", id, checkFinishedSession);
+        if (!checkFinishedSession || checkFinishedSession.kind !== "Running")
+          return;
+
+        sdk.api.send("session:progress", id, checkFinishedSession.progress);
       });
 
-      runnable.on("scan:request-pending", ({ pendingRequestID }) => {
-        sdk.console.log("onRequestPending=" + pendingRequestID);
+      runnable.on(
+        "scan:request-pending",
+        ({ pendingRequestID, targetRequestID, checkID }) => {
+          const requestPendingSession = scannerStore.send(id, {
+            type: "AddRequestSent",
+            request: {
+              status: "pending",
+              pendingRequestID,
+              sentAt: Date.now(),
+            },
+            relatedCheckID: checkID,
+            relatedTargetID: targetRequestID,
+          });
+          if (
+            !requestPendingSession ||
+            requestPendingSession.kind !== "Running"
+          )
+            return;
 
-        const requestPendingSession = scannerStore.send(id, {
-          type: "AddRequestSent",
+          sdk.api.send("session:progress", id, requestPendingSession.progress);
+        }
+      );
+
+      runnable.on(
+        "scan:request-completed",
+        ({ pendingRequestID, requestID, checkID, targetRequestID }) => {
+          const requestCompletedSession = scannerStore.send(id, {
+            type: "AddRequestCompleted",
+            request: {
+              status: "completed",
+              pendingRequestID,
+              requestID,
+              sentAt: Date.now(),
+              completedAt: Date.now(),
+            },
+            relatedCheckID: checkID,
+            relatedTargetID: targetRequestID,
+          });
+          if (
+            !requestCompletedSession ||
+            requestCompletedSession.kind !== "Running"
+          )
+            return;
+
+          sdk.api.send(
+            "session:progress",
+            id,
+            requestCompletedSession.progress
+          );
+        }
+      );
+
+      runnable.on(
+        "scan:request-failed",
+        ({ error, pendingRequestID, checkID, targetRequestID }) => {
+          const requestFailedSession = scannerStore.send(id, {
+            type: "AddRequestFailed",
+            request: {
+              status: "failed",
+              pendingRequestID,
+              error,
+              sentAt: Date.now(),
+              completedAt: Date.now(),
+            },
+            relatedCheckID: checkID,
+            relatedTargetID: targetRequestID,
+          });
+          if (!requestFailedSession || requestFailedSession.kind !== "Running")
+            return;
+
+          sdk.api.send("session:progress", id, requestFailedSession.progress);
+        }
+      );
+
+      runnable.on("scan:check-started", ({ checkID, targetRequestID }) => {
+        const checkRunningSession = scannerStore.send(id, {
+          type: "AddCheckRunning",
+          checkID,
+          targetRequestID,
         });
-        sdk.api.send("session:updated", id, requestPendingSession);
+        if (!checkRunningSession || checkRunningSession.kind !== "Running")
+          return;
+
+        sdk.api.send("session:progress", id, checkRunningSession.progress);
       });
 
-      runnable.on("scan:finished", () => {
-        sdk.console.log("onFinished");
-      });
+      runnable.on(
+        "scan:check-failed",
+        ({ checkID, errorMessage, targetRequestID }) => {
+          const checkFailedSession = scannerStore.send(id, {
+            type: "AddCheckFailed",
+            checkID,
+            targetRequestID,
+            error: errorMessage || "Unknown error",
+          });
+          if (!checkFailedSession || checkFailedSession.kind !== "Running")
+            return;
+
+          sdk.api.send("session:progress", id, checkFailedSession.progress);
+        }
+      );
 
       const result = await runnable.run(requestIDs);
-      scannerStore.deleteRunnable(id);
 
       switch (result.kind) {
         case "Finished": {
           const finishedSession = scannerStore.send(id, {
             type: "Finish",
-            findings: result.findings,
           });
+          if (!finishedSession) break;
           sdk.api.send("session:updated", id, finishedSession);
           break;
         }
@@ -132,6 +224,7 @@ export const startActiveScan = (
             type: "Interrupted",
             reason: result.reason,
           });
+          if (!interruptedSession) break;
           sdk.api.send("session:updated", id, interruptedSession);
           break;
         }
@@ -140,6 +233,7 @@ export const startActiveScan = (
             type: "Error",
             error: result.error,
           });
+          if (!errorSession) break;
           sdk.api.send("session:updated", id, errorSession);
           break;
         }
@@ -147,9 +241,12 @@ export const startActiveScan = (
     } catch (err) {
       const errorSession = scannerStore.send(id, {
         type: "Error",
-        error: err as string,
+        error: err instanceof Error ? err.message : "Unknown error",
       });
+      if (!errorSession) return;
       sdk.api.send("session:updated", id, errorSession);
+    } finally {
+      scannerStore.unregisterRunnable(id);
     }
   })();
 
@@ -173,11 +270,20 @@ export const getScanSessions = (_: BackendSDK): Result<SessionState[]> => {
   return ok(sessions);
 };
 
-export const cancelScanSession = (
+export const cancelScanSession = async (
+  _: BackendSDK,
+  id: string
+): Promise<Result<boolean>> => {
+  const store = ScannerStore.get();
+  const result = await store.cancelRunnable(id);
+  return ok(result);
+};
+
+export const deleteScanSession = (
   _: BackendSDK,
   id: string
 ): Result<boolean> => {
-  const result = ScannerStore.get().cancelRunnable(id);
+  const result = ScannerStore.get().deleteSession(id);
   return ok(result);
 };
 

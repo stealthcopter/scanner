@@ -9,6 +9,7 @@ import { getUserConfig, updateUserConfig } from "./services/config";
 import { clearQueueTasks, getQueueTask, getQueueTasks } from "./services/queue";
 import {
   cancelScanSession,
+  deleteScanSession,
   getRequestResponse,
   getScanSession,
   getScanSessions,
@@ -40,6 +41,7 @@ export type API = DefineAPI<{
   getScanSession: typeof getScanSession;
   getScanSessions: typeof getScanSessions;
   cancelScanSession: typeof cancelScanSession;
+  deleteScanSession: typeof deleteScanSession;
   getRequestResponse: typeof getRequestResponse;
 }>;
 
@@ -54,6 +56,7 @@ export function init(sdk: BackendSDK) {
   sdk.api.register("getScanSession", getScanSession);
   sdk.api.register("getScanSessions", getScanSessions);
   sdk.api.register("cancelScanSession", cancelScanSession);
+  sdk.api.register("deleteScanSession", deleteScanSession);
   sdk.api.register("getRequestResponse", getRequestResponse);
 
   const checksStore = ChecksStore.get();
@@ -86,7 +89,7 @@ export function init(sdk: BackendSDK) {
       return;
     }
 
-    const passiveTaskID = "pt-" + Math.random().toString(36).substring(2);
+    const passiveTaskID = "pscan-" + Math.random().toString(36).substring(2, 15);
     queueStore.addTask(passiveTaskID, request.getId());
     sdk.api.send("passive:queue-new", passiveTaskID, request.getId());
 
@@ -100,8 +103,8 @@ export function init(sdk: BackendSDK) {
         strength: config.passive.strength,
         inScopeOnly: true,
         concurrency: 1,
-        scanTimeout: 5 * 60 * 1000,
-        checkTimeout: 2 * 60 * 1000,
+        scanTimeout: 5 * 60,
+        checkTimeout: 2 * 60,
       });
 
       runnable.externalDedupeKeys(passiveDedupeKeys);

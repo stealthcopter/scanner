@@ -23,24 +23,25 @@ export default defineCheck(({ step }) => {
     }
 
     try {
-      JSON.parse(bodyText);
+      const result = JSON.parse(bodyText);
 
-      return done({
-        findings: [
-          {
-            name: "JSON Response with HTML Content-Type",
-            description: `Response contains valid JSON data but has 'text/html' Content-Type header. This may lead to XSS attacks.`,
-            severity: Severity.INFO,
-            correlation: {
-              requestID: context.target.request.getId(),
-              locations: [],
+      if (typeof result === "object" && result !== null) {
+        return done({
+          findings: [
+            {
+              name: "JSON Response with HTML Content-Type",
+              description: `Response contains valid JSON data but has 'text/html' Content-Type header. This may lead to XSS attacks.`,
+              severity: Severity.INFO,
+              correlation: {
+                requestID: context.target.request.getId(),
+                locations: [],
+              },
             },
-          },
-        ],
-      });
-    } catch {
-      return done();
-    }
+          ],
+        });
+      }
+    } catch {}
+    return done();
   });
 
   return {

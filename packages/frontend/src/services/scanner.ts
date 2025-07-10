@@ -31,6 +31,11 @@ export const useScannerService = defineStore("services.scanner", () => {
       console.log("session:created", state);
       store.send({ type: "AddSession", session: state });
     });
+
+    sdk.backend.onEvent("session:progress", (id, progress) => {
+      console.log("session:progress", progress);
+      store.send({ type: "UpdateSessionProgress", sessionId: id, progress });
+    });
   };
 
   const startActiveScan = async (payload: ScanRequestPayload) => {
@@ -66,5 +71,36 @@ export const useScannerService = defineStore("services.scanner", () => {
     }
   };
 
-  return { getState, initialize, startActiveScan, selectSession };
+  const cancelScanSession = async (sessionId: string) => {
+    const result = await repository.cancelScanSession(sessionId);
+    switch (result.kind) {
+      case "Success":
+        sdk.window.showToast("Scan cancelled", { variant: "success" });
+        store.send({ type: "CancelSession", sessionId });
+        break;
+      case "Error":
+        sdk.window.showToast(result.error, { variant: "error" });
+    }
+  };
+
+  const deleteScanSession = async (sessionId: string) => {
+    const result = await repository.deleteScanSession(sessionId);
+    switch (result.kind) {
+      case "Success":
+        sdk.window.showToast("Scan deleted", { variant: "success" });
+        store.send({ type: "DeleteSession", sessionId });
+        break;
+      case "Error":
+        sdk.window.showToast(result.error, { variant: "error" });
+    }
+  };
+
+  return {
+    getState,
+    initialize,
+    startActiveScan,
+    selectSession,
+    cancelScanSession,
+    deleteScanSession,
+  };
 });
