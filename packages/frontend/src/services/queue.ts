@@ -1,8 +1,8 @@
 import { defineStore } from "pinia";
+import { computed } from "vue";
 
 import { useSDK } from "@/plugins/sdk";
 import { useQueueRepository } from "@/repositories/queue";
-import { computed } from "vue";
 import { useQueueStore } from "@/stores/queue";
 
 export const useQueueService = defineStore("services.queue", () => {

@@ -7,9 +7,9 @@ import Select from "primevue/select";
 import { computed, ref } from "vue";
 
 import { SessionItem } from "./SessionItem";
+import { useTable } from "./useTable";
 
 import { type SessionsState } from "@/types/scanner";
-import { useTable } from "./useTable";
 
 const props = defineProps<{
   state: SessionsState & { type: "Success" };
@@ -26,7 +26,7 @@ const statusOptions = [
 
 const { getFilteredSessions } = useTable({ search, statusFilter });
 const filteredSessions = computed(() =>
-  getFilteredSessions(props.state.sessions)
+  getFilteredSessions(props.state.sessions),
 );
 </script>
 <template>

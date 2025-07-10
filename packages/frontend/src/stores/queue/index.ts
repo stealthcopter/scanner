@@ -1,7 +1,8 @@
 import { defineStore } from "pinia";
 
+import { useSelectionState } from "./useSelectionState";
+
 import { useQueueState } from "@/stores/queue/useQueueState";
-import { useSelectionState } from './useSelectionState';
 
 export const useQueueStore = defineStore("stores.queue", () => {
   return {

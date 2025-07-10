@@ -3,10 +3,10 @@ import Button from "primevue/button";
 import Card from "primevue/card";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
+import { type QueueTask } from "shared";
 
 import { useQueueService } from "@/services/queue";
 import { type QueueState } from "@/types/queue";
-import { QueueTask } from "shared";
 
 defineProps<{
   state: QueueState & { type: "Success" };
@@ -50,20 +50,20 @@ const selection = defineModel<QueueTask | undefined>("selection", {
 
         <div class="flex gap-2 items-center">
           <Button
-            @click="clearQueue"
             label="Clear Queue"
             severity="secondary"
             size="small"
             icon="fas fa-trash"
             outlined
+            @click="clearQueue"
           />
         </div>
       </div>
 
       <DataTable
+        v-model:selection="selection"
         :value="state.tasks"
         scrollable
-        v-model:selection="selection"
         selection-mode="single"
         scroll-height="flex"
         striped-rows

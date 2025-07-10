@@ -30,8 +30,8 @@ const selectedRequestID = computed(() => selection.value?.requestID);
     <div class="w-full h-1/2">
       <QueueTable
         v-if="state.type === 'Success'"
-        :state="state"
         v-model:selection="selection"
+        :state="state"
       />
     </div>
 

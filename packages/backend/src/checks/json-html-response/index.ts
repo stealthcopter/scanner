@@ -40,7 +40,10 @@ export default defineCheck(({ step }) => {
           ],
         });
       }
-    } catch {}
+    } catch {
+      return done();
+    }
+
     return done();
   });
 

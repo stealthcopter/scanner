@@ -103,7 +103,7 @@ export const useEditor = () => {
 
 const processNone = (
   state: EditorState & { type: "None" },
-  message: Message
+  message: Message,
 ): EditorState => {
   switch (message.type) {
     case "Start":
@@ -120,7 +120,7 @@ const processNone = (
 
 const processLoading = (
   state: EditorState & { type: "Loading" },
-  message: Message
+  message: Message,
 ): EditorState => {
   switch (message.type) {
     case "Error":
@@ -148,7 +148,7 @@ const processLoading = (
 
 const processError = (
   state: EditorState & { type: "Error" },
-  message: Message
+  message: Message,
 ): EditorState => {
   switch (message.type) {
     case "Start":
@@ -166,7 +166,7 @@ const processError = (
 
 const processSuccess = (
   state: EditorState & { type: "Success" },
-  message: Message
+  message: Message,
 ): EditorState => {
   switch (message.type) {
     case "Start":

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import Card from "primevue/card";
 import Button from "primevue/button";
-import ProgressBar from "primevue/progressbar";
-import { SessionState } from "shared";
-import DataTable from "primevue/datatable";
+import Card from "primevue/card";
 import Column from "primevue/column";
+import DataTable from "primevue/datatable";
+import ProgressBar from "primevue/progressbar";
+import { type SessionState } from "shared";
+
 import { useForm } from "./useForm";
 
 const props = defineProps<{
@@ -136,7 +137,7 @@ const {
                 <div
                   v-if="
                     Object.values(findingsBySeverity).every(
-                      (count) => count === 0
+                      (count) => count === 0,
                     )
                   "
                   class="text-xs text-surface-500 italic"
@@ -163,7 +164,7 @@ const {
             <ProgressBar
               :value="progress"
               class="w-full h-2"
-              :showValue="false"
+              :show-value="false"
               :pt="{
                 root: { class: 'bg-surface-700 rounded-full overflow-hidden' },
                 value: {
@@ -247,7 +248,11 @@ const {
               <div class="text-sm truncate">{{ data.name }}</div>
             </template>
           </Column>
-          <Column field="requestsSent" header="Requests Sent" style="width: 15%">
+          <Column
+            field="requestsSent"
+            header="Requests Sent"
+            style="width: 15%"
+          >
             <template #body="{ data }">
               <div class="text-sm font-mono">{{ data.requestsSent }}</div>
             </template>

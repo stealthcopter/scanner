@@ -65,7 +65,12 @@ export const useTable = (options: {
 
   const getRequestsCount = (data: SessionState) => {
     return data.kind === "Running" || data.kind === "Done"
-      ? data.progress.requestsSent
+      ? data.progress.checksHistory.reduce((acc, check) => {
+          if (check.kind === "Running") {
+            return acc + check.requestsSent.length;
+          }
+          return acc;
+        }, 0)
       : 0;
   };
 
@@ -92,9 +97,13 @@ export const useTable = (options: {
       data.kind === "Interrupted";
     if (!hasFindings) return [];
 
-    const severityCounts = data.findings.reduce(
-      (acc, finding) => {
-        acc[finding.severity] = (acc[finding.severity] || 0) + 1;
+    const severityCounts = data.progress.checksHistory.reduce(
+      (acc, check) => {
+        if (check.kind === "Completed") {
+          check.findings.forEach((finding) => {
+            acc[finding.severity] = (acc[finding.severity] || 0) + 1;
+          });
+        }
         return acc;
       },
       {} as Record<Severity, number>,

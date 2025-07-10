@@ -90,15 +90,12 @@ const readableTimeout = computed(() => {
       <label class="block text-sm font-medium">Scan Timeout</label>
       <InputNumber
         :model-value="form.config.scanTimeout"
-        @input="form.config.scanTimeout = $event.value"
         :min="1"
         class="w-full"
         placeholder="600"
+        @input="form.config.scanTimeout = $event.value"
       />
-      <p
-        v-if="readableTimeout"
-        class="text-xs text-surface-400"
-      >
+      <p v-if="readableTimeout" class="text-xs text-surface-400">
         Equals to: {{ readableTimeout }}
       </p>
       <p class="text-xs text-surface-400">

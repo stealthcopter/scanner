@@ -27,7 +27,11 @@ export class TaskQueue {
             const result = await taskFn();
             resolve(result);
           } catch (error) {
-            reject(error);
+            if (error instanceof Error) {
+              reject(error);
+            } else {
+              reject(new Error(String(error)));
+            }
           } finally {
             this.activeTasks--;
             this.processNext();

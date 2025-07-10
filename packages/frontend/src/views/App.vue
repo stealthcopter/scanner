@@ -5,12 +5,12 @@ import { computed, onMounted, ref } from "vue";
 
 import { useChecksService } from "@/services/checks";
 import { useConfigService } from "@/services/config";
+import { useQueueService } from "@/services/queue";
 import { useScannerService } from "@/services/scanner";
 import Checks from "@/views/Checks.vue";
 import Dashboard from "@/views/Dashboard.vue";
 import Queue from "@/views/Queue.vue";
 import Settings from "@/views/Settings.vue";
-import { useQueueService } from "@/services/queue";
 
 const page = ref<"Dashboard" | "Queue" | "Checks" | "Settings">("Dashboard");
 const items = [

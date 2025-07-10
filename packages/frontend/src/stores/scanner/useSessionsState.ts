@@ -1,4 +1,4 @@
-import { SessionProgress, type SessionState } from "shared";
+import { type SessionProgress, type SessionState } from "shared";
 import { reactive } from "vue";
 
 import { type SessionsState } from "@/types/scanner";
@@ -53,7 +53,7 @@ export const useSessionsState = () => {
 
 const processIdle = (
   state: SessionsState & { type: "Idle" },
-  message: Message
+  message: Message,
 ): SessionsState => {
   switch (message.type) {
     case "Start":
@@ -72,7 +72,7 @@ const processIdle = (
 
 const processError = (
   state: SessionsState & { type: "Error" },
-  message: Message
+  message: Message,
 ): SessionsState => {
   switch (message.type) {
     case "Start":
@@ -92,7 +92,7 @@ const processError = (
 
 const processSuccess = (
   state: SessionsState & { type: "Success" },
-  message: Message
+  message: Message,
 ): SessionsState => {
   switch (message.type) {
     case "AddSession":
@@ -104,7 +104,7 @@ const processSuccess = (
       return {
         ...state,
         sessions: state.sessions.map((session) =>
-          session.id === message.session.id ? message.session : session
+          session.id === message.session.id ? message.session : session,
         ),
       };
     case "UpdateSessionProgress":
@@ -112,15 +112,15 @@ const processSuccess = (
         ...state,
         sessions: state.sessions.map((session) =>
           session.id === message.sessionId
-            ? { ...session, progress: message.progress } as SessionState
-            : session
+            ? ({ ...session, progress: message.progress } as SessionState)
+            : session,
         ),
       };
     case "DeleteSession":
       return {
         ...state,
         sessions: state.sessions.filter(
-          (session) => session.id !== message.sessionId
+          (session) => session.id !== message.sessionId,
         ),
       };
     case "Clear":
@@ -135,7 +135,7 @@ const processSuccess = (
 
 const processLoading = (
   state: SessionsState & { type: "Loading" },
-  message: Message
+  message: Message,
 ): SessionsState => {
   switch (message.type) {
     case "Error":

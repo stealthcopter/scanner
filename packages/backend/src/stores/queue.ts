@@ -47,7 +47,7 @@ export class QueueStore {
 
   updateTaskStatus(
     id: string,
-    status: QueueTask["status"]
+    status: QueueTask["status"],
   ): QueueTask | undefined {
     const task = this.tasks.find((t) => t.id === id);
     if (task) {

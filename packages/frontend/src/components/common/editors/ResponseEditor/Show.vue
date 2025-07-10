@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref, watch, toRefs } from "vue";
+import { type EditorView } from "@codemirror/view";
+import { onMounted, ref, toRefs, watch } from "vue";
+
+import { type EditorState } from "../useEditor";
 
 import { useSDK } from "@/plugins/sdk";
-import { type EditorState } from "../useEditor";
 
 const props = defineProps<{
   editorState: EditorState & { type: "Success" };
@@ -12,7 +14,7 @@ const { editorState } = toRefs(props);
 const sdk = useSDK();
 
 const root = ref();
-let editorView: any = null;
+let editorView: EditorView | undefined = undefined;
 
 const updateEditorContent = (content: string) => {
   if (editorView) {
@@ -38,7 +40,7 @@ watch(
   () => editorState.value.response.raw,
   (newContent) => {
     updateEditorContent(newContent);
-  }
+  },
 );
 </script>
 

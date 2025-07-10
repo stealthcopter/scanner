@@ -8,7 +8,10 @@ export const getQueueTasks = (_: BackendSDK): Result<QueueTask[]> => {
   return ok(store.getTasks());
 };
 
-export const getQueueTask = (_: BackendSDK, id: string): Result<QueueTask | undefined> => {
+export const getQueueTask = (
+  _: BackendSDK,
+  id: string,
+): Result<QueueTask | undefined> => {
   const store = QueueStore.get();
   return ok(store.getTask(id));
 };

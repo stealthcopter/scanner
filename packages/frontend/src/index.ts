@@ -135,5 +135,5 @@ export const init = (sdk: FrontendSDK) => {
     leadingIcon: "fas fa-shield-alt",
   });
 
-  sdk.navigation.goTo("/scanner")
+  sdk.navigation.goTo("/scanner");
 };

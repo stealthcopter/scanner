@@ -69,7 +69,7 @@ export function init(sdk: BackendSDK) {
   queueStore.setPassiveTaskQueue(passiveTaskQueue);
 
   const passiveDedupeKeys = new Map<string, Set<string>>();
-  sdk.events.onInterceptResponse(async (sdk, request) => {
+  sdk.events.onInterceptResponse((sdk, request) => {
     const config = configStore.getUserConfig();
     if (!config.passive.enabled) return;
 
@@ -89,7 +89,8 @@ export function init(sdk: BackendSDK) {
       return;
     }
 
-    const passiveTaskID = "pscan-" + Math.random().toString(36).substring(2, 15);
+    const passiveTaskID =
+      "pscan-" + Math.random().toString(36).substring(2, 15);
     queueStore.addTask(passiveTaskID, request.getId());
     sdk.api.send("passive:queue-new", passiveTaskID, request.getId());
 

@@ -14,7 +14,7 @@ import { type BackendSDK } from "../types";
 
 export const startActiveScan = (
   sdk: BackendSDK,
-  payload: ScanRequestPayload
+  payload: ScanRequestPayload,
 ): Result<SessionState> => {
   const { requestIDs, scanConfig, title } = payload;
 
@@ -91,7 +91,7 @@ export const startActiveScan = (
             title: finding.name,
             description: finding.description,
           });
-        }
+        },
       );
 
       runnable.on("scan:check-finished", ({ checkID, targetRequestID }) => {
@@ -126,7 +126,7 @@ export const startActiveScan = (
             return;
 
           sdk.api.send("session:progress", id, requestPendingSession.progress);
-        }
+        },
       );
 
       runnable.on(
@@ -153,9 +153,9 @@ export const startActiveScan = (
           sdk.api.send(
             "session:progress",
             id,
-            requestCompletedSession.progress
+            requestCompletedSession.progress,
           );
-        }
+        },
       );
 
       runnable.on(
@@ -177,7 +177,7 @@ export const startActiveScan = (
             return;
 
           sdk.api.send("session:progress", id, requestFailedSession.progress);
-        }
+        },
       );
 
       runnable.on("scan:check-started", ({ checkID, targetRequestID }) => {
@@ -205,7 +205,7 @@ export const startActiveScan = (
             return;
 
           sdk.api.send("session:progress", id, checkFailedSession.progress);
-        }
+        },
       );
 
       const result = await runnable.run(requestIDs);
@@ -255,7 +255,7 @@ export const startActiveScan = (
 
 export const getScanSession = (
   _: BackendSDK,
-  id: string
+  id: string,
 ): Result<SessionState> => {
   const session = ScannerStore.get().getSession(id);
   if (!session) {
@@ -272,7 +272,7 @@ export const getScanSessions = (_: BackendSDK): Result<SessionState[]> => {
 
 export const cancelScanSession = async (
   _: BackendSDK,
-  id: string
+  id: string,
 ): Promise<Result<boolean>> => {
   const store = ScannerStore.get();
   const result = await store.cancelRunnable(id);
@@ -281,7 +281,7 @@ export const cancelScanSession = async (
 
 export const deleteScanSession = (
   _: BackendSDK,
-  id: string
+  id: string,
 ): Result<boolean> => {
   const result = ScannerStore.get().deleteSession(id);
   return ok(result);
@@ -289,7 +289,7 @@ export const deleteScanSession = (
 
 export const getRequestResponse = async (
   sdk: BackendSDK,
-  requestId: string
+  requestId: string,
 ): Promise<
   Result<{
     request: { id: string; raw: string };

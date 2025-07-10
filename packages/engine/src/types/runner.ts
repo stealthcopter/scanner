@@ -1,12 +1,12 @@
 import { type SDK } from "caido:plugin";
 import { type Request, type Response } from "caido:utils";
+import { type ScanRunnableErrorCode } from "packages/engine/src/core/errors";
 
 import { type ParsedHtml } from "../utils/html/types";
 
 import { type CheckDefinition } from "./check";
 import { type Finding } from "./finding";
 import { type JSONSerializable } from "./utils";
-import { ScanRunnableErrorCode } from "packages/engine/src/core/errors";
 
 export const ScanStrength = {
   LOW: 0,
@@ -28,7 +28,7 @@ export type ScanRunnable = {
   externalDedupeKeys: (dedupeKeys: Map<string, Set<string>>) => void;
   on: <T extends keyof ScanEvents>(
     event: T,
-    callback: (data: ScanEvents[T]) => void
+    callback: (data: ScanEvents[T]) => void,
   ) => void;
   emit: (event: keyof ScanEvents, data: ScanEvents[keyof ScanEvents]) => void;
 };

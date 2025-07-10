@@ -1,5 +1,5 @@
-import { computed, ref } from "vue";
 import type { Preset } from "shared";
+import { computed, ref } from "vue";
 
 import { useConfigService } from "@/services/config";
 

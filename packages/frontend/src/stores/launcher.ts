@@ -39,10 +39,9 @@ export const useLauncher = defineStore("stores.launcher", () => {
     const result = await scannerService.startActiveScan(payload);
 
     switch (result.kind) {
-      case "Success":
+      case "Success": {
         incrementCount();
 
-        // todo: thats the only way currently to close a dialog, fix once we have a better way
         const escapeEvent = new KeyboardEvent("keydown", {
           key: "Escape",
           code: "Escape",
@@ -51,6 +50,7 @@ export const useLauncher = defineStore("stores.launcher", () => {
         });
         document.dispatchEvent(escapeEvent);
         break;
+      }
       case "Error":
         break;
     }

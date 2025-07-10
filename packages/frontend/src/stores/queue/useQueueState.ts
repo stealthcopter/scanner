@@ -47,7 +47,7 @@ export const useQueueState = () => {
 
 const processIdle = (
   state: QueueState & { type: "Idle" },
-  message: Message
+  message: Message,
 ): QueueState => {
   switch (message.type) {
     case "Start":
@@ -74,7 +74,7 @@ const processIdle = (
 
 const processLoading = (
   state: QueueState & { type: "Loading" },
-  message: Message
+  message: Message,
 ): QueueState => {
   switch (message.type) {
     case "Error":
@@ -92,7 +92,7 @@ const processLoading = (
 
 const processError = (
   state: QueueState & { type: "Error" },
-  message: Message
+  message: Message,
 ): QueueState => {
   switch (message.type) {
     case "Start":
@@ -108,7 +108,7 @@ const processError = (
 };
 const processSuccess = (
   state: QueueState & { type: "Success" },
-  message: Message
+  message: Message,
 ): QueueState => {
   switch (message.type) {
     case "AddTask":
@@ -127,14 +127,15 @@ const processSuccess = (
       return {
         ...state,
         tasks: state.tasks.map((task) =>
-          task.id === message.taskId ? { ...task, status: "running" } : task
+          task.id === message.taskId ? { ...task, status: "running" } : task,
         ),
       };
-    case "FinishTask":
+    case "FinishTask": {
       const updatedTasks = state.tasks.filter(
-        (task) => task.id !== message.taskId
+        (task) => task.id !== message.taskId,
       );
       return { ...state, tasks: updatedTasks };
+    }
     case "Clear":
       return { ...state, tasks: [] };
     case "Start":

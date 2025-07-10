@@ -1,7 +1,8 @@
-import { SessionState, CheckExecution } from "shared";
-import { computed, ref, toRefs } from "vue";
-import { Severity } from "engine";
 import { useTimestamp } from "@vueuse/core";
+import { Severity } from "engine";
+import { type CheckExecution, type SessionState } from "shared";
+import { computed, ref, toRefs } from "vue";
+
 import { useScannerService } from "@/services/scanner";
 
 export const useForm = (props: { session: SessionState }) => {
@@ -47,7 +48,7 @@ export const useForm = (props: { session: SessionState }) => {
   const progress = computed(() => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       const checksCompleted = session.value.progress.checksHistory.filter(
-        (check) => check.kind === "Completed"
+        (check) => check.kind === "Completed",
       ).length;
       const { checksTotal } = session.value.progress;
       if (checksTotal === 0) return 0;
@@ -80,7 +81,7 @@ export const useForm = (props: { session: SessionState }) => {
   const checksCompleted = computed(() => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       return session.value.progress.checksHistory.filter(
-        (check) => check.kind === "Completed"
+        (check) => check.kind === "Completed",
       ).length;
     }
     return 0;
@@ -89,7 +90,7 @@ export const useForm = (props: { session: SessionState }) => {
   const checksFailed = computed(() => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       return session.value.progress.checksHistory.filter(
-        (check) => check.kind === "Failed"
+        (check) => check.kind === "Failed",
       ).length;
     }
     return 0;
@@ -98,7 +99,7 @@ export const useForm = (props: { session: SessionState }) => {
   const checksRunning = computed(() => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       return session.value.progress.checksHistory.filter(
-        (check) => check.kind === "Running"
+        (check) => check.kind === "Running",
       );
     }
     return [];
@@ -145,7 +146,7 @@ export const useForm = (props: { session: SessionState }) => {
       session.value.kind === "Interrupted"
     ) {
       const findings = session.value.progress.checksHistory.flatMap(
-        (check) => check.findings
+        (check) => check.findings,
       );
 
       const counts = {
@@ -195,7 +196,7 @@ export const useForm = (props: { session: SessionState }) => {
   };
 
   const timeSinceCreated = computed(() =>
-    getPreciseTimeAgo(new Date(session.value.createdAt))
+    getPreciseTimeAgo(new Date(session.value.createdAt)),
   );
 
   const timeSinceFinished = computed(() => {

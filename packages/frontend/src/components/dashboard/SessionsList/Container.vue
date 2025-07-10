@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import Failed from "./Failed.vue";
 import Loading from "./Loading.vue";
-import Success from "./Success.vue";
 import None from "./None.vue";
+import Success from "./Success.vue";
 
 import InvalidState from "@/components/common/InvalidState.vue";
 import { type SessionsState } from "@/types/scanner";

@@ -77,7 +77,7 @@ export const createTaskExecutor = ({
   };
 
   const tickUntilDone = async (
-    task: CheckTask
+    task: CheckTask,
   ): Promise<TaskExecutionResult> => {
     const allFindings: Finding[] = [];
 
@@ -110,7 +110,7 @@ export const createTaskExecutor = ({
       }
 
       throw new Error(
-        "Invalid status, you shouldn't ever reach this point. Please report this as a bug."
+        "Invalid status, you shouldn't ever reach this point. Please report this as a bug.",
       );
     }
   };

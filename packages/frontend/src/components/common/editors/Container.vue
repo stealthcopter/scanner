@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { toRefs, watch } from "vue";
 import Splitter from "primevue/splitter";
 import SplitterPanel from "primevue/splitterpanel";
+import { toRefs, watch } from "vue";
+
+import { useEditor } from "./useEditor";
 
 import { RequestEditor, ResponseEditor } from "@/components/common/editors";
-import { useEditor } from "./useEditor";
 
 const props = defineProps<{
   requestId: string | undefined;
@@ -16,13 +17,13 @@ const editor = useEditor();
 watch(
   requestId,
   (newRequestId) => {
-    if (newRequestId) {
+    if (newRequestId !== undefined) {
       editor.loadRequest(newRequestId);
     } else {
       editor.reset();
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>
 

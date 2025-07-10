@@ -1,8 +1,8 @@
 import { type Finding, type InterruptReason, type ScanRunnable } from "engine";
 import {
-  type SessionState,
   type CheckExecution,
   type SentRequest,
+  type SessionState,
 } from "shared";
 
 export type ScanMessage =
@@ -116,7 +116,7 @@ export class ScannerStore {
 
   private processMessage(
     session: SessionState,
-    message: ScanMessage
+    message: ScanMessage,
   ): SessionState {
     switch (message.type) {
       case "Start":
@@ -142,13 +142,13 @@ export class ScannerStore {
       case "Error":
         return this.handleError(session, message);
       default:
-        throw new Error(`Unknown message type: ${(message as any).type}`);
+        throw new Error(`Unknown message type`);
     }
   }
 
   private handleStart(
     session: SessionState,
-    message: ScanMessage & { type: "Start" }
+    message: ScanMessage & { type: "Start" },
   ): SessionState {
     if (session.kind !== "Pending") {
       throw new Error(`Cannot start session in state: ${session.kind}`);
@@ -169,7 +169,7 @@ export class ScannerStore {
 
   private handleAddFinding(
     session: SessionState,
-    message: ScanMessage & { type: "AddFinding" }
+    message: ScanMessage & { type: "AddFinding" },
   ): SessionState {
     if (session.kind !== "Running") {
       throw new Error(`Cannot add finding in state: ${session.kind}`);
@@ -190,7 +190,7 @@ export class ScannerStore {
               ...execution,
               findings: [...execution.findings, message.finding],
             };
-          }
+          },
         ),
       },
     };
@@ -198,7 +198,7 @@ export class ScannerStore {
 
   private handleAddRequestSent(
     session: SessionState,
-    message: ScanMessage & { type: "AddRequestSent" }
+    message: ScanMessage & { type: "AddRequestSent" },
   ): SessionState {
     if (session.kind !== "Running") {
       throw new Error(`Cannot add request sent in state: ${session.kind}`);
@@ -225,7 +225,7 @@ export class ScannerStore {
               ...execution,
               requestsSent: [...execution.requestsSent, newRequest],
             };
-          }
+          },
         ),
       },
     };
@@ -233,7 +233,7 @@ export class ScannerStore {
 
   private handleAddRequestCompleted(
     session: SessionState,
-    message: ScanMessage & { type: "AddRequestCompleted" }
+    message: ScanMessage & { type: "AddRequestCompleted" },
   ): SessionState {
     if (session.kind !== "Running") {
       throw new Error(`Cannot add request completed in state: ${session.kind}`);
@@ -261,10 +261,10 @@ export class ScannerStore {
                       sentAt: request.sentAt,
                       completedAt: Date.now(),
                     }
-                  : request
+                  : request,
               ),
             };
-          }
+          },
         ),
       },
     };
@@ -272,7 +272,7 @@ export class ScannerStore {
 
   private handleAddRequestFailed(
     session: SessionState,
-    message: ScanMessage & { type: "AddRequestFailed" }
+    message: ScanMessage & { type: "AddRequestFailed" },
   ): SessionState {
     if (session.kind !== "Running") {
       throw new Error(`Cannot add request failed in state: ${session.kind}`);
@@ -300,10 +300,10 @@ export class ScannerStore {
                       sentAt: request.sentAt,
                       completedAt: Date.now(),
                     }
-                  : request
+                  : request,
               ),
             };
-          }
+          },
         ),
       },
     };
@@ -311,7 +311,7 @@ export class ScannerStore {
 
   private handleAddCheckRunning(
     session: SessionState,
-    message: ScanMessage & { type: "AddCheckRunning" }
+    message: ScanMessage & { type: "AddCheckRunning" },
   ): SessionState {
     if (session.kind !== "Running") {
       throw new Error(`Cannot add check running in state: ${session.kind}`);
@@ -337,7 +337,7 @@ export class ScannerStore {
 
   private handleAddCheckCompleted(
     session: SessionState,
-    message: ScanMessage & { type: "AddCheckCompleted" }
+    message: ScanMessage & { type: "AddCheckCompleted" },
   ): SessionState {
     if (session.kind !== "Running") {
       throw new Error(`Cannot add check completed in state: ${session.kind}`);
@@ -363,7 +363,7 @@ export class ScannerStore {
               requestsSent: execution.requestsSent,
               findings: execution.findings,
             };
-          }
+          },
         ),
       },
     };
@@ -371,7 +371,7 @@ export class ScannerStore {
 
   private handleAddCheckFailed(
     session: SessionState,
-    message: ScanMessage & { type: "AddCheckFailed" }
+    message: ScanMessage & { type: "AddCheckFailed" },
   ): SessionState {
     if (session.kind !== "Running") {
       throw new Error(`Cannot add check failed in state: ${session.kind}`);
@@ -398,7 +398,7 @@ export class ScannerStore {
               requestsSent: execution.requestsSent,
               findings: execution.findings,
             };
-          }
+          },
         ),
       },
     };
@@ -406,7 +406,7 @@ export class ScannerStore {
 
   private handleFinish(
     session: SessionState,
-    message: ScanMessage & { type: "Finish" }
+    message: ScanMessage & { type: "Finish" },
   ): SessionState {
     if (session.kind !== "Running") {
       throw new Error(`Cannot finish session in state: ${session.kind}`);
@@ -425,7 +425,7 @@ export class ScannerStore {
 
   private handleInterrupted(
     session: SessionState,
-    message: ScanMessage & { type: "Interrupted" }
+    message: ScanMessage & { type: "Interrupted" },
   ): SessionState {
     if (session.kind !== "Running") {
       throw new Error(`Cannot interrupt session in state: ${session.kind}`);
@@ -444,7 +444,7 @@ export class ScannerStore {
 
   private handleError(
     session: SessionState,
-    message: ScanMessage & { type: "Error" }
+    message: ScanMessage & { type: "Error" },
   ): SessionState {
     if (
       session.kind === "Done" ||
@@ -467,13 +467,13 @@ export class ScannerStore {
     checksHistory: CheckExecution[],
     checkID: string,
     targetRequestID: string,
-    updater: (execution: CheckExecution) => CheckExecution
+    updater: (execution: CheckExecution) => CheckExecution,
   ): CheckExecution[] {
     return checksHistory.map((execution) =>
       execution.checkID === checkID &&
       execution.targetRequestID === targetRequestID
         ? updater(execution)
-        : execution
+        : execution,
     );
   }
 

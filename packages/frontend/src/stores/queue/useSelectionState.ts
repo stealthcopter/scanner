@@ -53,7 +53,7 @@ export const useSelectionState = () => {
 
 const processNone = (
   state: QueueSelectionState & { type: "None" },
-  message: Message
+  message: Message,
 ): QueueSelectionState => {
   switch (message.type) {
     case "Start":
@@ -70,7 +70,7 @@ const processNone = (
 
 const processLoading = (
   state: QueueSelectionState & { type: "Loading" },
-  message: Message
+  message: Message,
 ): QueueSelectionState => {
   switch (message.type) {
     case "Error":
@@ -95,7 +95,7 @@ const processLoading = (
 
 const processError = (
   state: QueueSelectionState & { type: "Error" },
-  message: Message
+  message: Message,
 ): QueueSelectionState => {
   switch (message.type) {
     case "Start":
@@ -113,7 +113,7 @@ const processError = (
 
 const processSuccess = (
   state: QueueSelectionState & { type: "Success" },
-  message: Message
+  message: Message,
 ): QueueSelectionState => {
   switch (message.type) {
     case "Start":

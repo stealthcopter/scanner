@@ -1,4 +1,4 @@
-import { QueueTask } from "shared";
+import { type QueueTask } from "shared";
 
 export type QueueState =
   | { type: "Idle" }
