@@ -8,9 +8,4 @@ export type SessionsState =
 
 export type SessionsSelectionState =
   | { type: "None" }
-  | { type: "Loading"; sessionId: string }
-  | { type: "Error"; sessionId: string; error: string }
-  | {
-      type: "Success";
-      session: SessionState;
-    };
+  | { type: "Selected"; sessionId: string };

@@ -287,6 +287,28 @@ export const deleteScanSession = (
   return ok(result);
 };
 
+export const updateSessionTitle = (
+  sdk: BackendSDK,
+  id: string,
+  title: string,
+): Result<SessionState> => {
+  const result = ScannerStore.get().updateSessionTitle(id, title);
+  if (!result) {
+    return error(`Session ${id} not found`);
+  }
+
+  if (result.title.trim().length === 0) {
+    return error("Title is required");
+  }
+
+  if (result.title.length > 100) {
+    return error("Title is too long");
+  }
+
+  sdk.api.send("session:updated", id, result);
+  return ok(result);
+};
+
 export const getRequestResponse = async (
   sdk: BackendSDK,
   requestId: string,

@@ -98,17 +98,6 @@ const selection = defineModel<QueueTask | undefined>("selection", {
             </div>
           </template>
         </Column>
-
-        <Column header="Progress" class="min-w-64">
-          <template #body="{ data }">
-            <div class="text-sm">
-              <span v-if="data.status === 'running'">
-                Scanning for vulnerabilities...
-              </span>
-              <span v-else class="text-surface-400">Waiting in queue</span>
-            </div>
-          </template>
-        </Column>
       </DataTable>
     </template>
   </Card>

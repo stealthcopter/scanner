@@ -54,7 +54,7 @@ const {
     <template #content>
       <div class="flex justify-between items-center p-4 gap-4">
         <div class="flex-1">
-          <h3 class="text-lg font-semibold">Vulnerability Checks</h3>
+          <h3 class="text-lg font-semibold">Checks</h3>
           <p class="text-sm text-surface-300 flex-1">
             Configure which vulnerability checks are enabled for passive and
             active scanning.
@@ -91,7 +91,6 @@ const {
         :filters="filters"
         :global-filter-fields="['name', 'id', 'description']"
         size="small"
-        class="flex-1"
         expandable-rows
       >
         <template #empty>
@@ -108,12 +107,6 @@ const {
               <div class="font-medium">{{ data.name }}</div>
               <div class="text-xs text-surface-400">{{ data.id }}</div>
             </div>
-          </template>
-        </Column>
-
-        <Column field="type" header="Type" class="w-24">
-          <template #body="{ data }">
-            <span class="capitalize text-sm">{{ data.type }}</span>
           </template>
         </Column>
 
@@ -166,18 +159,16 @@ const {
                   @click="applyPreset(preset)"
                   @contextmenu="onPresetContextMenu($event, preset)"
                 />
+                <Button
+                  label="New Preset"
+                  size="small"
+                  severity="secondary"
+                  outlined
+                  icon="fas fa-plus"
+                  class="text-xs"
+                  @click="handleNewPreset"
+                />
               </div>
-            </div>
-            <div class="flex gap-2">
-              <Button
-                label="New Preset"
-                size="small"
-                severity="secondary"
-                outlined
-                icon="fas fa-plus"
-                class="text-xs"
-                @click="handleNewPreset"
-              />
             </div>
           </div>
         </template>

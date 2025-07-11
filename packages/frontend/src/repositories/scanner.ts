@@ -30,11 +30,17 @@ export const useScannerRepository = () => {
     return response;
   };
 
+  const updateSessionTitle = async (sessionId: string, title: string) => {
+    const response = await sdk.backend.updateSessionTitle(sessionId, title);
+    return response;
+  };
+
   return {
     startActiveScan,
     getScanSession,
     getScanSessions,
     cancelScanSession,
     deleteScanSession,
+    updateSessionTitle,
   };
 };

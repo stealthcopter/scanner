@@ -1,4 +1,4 @@
-import { type ScanConfig, ScanStrength } from "engine";
+import { type ScanConfig, ScanAggressivity } from "engine";
 import { defineStore } from "pinia";
 import { type BasicRequest, type ScanRequestPayload } from "shared";
 import { reactive } from "vue";
@@ -17,7 +17,7 @@ export const useLauncher = defineStore("stores.launcher", () => {
   const defaultFormState: FormState = {
     targets: [],
     config: {
-      strength: ScanStrength.MEDIUM,
+      aggressivity: ScanAggressivity.MEDIUM,
       inScopeOnly: true,
       scanTimeout: 10 * 60,
       checkTimeout: 2 * 60,
@@ -40,6 +40,8 @@ export const useLauncher = defineStore("stores.launcher", () => {
 
     switch (result.kind) {
       case "Success": {
+        console.log("selecting session", result.value.id);
+        scannerService.selectSession(result.value.id);
         incrementCount();
 
         const escapeEvent = new KeyboardEvent("keydown", {

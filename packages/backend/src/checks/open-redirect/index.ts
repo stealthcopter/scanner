@@ -5,7 +5,7 @@ import {
   defineCheck,
   done,
   findRedirection,
-  ScanStrength,
+  ScanAggressivity,
   Severity,
 } from "engine";
 
@@ -107,9 +107,9 @@ export default defineCheck<{
       protocol,
     });
 
-    if (context.config.strength === ScanStrength.LOW) {
+    if (context.config.aggressivity === ScanAggressivity.LOW) {
       generator = generator.limit(2);
-    } else if (context.config.strength === ScanStrength.MEDIUM) {
+    } else if (context.config.aggressivity === ScanAggressivity.MEDIUM) {
       generator = generator.limit(5);
     }
 

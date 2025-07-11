@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Card from "primevue/card";
+import InputNumber from "primevue/inputnumber";
 import Select from "primevue/select";
 import ToggleSwitch from "primevue/toggleswitch";
 import { toRefs } from "vue";
@@ -14,10 +15,14 @@ const props = defineProps<{
 
 const { state } = toRefs(props);
 
-const { passiveEnabled, passiveStrength, passiveInScopeOnly, strengthOptions } =
-  useForm(state);
+const {
+  passiveEnabled,
+  passiveAggressivity,
+  passiveInScopeOnly,
+  passiveScansConcurrency,
+  aggressivityOptions,
+} = useForm(state);
 </script>
-
 <template>
   <Card
     class="h-full"
@@ -27,65 +32,88 @@ const { passiveEnabled, passiveStrength, passiveInScopeOnly, strengthOptions } =
     }"
   >
     <template #content>
-      <div class="p-4 flex-1">
-        <div class="mb-6">
-          <h3 class="text-lg font-semibold">Scanner Configuration</h3>
-          <p class="text-sm text-surface-300">
-            Configure passive and active scanner settings
-          </p>
-        </div>
+      <div class="flex flex-col h-full">
+        <div class="flex flex-col gap-6 p-4 flex-1">
+          <div>
+            <h3 class="text-lg font-semibold">Settings</h3>
+            <p class="text-sm text-surface-300 flex-1">
+              Configure passive and active scanner settings
+            </p>
+          </div>
 
-        <div class="space-y-6">
-          <div class="space-y-4">
-            <h4 class="text-md font-medium">Passive Scanner</h4>
+          <div class="flex flex-col gap-6">
+            <div class="flex flex-col gap-4">
+              <h4 class="text-md font-medium">Passive Scanner</h4>
 
-            <div class="flex items-center justify-between">
-              <div class="flex-1">
-                <label class="block text-sm font-medium mb-1"
-                  >Enable Passive Scanner</label
-                >
-                <p class="text-xs text-surface-400">
-                  When enabled, the scanner will automatically analyze HTTP
-                  traffic for vulnerabilities
-                </p>
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex flex-col gap-1 flex-1">
+                  <label class="text-sm font-medium"
+                    >Enable Passive Scanner</label
+                  >
+                  <p class="text-xs text-surface-400">
+                    When enabled, the scanner will automatically analyze HTTP
+                    traffic for vulnerabilities
+                  </p>
+                </div>
+                <div class="flex-shrink-0">
+                  <ToggleSwitch v-model="passiveEnabled" />
+                </div>
               </div>
-              <ToggleSwitch v-model="passiveEnabled" />
-            </div>
 
-            <div class="flex items-center justify-between">
-              <div class="flex-1">
-                <label class="block text-sm font-medium mb-1"
-                  >In-Scope Only</label
-                >
-                <p class="text-xs text-surface-400">
-                  When enabled, the scanner will only analyze requests that are
-                  in scope
-                </p>
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex flex-col gap-1 flex-1">
+                  <label class="text-sm font-medium">In-Scope Only</label>
+                  <p class="text-xs text-surface-400">
+                    When enabled, the scanner will only analyze requests that
+                    are in scope
+                  </p>
+                </div>
+                <div class="flex-shrink-0">
+                  <ToggleSwitch
+                    v-model="passiveInScopeOnly"
+                    :disabled="!passiveEnabled"
+                  />
+                </div>
               </div>
-              <ToggleSwitch
-                v-model="passiveInScopeOnly"
-                :disabled="!passiveEnabled"
-              />
-            </div>
 
-            <div class="flex items-center justify-between">
-              <div class="flex-1">
-                <label class="block text-sm font-medium mb-1"
-                  >Scan Strength</label
-                >
-                <p class="text-xs text-surface-400">
-                  Controls the aggressiveness of passive scanning checks. Lower
-                  means faster scanning, less requests, but less accurate.
-                </p>
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex flex-col gap-1 flex-1">
+                  <label class="text-sm font-medium">Scan Aggressivity</label>
+                  <p class="text-xs text-surface-400">
+                    Controls the aggressiveness of passive scanning checks.
+                    Lower means faster scanning, less requests, but less
+                    accurate.
+                  </p>
+                </div>
+                <div class="flex-shrink-0">
+                  <Select
+                    v-model="passiveAggressivity"
+                    :options="aggressivityOptions"
+                    option-label="label"
+                    option-value="value"
+                    :disabled="!passiveEnabled"
+                    class="w-32"
+                  />
+                </div>
               </div>
-              <Select
-                v-model="passiveStrength"
-                :options="strengthOptions"
-                option-label="label"
-                option-value="value"
-                :disabled="!passiveEnabled"
-                class="w-32"
-              />
+
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex flex-col gap-1 flex-1">
+                  <label class="text-sm font-medium">Scans Concurrency</label>
+                  <p class="text-xs text-surface-400">
+                    Number of passive scans that can run simultaneously. Higher
+                    values may impact performance.
+                  </p>
+                </div>
+                <div class="flex-shrink-0">
+                  <InputNumber
+                    v-model="passiveScansConcurrency"
+                    :min="1"
+                    :max="30"
+                    :disabled="!passiveEnabled"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

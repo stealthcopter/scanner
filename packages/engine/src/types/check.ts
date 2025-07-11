@@ -1,7 +1,7 @@
 import { type Finding } from "./finding";
 import {
   type RuntimeContext,
-  type ScanStrength,
+  type ScanAggressivity,
   type ScanTarget,
 } from "./runner";
 import { type JSONSerializable } from "./utils";
@@ -20,7 +20,7 @@ export type CheckMetadata = {
   aggressivity: CheckAggressivity;
   type: CheckType;
   dependsOn?: string[];
-  minStrength?: ScanStrength;
+  minAggressivity?: ScanAggressivity;
 };
 
 export type CheckDefinition = {

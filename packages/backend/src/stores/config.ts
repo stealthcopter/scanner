@@ -1,4 +1,5 @@
-import { ScanStrength } from "engine";
+import { ScanAggressivity } from "engine";
+import { Checks } from "../checks";
 import { type UserConfig } from "shared";
 
 export class ConfigStore {
@@ -10,7 +11,7 @@ export class ConfigStore {
     this.config = {
       passive: {
         enabled: true,
-        strength: ScanStrength.HIGH,
+        aggressivity: ScanAggressivity.HIGH,
         inScopeOnly: false,
         scansConcurrency: 3,
         overrides: [],
@@ -18,35 +19,35 @@ export class ConfigStore {
       active: {
         overrides: [],
       },
-      // TODO: improve presets
+      // TODO: improve default presets
       presets: [
         {
           name: "Light",
           active: [
             {
-              checkID: "exposed-env",
+              checkID: Checks.EXPOSED_ENV,
               enabled: true,
             },
             {
-              checkID: "json-html-response",
+              checkID: Checks.JSON_HTML_RESPONSE,
               enabled: true,
             },
             {
-              checkID: "open-redirect",
+              checkID: Checks.OPEN_REDIRECT,
               enabled: false,
             },
           ],
           passive: [
             {
-              checkID: "exposed-env",
+              checkID: Checks.EXPOSED_ENV,
               enabled: false,
             },
             {
-              checkID: "json-html-response",
+              checkID: Checks.JSON_HTML_RESPONSE,
               enabled: true,
             },
             {
-              checkID: "open-redirect",
+              checkID: Checks.OPEN_REDIRECT,
               enabled: false,
             },
           ],
@@ -55,29 +56,29 @@ export class ConfigStore {
           name: "Balanced",
           active: [
             {
-              checkID: "exposed-env",
+              checkID: Checks.EXPOSED_ENV,
               enabled: true,
             },
             {
-              checkID: "json-html-response",
+              checkID: Checks.JSON_HTML_RESPONSE,
               enabled: true,
             },
             {
-              checkID: "open-redirect",
+              checkID: Checks.OPEN_REDIRECT,
               enabled: true,
             },
           ],
           passive: [
             {
-              checkID: "exposed-env",
+              checkID: Checks.EXPOSED_ENV,
               enabled: true,
             },
             {
-              checkID: "json-html-response",
+              checkID: Checks.JSON_HTML_RESPONSE,
               enabled: true,
             },
             {
-              checkID: "open-redirect",
+              checkID: Checks.OPEN_REDIRECT,
               enabled: false,
             },
           ],
@@ -86,29 +87,29 @@ export class ConfigStore {
           name: "Heavy",
           active: [
             {
-              checkID: "exposed-env",
+              checkID: Checks.EXPOSED_ENV,
               enabled: true,
             },
             {
-              checkID: "json-html-response",
+              checkID: Checks.JSON_HTML_RESPONSE,
               enabled: true,
             },
             {
-              checkID: "open-redirect",
+              checkID: Checks.OPEN_REDIRECT,
               enabled: true,
             },
           ],
           passive: [
             {
-              checkID: "exposed-env",
+              checkID: Checks.EXPOSED_ENV,
               enabled: true,
             },
             {
-              checkID: "json-html-response",
+              checkID: Checks.JSON_HTML_RESPONSE,
               enabled: true,
             },
             {
-              checkID: "open-redirect",
+              checkID: Checks.OPEN_REDIRECT,
               enabled: true,
             },
           ],

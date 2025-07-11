@@ -1,6 +1,6 @@
 import { useTimestamp } from "@vueuse/core";
 import { Severity } from "engine";
-import { type CheckExecution, type SessionState } from "shared";
+import { type SessionState } from "shared";
 import { computed, ref, toRefs } from "vue";
 
 import { useScannerService } from "@/services/scanner";
@@ -16,13 +16,13 @@ export const useForm = (props: { session: SessionState }) => {
   const getStatusColor = (kind: string) => {
     switch (kind) {
       case "Running":
-        return "bg-secondary-400";
+        return "bg-yellow-500";
       case "Done":
         return "bg-success-500";
       case "Error":
         return "bg-red-500";
       case "Interrupted":
-        return "bg-yellow-500";
+        return "bg-orange-500";
       default:
         return "bg-surface-400";
     }
@@ -48,11 +48,15 @@ export const useForm = (props: { session: SessionState }) => {
   const progress = computed(() => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       const checksCompleted = session.value.progress.checksHistory.filter(
-        (check) => check.kind === "Completed",
+        (check) => check.kind === "Completed"
       ).length;
+      const checksFailed = session.value.progress.checksHistory.filter(
+        (check) => check.kind === "Failed"
+      ).length;
+      const checksFinished = checksCompleted + checksFailed;
       const { checksTotal } = session.value.progress;
       if (checksTotal === 0) return 0;
-      return Math.round((checksCompleted / checksTotal) * 100);
+      return Math.round((checksFinished / checksTotal) * 100);
     }
     return 0;
   });
@@ -61,6 +65,18 @@ export const useForm = (props: { session: SessionState }) => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       return session.value.progress.checksHistory.reduce((total, check) => {
         return total + check.requestsSent.length;
+      }, 0);
+    }
+    return 0;
+  });
+
+  const requestsPending = computed(() => {
+    if (session.value.kind === "Running" || session.value.kind === "Done") {
+      return session.value.progress.checksHistory.reduce((total, check) => {
+        return (
+          total +
+          check.requestsSent.filter((req) => req.status === "pending").length
+        );
       }, 0);
     }
     return 0;
@@ -81,7 +97,7 @@ export const useForm = (props: { session: SessionState }) => {
   const checksCompleted = computed(() => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       return session.value.progress.checksHistory.filter(
-        (check) => check.kind === "Completed",
+        (check) => check.kind === "Completed"
       ).length;
     }
     return 0;
@@ -90,7 +106,7 @@ export const useForm = (props: { session: SessionState }) => {
   const checksFailed = computed(() => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       return session.value.progress.checksHistory.filter(
-        (check) => check.kind === "Failed",
+        (check) => check.kind === "Failed"
       ).length;
     }
     return 0;
@@ -99,45 +115,11 @@ export const useForm = (props: { session: SessionState }) => {
   const checksRunning = computed(() => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       return session.value.progress.checksHistory.filter(
-        (check) => check.kind === "Running",
+        (check) => check.kind === "Running"
       );
     }
     return [];
   });
-
-  const checksHistory = computed(() => {
-    if (session.value.kind === "Running" || session.value.kind === "Done") {
-      return session.value.progress.checksHistory.map((check) => ({
-        name: check.checkID,
-        status: check.kind,
-        duration: getDuration(check),
-        targetID: check.targetRequestID,
-        requestsSent: check.requestsSent.length,
-        findings: check.findings.length,
-      }));
-    }
-    return [];
-  });
-
-  const getDuration = (check: CheckExecution) => {
-    if (check.kind === "Running") {
-      const duration = now.value - check.startedAt;
-      return formatDuration(duration);
-    } else if (check.kind === "Completed") {
-      const duration = check.completedAt - check.startedAt;
-      return formatDuration(duration);
-    } else if (check.kind === "Failed") {
-      const duration = check.failedAt - check.startedAt;
-      return formatDuration(duration);
-    }
-    return "0ms";
-  };
-
-  const formatDuration = (ms: number) => {
-    if (ms < 1000) return `${ms}ms`;
-    if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-    return `${(ms / 60000).toFixed(1)}m`;
-  };
 
   const findingsBySeverity = computed(() => {
     if (
@@ -146,7 +128,7 @@ export const useForm = (props: { session: SessionState }) => {
       session.value.kind === "Interrupted"
     ) {
       const findings = session.value.progress.checksHistory.flatMap(
-        (check) => check.findings,
+        (check) => check.findings
       );
 
       const counts = {
@@ -196,7 +178,7 @@ export const useForm = (props: { session: SessionState }) => {
   };
 
   const timeSinceCreated = computed(() =>
-    getPreciseTimeAgo(new Date(session.value.createdAt)),
+    getPreciseTimeAgo(new Date(session.value.createdAt))
   );
 
   const timeSinceFinished = computed(() => {
@@ -222,24 +204,24 @@ export const useForm = (props: { session: SessionState }) => {
   const onExport = () => {};
 
   return {
-    timeSinceCreated,
-    timeSinceFinished,
-    progress,
-    hasFindings,
-    requestsSent,
-    requestsFailed,
+    getStatusColor,
+    getSeverityBadgeColor,
     severityOrder,
-    onCancel,
-    onDelete,
-    onExport,
+    progress,
+    requestsSent,
+    requestsPending,
+    requestsFailed,
     checksCompleted,
     checksFailed,
     checksRunning,
-    getStatusColor,
     findingsBySeverity,
-    getSeverityBadgeColor,
+    hasFindings,
+    timeSinceCreated,
+    timeSinceFinished,
+    onCancel,
+    onDelete,
+    onExport,
     isDeleting,
     isCancelling,
-    checksHistory,
   };
 };

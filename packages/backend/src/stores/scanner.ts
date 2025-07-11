@@ -76,6 +76,16 @@ export class ScannerStore {
     return this.runnables.delete(id);
   }
 
+  updateSessionTitle(id: string, title: string): SessionState | undefined {
+    const sessionIndex = this.sessions.findIndex((session) => session.id === id);
+    if (sessionIndex === -1) return undefined;
+
+    const session = this.sessions[sessionIndex];
+    const updatedSession = { ...session, title } as SessionState;
+    this.sessions[sessionIndex] = updatedSession;
+    return updatedSession;
+  }
+
   createSession(title: string): SessionState {
     const id = "ascan-" + Math.random().toString(36).substring(2, 15);
     const session: SessionState = {

@@ -1,48 +1,12 @@
 <script setup lang="ts">
-import { ScanStrength } from "engine";
 import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
 import SelectButton from "primevue/selectbutton";
 import ToggleSwitch from "primevue/toggleswitch";
-import { computed, ref } from "vue";
 
-import { useLauncher } from "@/stores/launcher";
+import { useForm } from "./useForm";
 
-const { form } = useLauncher();
-
-const strengthOptions = ref([
-  { label: "Low", value: ScanStrength.LOW },
-  { label: "Medium", value: ScanStrength.MEDIUM },
-  { label: "High", value: ScanStrength.HIGH },
-]);
-
-const readableTimeout = computed(() => {
-  const timeout = form.config.scanTimeout;
-  if (!timeout || timeout <= 0) {
-    return "";
-  }
-
-  const days = Math.floor(timeout / (24 * 3600));
-  const hours = Math.floor((timeout % (24 * 3600)) / 3600);
-  const minutes = Math.floor((timeout % 3600) / 60);
-  const seconds = timeout % 60;
-
-  const parts = [];
-  if (days > 0) {
-    parts.push(`${days} day${days > 1 ? "s" : ""}`);
-  }
-  if (hours > 0) {
-    parts.push(`${hours} hour${hours > 1 ? "s" : ""}`);
-  }
-  if (minutes > 0) {
-    parts.push(`${minutes} minute${minutes > 1 ? "s" : ""}`);
-  }
-  if (seconds > 0) {
-    parts.push(`${seconds} second${seconds > 1 ? "s" : ""}`);
-  }
-
-  return parts.join(" ");
-});
+const { form, aggressivityOptions, readableTimeout } = useForm();
 </script>
 
 <template>
@@ -60,10 +24,10 @@ const readableTimeout = computed(() => {
     </div>
 
     <div class="space-y-2">
-      <label class="block text-sm font-medium">Scan Strength</label>
+      <label class="block text-sm font-medium">Scan Aggressivity</label>
       <SelectButton
-        v-model="form.config.strength"
-        :options="strengthOptions"
+        v-model="form.config.aggressivity"
+        :options="aggressivityOptions"
         option-label="label"
         option-value="value"
       />
@@ -87,7 +51,7 @@ const readableTimeout = computed(() => {
     </div>
 
     <div class="space-y-2">
-      <label class="block text-sm font-medium">Scan Timeout</label>
+      <label class="block text-sm font-medium">Scan Timeout (seconds)</label>
       <InputNumber
         :model-value="form.config.scanTimeout"
         :min="1"

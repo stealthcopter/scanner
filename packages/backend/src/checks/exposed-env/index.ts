@@ -2,7 +2,7 @@ import {
   continueWith,
   defineCheck,
   done,
-  ScanStrength,
+  ScanAggressivity,
   Severity,
 } from "engine";
 
@@ -27,13 +27,13 @@ const ENV_FILES = [
   ".env_1",
 ];
 
-const getEnvFilesToTest = (strength: ScanStrength): string[] => {
-  switch (strength) {
-    case ScanStrength.LOW:
+const getEnvFilesToTest = (aggressivity: ScanAggressivity): string[] => {
+  switch (aggressivity) {
+    case ScanAggressivity.LOW:
       return ENV_FILES.slice(0, 1);
-    case ScanStrength.MEDIUM:
+    case ScanAggressivity.MEDIUM:
       return ENV_FILES.slice(0, 5);
-    case ScanStrength.HIGH:
+    case ScanAggressivity.HIGH:
       return ENV_FILES;
     default:
       return ENV_FILES.slice(0, 1);
@@ -71,7 +71,7 @@ export default defineCheck<{
   basePath: string;
 }>(({ step }) => {
   step("setupScan", (_, context) => {
-    const envFiles = getEnvFilesToTest(context.config.strength);
+    const envFiles = getEnvFilesToTest(context.config.aggressivity);
     const basePath = getBasePath(context.target.request.getPath());
 
     return continueWith({
@@ -97,13 +97,13 @@ export default defineCheck<{
     request.setPath(envPath);
     request.setMethod("GET");
 
-    const { response } = await context.sdk.requests.send(request);
+    const result = await context.sdk.requests.send(request);
 
-    if (response.getCode() === 200) {
-      const body = response.getBody();
+    if (result.response.getCode() === 200) {
+      const body = result.response.getBody();
       if (body) {
         const bodyText = body.toText();
-        const contentType = response.getHeader("content-type")?.[0] ?? "";
+        const contentType = result.response.getHeader("content-type")?.[0] ?? "";
 
         if (isValidEnvContent(bodyText, contentType)) {
           return done({
@@ -113,7 +113,7 @@ export default defineCheck<{
                 description: `Environment file is publicly accessible at \`${envPath}\`. This file may contain sensitive configuration data, API keys, or credentials.`,
                 severity: Severity.CRITICAL,
                 correlation: {
-                  requestID: context.target.request.getId(),
+                  requestID: result.request.getId(),
                   locations: [],
                 },
               },

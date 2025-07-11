@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { type ScanRequestPayload } from "shared";
+import { computed } from "vue";
 
 import { useSDK } from "@/plugins/sdk";
 import { useScannerRepository } from "@/repositories/scanner";
@@ -11,6 +12,17 @@ export const useScannerService = defineStore("services.scanner", () => {
   const repository = useScannerRepository();
 
   const getState = () => store.getState();
+  const getSelectionState = () => store.selectionState.getState();
+
+  const getSelectedSession = () => {
+    const selectionState = store.selectionState.getState();
+    const sessionsState = store.getState();
+
+    if (selectionState.type === "Selected" && sessionsState.type === "Success") {
+      return sessionsState.sessions.find(session => session.id === selectionState.sessionId);
+    }
+    return undefined;
+  };
 
   const initialize = async () => {
     store.send({ type: "Start" });
@@ -52,23 +64,12 @@ export const useScannerService = defineStore("services.scanner", () => {
     return result;
   };
 
-  const selectSession = async (sessionId: string) => {
-    store.selectionState.send({ type: "Start", sessionId });
-    const result = await repository.getScanSession(sessionId);
+  const selectSession = (sessionId: string) => {
+    store.selectionState.send({ type: "Select", sessionId });
+  };
 
-    if (result.kind === "Success") {
-      store.selectionState.send({
-        type: "Success",
-        sessionId,
-        session: result.value,
-      });
-    } else {
-      store.selectionState.send({
-        type: "Error",
-        sessionId,
-        error: result.error,
-      });
-    }
+  const clearSelection = () => {
+    store.selectionState.send({ type: "Reset" });
   };
 
   const cancelScanSession = async (sessionId: string) => {
@@ -84,23 +85,48 @@ export const useScannerService = defineStore("services.scanner", () => {
   };
 
   const deleteScanSession = async (sessionId: string) => {
+    const currentSelection = store.selectionState.getState();
+    const isCurrentlySelected = currentSelection.type === "Selected" && currentSelection.sessionId === sessionId;
+
     const result = await repository.deleteScanSession(sessionId);
     switch (result.kind) {
       case "Success":
         sdk.window.showToast("Scan deleted", { variant: "success" });
         store.send({ type: "DeleteSession", sessionId });
+
+        if (isCurrentlySelected) {
+          store.selectionState.send({ type: "Reset" });
+        }
         break;
       case "Error":
         sdk.window.showToast(result.error, { variant: "error" });
     }
   };
 
+  const updateSessionTitle = async (sessionId: string, title: string) => {
+    const result = await repository.updateSessionTitle(sessionId, title);
+    switch (result.kind) {
+      case "Success":
+        store.send({ type: "UpdateSession", session: result.value });
+        break;
+      case "Error":
+        sdk.window.showToast(result.error, { variant: "error" });
+    }
+  };
+
+  const selectedSession = computed(() => getSelectedSession());
+
   return {
     getState,
+    getSelectionState,
+    getSelectedSession,
+    selectedSession,
     initialize,
     startActiveScan,
     selectSession,
+    clearSelection,
     cancelScanSession,
     deleteScanSession,
+    updateSessionTitle,
   };
 });

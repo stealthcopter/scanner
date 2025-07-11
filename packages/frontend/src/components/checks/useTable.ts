@@ -56,6 +56,7 @@ export const useTable = () => {
     const overrideValue = config.passive.overrides.find(
       (o) => o.checkID === check.id,
     )?.enabled;
+
     return overrideValue !== undefined
       ? overrideValue
       : check.type === "passive";

@@ -1,0 +1,104 @@
+<script setup lang="ts">
+import Button from "primevue/button";
+import { useDebounceFn, whenever } from "@vueuse/core";
+import { nextTick, ref } from "vue";
+
+const isEditable = defineModel<boolean>("isEditable", { default: false });
+
+const props = defineProps<{
+  isSelected: boolean;
+  label: string;
+  icon?: string;
+  status?: string;
+}>();
+
+const emit = defineEmits<{
+  (e: "select", event: MouseEvent): void;
+  (e: "rename", newName: string): void;
+}>();
+
+const newValue = ref("");
+const inputRef = ref<HTMLInputElement>();
+
+const getStatusColor = (kind?: string) => {
+  switch (kind) {
+    case "Running":
+      return "bg-yellow-500";
+    case "Done":
+      return "bg-success-500";
+    case "Error":
+      return "bg-red-500";
+    case "Interrupted":
+      return "bg-orange-500";
+    default:
+      return "bg-surface-400";
+  }
+};
+
+const onDoubleClick = () => {
+  isEditable.value = true;
+};
+
+whenever(isEditable, async () => {
+  newValue.value = props.label;
+  await nextTick();
+
+  const input = inputRef.value;
+  if (input !== undefined) {
+    input.focus();
+    input.select();
+  }
+});
+
+const onSubmit = useDebounceFn(() => {
+  if (newValue.value !== props.label) {
+    emit("rename", newValue.value);
+  }
+
+  isEditable.value = false;
+}, 10);
+</script>
+
+<template>
+  <div
+    :data-is-selected="isSelected"
+    :data-is-editable="isEditable"
+    @dblclick="onDoubleClick"
+  >
+    <Button
+      :class="[
+        isSelected ? '!border-secondary-400' : '!border-surface-700',
+        '!bg-surface-900 border-[1px] rounded-md !ring-0 flex-1',
+      ]"
+      severity="contrast"
+      size="small"
+      outlined
+      @mousedown="(event: MouseEvent) => emit('select', event)"
+    >
+      <div class="flex items-center gap-2">
+        <div
+          v-if="status"
+          :class="['w-1.5 h-1.5 rounded-full', getStatusColor(status)]"
+        ></div>
+
+        <i v-if="icon" :class="[icon]" />
+
+        <template v-if="isEditable">
+          <div class="relative">
+            <span class="invisible px-1 whitespace-nowrap">{{ newValue }}</span>
+            <input
+              ref="inputRef"
+              v-model="newValue"
+              autocomplete="off"
+              name="label"
+              class="absolute top-0 left-0 w-full h-full px-1 text-sm focus:outline outline-1 outline-secondary-400 rounded-sm bg-surface-900 overflow-hidden text-ellipsis"
+              @focusout.prevent="onSubmit"
+              @keydown.enter.prevent="onSubmit"
+            />
+          </div>
+        </template>
+        <span v-else class="px-1 whitespace-nowrap">{{ label }}</span>
+      </div>
+    </Button>
+  </div>
+</template>

@@ -8,13 +8,13 @@ import { type CheckDefinition } from "./check";
 import { type Finding } from "./finding";
 import { type JSONSerializable } from "./utils";
 
-export const ScanStrength = {
+export const ScanAggressivity = {
   LOW: 0,
   MEDIUM: 1,
   HIGH: 2,
 } as const;
 
-export type ScanStrength = (typeof ScanStrength)[keyof typeof ScanStrength];
+export type ScanAggressivity = (typeof ScanAggressivity)[keyof typeof ScanAggressivity];
 
 export type ScanRegistry = {
   register: (check: CheckDefinition) => void;
@@ -117,7 +117,7 @@ export type RuntimeContext = {
 };
 
 export type ScanConfig = {
-  strength: ScanStrength;
+  aggressivity: ScanAggressivity;
   inScopeOnly: boolean;
   concurrency: number;
   scanTimeout: number;

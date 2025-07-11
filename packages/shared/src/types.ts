@@ -3,7 +3,7 @@ import {
   type Finding,
   type InterruptReason,
   type ScanConfig,
-  type ScanStrength,
+  type ScanAggressivity,
 } from "engine";
 
 /**
@@ -18,7 +18,7 @@ import {
 export type UserConfig = {
   passive: {
     enabled: boolean;
-    strength: ScanStrength;
+    aggressivity: ScanAggressivity;
     inScopeOnly: boolean;
     scansConcurrency: number;
     overrides: Override[];

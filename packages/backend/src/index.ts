@@ -1,9 +1,7 @@
 import type { DefineAPI } from "caido:plugin";
 import { createRegistry } from "engine";
 
-import exposedEnvScan from "./checks/exposed-env";
-import jsonHtmlResponse from "./checks/json-html-response";
-import openRedirectScan from "./checks/open-redirect";
+import { checks } from "./checks";
 import { getChecks } from "./services/checks";
 import { getUserConfig, updateUserConfig } from "./services/config";
 import { clearQueueTasks, getQueueTask, getQueueTasks } from "./services/queue";
@@ -14,6 +12,7 @@ import {
   getScanSession,
   getScanSessions,
   startActiveScan,
+  updateSessionTitle,
 } from "./services/scanner";
 import { ChecksStore } from "./stores/checks";
 import { ConfigStore } from "./stores/config";
@@ -43,6 +42,7 @@ export type API = DefineAPI<{
   cancelScanSession: typeof cancelScanSession;
   deleteScanSession: typeof deleteScanSession;
   getRequestResponse: typeof getRequestResponse;
+  updateSessionTitle: typeof updateSessionTitle;
 }>;
 
 export function init(sdk: BackendSDK) {
@@ -58,9 +58,10 @@ export function init(sdk: BackendSDK) {
   sdk.api.register("cancelScanSession", cancelScanSession);
   sdk.api.register("deleteScanSession", deleteScanSession);
   sdk.api.register("getRequestResponse", getRequestResponse);
+  sdk.api.register("updateSessionTitle", updateSessionTitle);
 
   const checksStore = ChecksStore.get();
-  checksStore.register(exposedEnvScan, openRedirectScan, jsonHtmlResponse);
+  checksStore.register(...checks);
 
   const configStore = ConfigStore.get();
   const queueStore = QueueStore.get();
@@ -101,7 +102,7 @@ export function init(sdk: BackendSDK) {
       }
 
       const runnable = registry.create(sdk, {
-        strength: config.passive.strength,
+        aggressivity: config.passive.aggressivity,
         inScopeOnly: true,
         concurrency: 1,
         scanTimeout: 5 * 60,

@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import Button from "primevue/button";
 import Card from "primevue/card";
-import Column from "primevue/column";
-import DataTable from "primevue/datatable";
 import ProgressBar from "primevue/progressbar";
 import { type SessionState } from "shared";
 
+import Header from "./Header.vue";
+import Table from "./Table.vue";
 import { useForm } from "./useForm";
 
 const props = defineProps<{
@@ -17,20 +16,14 @@ const {
   progress,
   hasFindings,
   requestsSent,
+  requestsPending,
   requestsFailed,
   severityOrder,
-  onCancel,
-  onDelete,
-  onExport,
   checksCompleted,
   checksFailed,
   checksRunning,
-  getStatusColor,
   findingsBySeverity,
   getSeverityBadgeColor,
-  isDeleting,
-  isCancelling,
-  checksHistory,
 } = useForm(props);
 </script>
 
@@ -40,70 +33,11 @@ const {
     :pt="{
       body: { class: 'h-full p-0' },
       content: { class: 'h-full flex flex-col' },
-      header: { class: 'bg-surface-900' },
+      header: { class: 'bg-surface-800' },
     }"
   >
     <template #header>
-      <div class="flex items-center justify-between gap-4 p-4">
-        <div class="flex items-center gap-3">
-          <div class="flex items-center gap-2">
-            <span class="text-base font-medium">{{ session.title }}</span>
-            <span class="text-xs text-surface-400 font-mono">{{
-              session.id
-            }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <div
-              :class="['w-2 h-2 rounded-full', getStatusColor(session.kind)]"
-            ></div>
-            <span
-              :class="[
-                'text-xs rounded text-surface-100 uppercase tracking-wide',
-              ]"
-            >
-              <span :class="{ shimmer: session.kind === 'Running' }">{{
-                session.kind
-              }}</span>
-              <span
-                v-if="session.kind === 'Interrupted' && session.reason"
-                class="text-xs text-surface-400 normal-case ml-1"
-              >
-                ({{ session.reason }})
-              </span>
-            </span>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <Button
-            v-if="session.kind === 'Running'"
-            label="Cancel"
-            severity="danger"
-            :loading="isCancelling"
-            outlined
-            size="small"
-            @click="onCancel"
-          />
-
-          <Button
-            label="Delete"
-            severity="danger"
-            :loading="isDeleting"
-            outlined
-            size="small"
-            @click="onDelete"
-          />
-
-          <Button
-            v-if="session.kind === 'Done'"
-            label="Export"
-            severity="secondary"
-            outlined
-            size="small"
-            @click="onExport"
-          />
-        </div>
-      </div>
+      <Header :session="session" />
     </template>
 
     <template #content>
@@ -137,7 +71,7 @@ const {
                 <div
                   v-if="
                     Object.values(findingsBySeverity).every(
-                      (count) => count === 0,
+                      (count) => count === 0
                     )
                   "
                   class="text-xs text-surface-500 italic"
@@ -189,6 +123,12 @@ const {
                 }}</span>
               </div>
               <div class="flex items-center gap-2">
+                <span class="text-surface-400">Requests pending:</span>
+                <span class="text-surface-200 font-mono font-medium">{{
+                  requestsPending
+                }}</span>
+              </div>
+              <div class="flex items-center gap-2">
                 <span class="text-surface-400">Requests failed:</span>
                 <span class="text-surface-200 font-mono font-medium">{{
                   requestsFailed
@@ -230,94 +170,8 @@ const {
             </div>
           </div>
         </div>
-        <DataTable
-          :value="checksHistory"
-          scrollable
-          striped-rows
-          scroll-height="20rem"
-          table-style="table-layout: fixed"
-          class="flex-1"
-        >
-          <Column field="targetID" header="Target ID" style="width: 20%">
-            <template #body="{ data }">
-              <div class="text-sm font-mono truncate">{{ data.targetID }}</div>
-            </template>
-          </Column>
-          <Column field="name" header="Check" style="width: 30%">
-            <template #body="{ data }">
-              <div class="text-sm truncate">{{ data.name }}</div>
-            </template>
-          </Column>
-          <Column
-            field="requestsSent"
-            header="Requests Sent"
-            style="width: 15%"
-          >
-            <template #body="{ data }">
-              <div class="text-sm font-mono">{{ data.requestsSent }}</div>
-            </template>
-          </Column>
-          <Column field="findings" header="Findings" style="width: 15%">
-            <template #body="{ data }">
-              <div class="text-sm font-mono">{{ data.findings }}</div>
-            </template>
-          </Column>
-          <Column field="status" header="Status" style="width: 20%">
-            <template #body="{ data }">
-              <div class="text-sm">
-                <span :class="{ shimmer: data.status === 'Running' }">
-                  {{ data.status }}
-                </span>
-              </div>
-            </template>
-          </Column>
-          <Column field="duration" header="Duration" style="width: 15%">
-            <template #body="{ data }">
-              <div class="text-sm font-mono">{{ data.duration }}</div>
-            </template>
-          </Column>
-        </DataTable>
+        <Table :session="session" />
       </div>
     </template>
   </Card>
 </template>
-
-<style scoped>
-.shimmer {
-  display: inline-block;
-  color: white;
-  background: #acacac linear-gradient(to left, #acacac, #ffffff 50%, #acacac);
-  background-position: -4rem top;
-  background-repeat: no-repeat;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -webkit-animation: shimmer 2.2s infinite;
-  animation: shimmer 2.2s infinite;
-  background-size: 4rem 100%;
-}
-
-@-webkit-keyframes shimmer {
-  0% {
-    background-position: -4rem top;
-  }
-  70% {
-    background-position: 6.5rem top;
-  }
-  100% {
-    background-position: 6.5rem top;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -4rem top;
-  }
-  70% {
-    background-position: 6.5rem top;
-  }
-  100% {
-    background-position: 6.5rem top;
-  }
-}
-</style>

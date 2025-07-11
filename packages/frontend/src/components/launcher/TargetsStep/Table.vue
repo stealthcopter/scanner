@@ -29,6 +29,7 @@ const handleDeleteSelected = () => {
   }
 
   form.targets = remainingTargets;
+  selectedTargets.value = [];
 };
 </script>
 <template>
@@ -53,7 +54,7 @@ const handleDeleteSelected = () => {
       :value="form.targets"
       scrollable
       striped-rows
-      scroll-height="25rem"
+      scroll-height="28rem"
       table-style="table-layout: fixed"
       selection-mode="multiple"
       :meta-key-selection="true"
