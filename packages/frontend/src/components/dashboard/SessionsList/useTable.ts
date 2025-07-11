@@ -106,7 +106,7 @@ export const useTable = (options: {
         }
         return acc;
       },
-      {} as Record<Severity, number>
+      {} as Record<Severity, number>,
     );
 
     const severityOrder: Severity[] = [

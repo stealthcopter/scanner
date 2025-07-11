@@ -14,7 +14,8 @@ export const ScanAggressivity = {
   HIGH: 2,
 } as const;
 
-export type ScanAggressivity = (typeof ScanAggressivity)[keyof typeof ScanAggressivity];
+export type ScanAggressivity =
+  (typeof ScanAggressivity)[keyof typeof ScanAggressivity];
 
 export type ScanRegistry = {
   register: (check: CheckDefinition) => void;

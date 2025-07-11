@@ -30,11 +30,7 @@ const { checksHistory } = useTable(props);
         <div class="text-sm truncate">{{ data.name }}</div>
       </template>
     </Column>
-    <Column
-      field="requestsSent"
-      header="Requests Sent"
-      style="width: 15%"
-    >
+    <Column field="requestsSent" header="Requests Sent" style="width: 15%">
       <template #body="{ data }">
         <div class="text-sm font-mono">{{ data.requestsSent }}</div>
       </template>

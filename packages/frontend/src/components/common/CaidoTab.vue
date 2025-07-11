@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Button from "primevue/button";
 import { useDebounceFn, whenever } from "@vueuse/core";
+import Button from "primevue/button";
 import { nextTick, ref } from "vue";
 
 const isEditable = defineModel<boolean>("isEditable", { default: false });
@@ -57,6 +57,10 @@ const onSubmit = useDebounceFn(() => {
 
   isEditable.value = false;
 }, 10);
+
+const onSelect = (event: MouseEvent) => {
+  emit("select", event);
+};
 </script>
 
 <template>
@@ -73,7 +77,7 @@ const onSubmit = useDebounceFn(() => {
       severity="contrast"
       size="small"
       outlined
-      @mousedown="(event: MouseEvent) => emit('select', event)"
+      @mousedown="onSelect"
     >
       <div class="flex items-center gap-2">
         <div

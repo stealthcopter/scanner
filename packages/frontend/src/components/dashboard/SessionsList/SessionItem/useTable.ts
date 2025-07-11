@@ -7,7 +7,11 @@ export const useTable = (props: { session: SessionState }) => {
   const now = useTimestamp({ interval: 50 });
 
   const checksHistory = computed(() => {
-    if (session.value.kind === "Running" || session.value.kind === "Done" || session.value.kind === "Interrupted") {
+    if (
+      session.value.kind === "Running" ||
+      session.value.kind === "Done" ||
+      session.value.kind === "Interrupted"
+    ) {
       return session.value.progress.checksHistory.map((check) => ({
         name: check.checkID,
         status: check.kind,

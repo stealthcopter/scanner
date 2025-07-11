@@ -54,7 +54,7 @@ export const createRunnable = ({
     if (hasRun) {
       throw new ScanRunnableError(
         "Cannot set dedupe keys after scan has started",
-        ScanRunnableErrorCode.SCAN_ALREADY_RUNNING
+        ScanRunnableErrorCode.SCAN_ALREADY_RUNNING,
       );
     }
     dedupeKeys = externalDedupeKeys;
@@ -63,7 +63,7 @@ export const createRunnable = ({
   const isCheckApplicable = (
     check: CheckDefinition,
     context: RuntimeContext,
-    targetDedupeKeys: Map<string, Set<string>> = dedupeKeys
+    targetDedupeKeys: Map<string, Set<string>> = dedupeKeys,
   ): boolean => {
     if (
       check.metadata.minAggressivity !== undefined &&
@@ -98,7 +98,7 @@ export const createRunnable = ({
 
   const createRuntimeContext = (
     target: ScanTarget,
-    sdk: SDK
+    sdk: SDK,
   ): RuntimeContext => {
     return {
       target,
@@ -126,7 +126,7 @@ export const createRunnable = ({
 
   const processBatch = async (
     batch: CheckDefinition[],
-    context: RuntimeContext
+    context: RuntimeContext,
   ): Promise<void> => {
     const tasks = batch
       .filter((check) => isCheckApplicable(check, context))
@@ -200,7 +200,7 @@ export const createRunnable = ({
             if (target === undefined) {
               throw new ScanRunnableError(
                 `Request ${requestID} not found`,
-                ScanRunnableErrorCode.REQUEST_NOT_FOUND
+                ScanRunnableErrorCode.REQUEST_NOT_FOUND,
               );
             }
 
@@ -212,7 +212,7 @@ export const createRunnable = ({
                   if (context.activeCheckID === undefined) {
                     throw new ScanRunnableError(
                       "No active check ID. You should never reach this state, please report this as a bug.",
-                      ScanRunnableErrorCode.NO_ACTIVE_CHECK_ID
+                      ScanRunnableErrorCode.NO_ACTIVE_CHECK_ID,
                     );
                   }
 
@@ -248,7 +248,7 @@ export const createRunnable = ({
 
                     throw new ScanRunnableError(
                       `Request ID: ${requestID} failed: ${errorMessage}`,
-                      ScanRunnableErrorCode.REQUEST_FAILED
+                      ScanRunnableErrorCode.REQUEST_FAILED,
                     );
                   }
                 },
@@ -260,7 +260,7 @@ export const createRunnable = ({
                 request: target.request,
                 response: target.response,
               },
-              wrappedSdk
+              wrappedSdk,
             );
 
             for (const batch of batches) {
@@ -317,13 +317,13 @@ export const createRunnable = ({
             request: target.request,
             response: target.response,
           },
-          sdk
+          sdk,
         );
 
         const tasks = batches.map((batch) =>
           batch.filter((check) =>
-            isCheckApplicable(check, context, snapshotDedupeKeys)
-          )
+            isCheckApplicable(check, context, snapshotDedupeKeys),
+          ),
         );
 
         checksTotal += tasks.flat().length;
@@ -361,7 +361,7 @@ const getCheckBatches = (checks: CheckDefinition[]): CheckDefinition[][] => {
       for (const dependencyId of dependencies) {
         if (!checkMap.has(dependencyId)) {
           throw new Error(
-            `Check '${check.metadata.id}' has unknown dependency '${dependencyId}'`
+            `Check '${check.metadata.id}' has unknown dependency '${dependencyId}'`,
           );
         }
         if (!dag[dependencyId]) {
@@ -380,6 +380,6 @@ const getCheckBatches = (checks: CheckDefinition[]): CheckDefinition[][] => {
         throw new Error(`Check '${checkId}' not found in checkMap`);
       }
       return check;
-    })
+    }),
   );
 };

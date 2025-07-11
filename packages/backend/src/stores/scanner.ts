@@ -77,7 +77,9 @@ export class ScannerStore {
   }
 
   updateSessionTitle(id: string, title: string): SessionState | undefined {
-    const sessionIndex = this.sessions.findIndex((session) => session.id === id);
+    const sessionIndex = this.sessions.findIndex(
+      (session) => session.id === id,
+    );
     if (sessionIndex === -1) return undefined;
 
     const session = this.sessions[sessionIndex];
@@ -253,29 +255,31 @@ export class ScannerStore {
       ...session,
       progress: {
         ...session.progress,
-        checksHistory: this.updateCheckExecution(
-          session.progress.checksHistory,
-          message.relatedCheckID,
-          message.relatedTargetID,
-          (execution) => {
-            if (execution.kind !== "Running") return execution;
+        checksHistory: session.progress.checksHistory.map((execution) => {
+          if (execution.kind !== "Running") return execution;
 
-            return {
-              ...execution,
-              requestsSent: execution.requestsSent.map((request) =>
-                request.pendingRequestID === message.request.pendingRequestID
-                  ? {
-                      status: "completed" as const,
-                      pendingRequestID: message.request.pendingRequestID,
-                      requestID: message.request.requestID,
-                      sentAt: request.sentAt,
-                      completedAt: Date.now(),
-                    }
-                  : request,
-              ),
-            };
-          },
-        ),
+          const hasRequest = execution.requestsSent.some(
+            (request) =>
+              request.pendingRequestID === message.request.pendingRequestID,
+          );
+
+          if (!hasRequest) return execution;
+
+          return {
+            ...execution,
+            requestsSent: execution.requestsSent.map((request) =>
+              request.pendingRequestID === message.request.pendingRequestID
+                ? {
+                    status: "completed" as const,
+                    pendingRequestID: message.request.pendingRequestID,
+                    requestID: message.request.requestID,
+                    sentAt: request.sentAt,
+                    completedAt: Date.now(),
+                  }
+                : request,
+            ),
+          };
+        }),
       },
     };
   }
@@ -292,29 +296,31 @@ export class ScannerStore {
       ...session,
       progress: {
         ...session.progress,
-        checksHistory: this.updateCheckExecution(
-          session.progress.checksHistory,
-          message.relatedCheckID,
-          message.relatedTargetID,
-          (execution) => {
-            if (execution.kind !== "Running") return execution;
+        checksHistory: session.progress.checksHistory.map((execution) => {
+          if (execution.kind !== "Running") return execution;
 
-            return {
-              ...execution,
-              requestsSent: execution.requestsSent.map((request) =>
-                request.pendingRequestID === message.request.pendingRequestID
-                  ? {
-                      status: "failed" as const,
-                      pendingRequestID: message.request.pendingRequestID,
-                      error: message.request.error,
-                      sentAt: request.sentAt,
-                      completedAt: Date.now(),
-                    }
-                  : request,
-              ),
-            };
-          },
-        ),
+          const hasRequest = execution.requestsSent.some(
+            (request) =>
+              request.pendingRequestID === message.request.pendingRequestID,
+          );
+
+          if (!hasRequest) return execution;
+
+          return {
+            ...execution,
+            requestsSent: execution.requestsSent.map((request) =>
+              request.pendingRequestID === message.request.pendingRequestID
+                ? {
+                    status: "failed" as const,
+                    pendingRequestID: message.request.pendingRequestID,
+                    error: message.request.error,
+                    sentAt: request.sentAt,
+                    completedAt: Date.now(),
+                  }
+                : request,
+            ),
+          };
+        }),
       },
     };
   }

@@ -21,7 +21,9 @@ export const useStepper = () => {
     },
   ];
 
-  const activeStep = computed(() => steps[currentStepIndex.value]?.id ?? "targets");
+  const activeStep = computed(
+    () => steps[currentStepIndex.value]?.id ?? "targets",
+  );
 
   const currentStep = computed(() => steps[currentStepIndex.value]);
 

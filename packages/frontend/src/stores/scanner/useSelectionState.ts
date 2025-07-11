@@ -6,9 +6,7 @@ type Context = {
   state: SessionsSelectionState;
 };
 
-type Message =
-  | { type: "Reset" }
-  | { type: "Select"; sessionId: string };
+type Message = { type: "Reset" } | { type: "Select"; sessionId: string };
 
 export const useSelectionState = () => {
   const context: Context = reactive({

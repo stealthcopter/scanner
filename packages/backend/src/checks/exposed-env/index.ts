@@ -103,7 +103,8 @@ export default defineCheck<{
       const body = result.response.getBody();
       if (body) {
         const bodyText = body.toText();
-        const contentType = result.response.getHeader("content-type")?.[0] ?? "";
+        const contentType =
+          result.response.getHeader("content-type")?.[0] ?? "";
 
         if (isValidEnvContent(bodyText, contentType)) {
           return done({

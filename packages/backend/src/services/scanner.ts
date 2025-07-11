@@ -109,6 +109,13 @@ export const startActiveScan = (
       runnable.on(
         "scan:request-pending",
         ({ pendingRequestID, targetRequestID, checkID }) => {
+          console.log(
+            "request pending=",
+            pendingRequestID,
+            targetRequestID,
+            checkID,
+          );
+
           const requestPendingSession = scannerStore.send(id, {
             type: "AddRequestSent",
             request: {
@@ -119,6 +126,7 @@ export const startActiveScan = (
             relatedCheckID: checkID,
             relatedTargetID: targetRequestID,
           });
+
           if (
             !requestPendingSession ||
             requestPendingSession.kind !== "Running"
@@ -132,6 +140,13 @@ export const startActiveScan = (
       runnable.on(
         "scan:request-completed",
         ({ pendingRequestID, requestID, checkID, targetRequestID }) => {
+          console.log(
+            "request completed=",
+            pendingRequestID,
+            requestID,
+            checkID,
+            targetRequestID,
+          );
           const requestCompletedSession = scannerStore.send(id, {
             type: "AddRequestCompleted",
             request: {
@@ -161,6 +176,13 @@ export const startActiveScan = (
       runnable.on(
         "scan:request-failed",
         ({ error, pendingRequestID, checkID, targetRequestID }) => {
+          console.log(
+            "request failed=",
+            error,
+            pendingRequestID,
+            checkID,
+            targetRequestID,
+          );
           const requestFailedSession = scannerStore.send(id, {
             type: "AddRequestFailed",
             request: {
@@ -209,6 +231,7 @@ export const startActiveScan = (
       );
 
       const result = await runnable.run(requestIDs);
+      console.log("result=", result);
 
       switch (result.kind) {
         case "Finished": {

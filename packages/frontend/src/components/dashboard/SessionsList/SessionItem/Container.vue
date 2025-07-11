@@ -71,7 +71,7 @@ const {
                 <div
                   v-if="
                     Object.values(findingsBySeverity).every(
-                      (count) => count === 0
+                      (count) => count === 0,
                     )
                   "
                   class="text-xs text-surface-500 italic"

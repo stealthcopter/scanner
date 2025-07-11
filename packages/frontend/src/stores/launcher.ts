@@ -1,4 +1,4 @@
-import { type ScanConfig, ScanAggressivity } from "engine";
+import { ScanAggressivity, type ScanConfig } from "engine";
 import { defineStore } from "pinia";
 import { type BasicRequest, type ScanRequestPayload } from "shared";
 import { reactive } from "vue";

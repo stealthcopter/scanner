@@ -48,10 +48,10 @@ export const useForm = (props: { session: SessionState }) => {
   const progress = computed(() => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       const checksCompleted = session.value.progress.checksHistory.filter(
-        (check) => check.kind === "Completed"
+        (check) => check.kind === "Completed",
       ).length;
       const checksFailed = session.value.progress.checksHistory.filter(
-        (check) => check.kind === "Failed"
+        (check) => check.kind === "Failed",
       ).length;
       const checksFinished = checksCompleted + checksFailed;
       const { checksTotal } = session.value.progress;
@@ -97,7 +97,7 @@ export const useForm = (props: { session: SessionState }) => {
   const checksCompleted = computed(() => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       return session.value.progress.checksHistory.filter(
-        (check) => check.kind === "Completed"
+        (check) => check.kind === "Completed",
       ).length;
     }
     return 0;
@@ -106,7 +106,7 @@ export const useForm = (props: { session: SessionState }) => {
   const checksFailed = computed(() => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       return session.value.progress.checksHistory.filter(
-        (check) => check.kind === "Failed"
+        (check) => check.kind === "Failed",
       ).length;
     }
     return 0;
@@ -115,7 +115,7 @@ export const useForm = (props: { session: SessionState }) => {
   const checksRunning = computed(() => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       return session.value.progress.checksHistory.filter(
-        (check) => check.kind === "Running"
+        (check) => check.kind === "Running",
       );
     }
     return [];
@@ -128,7 +128,7 @@ export const useForm = (props: { session: SessionState }) => {
       session.value.kind === "Interrupted"
     ) {
       const findings = session.value.progress.checksHistory.flatMap(
-        (check) => check.findings
+        (check) => check.findings,
       );
 
       const counts = {
@@ -178,7 +178,7 @@ export const useForm = (props: { session: SessionState }) => {
   };
 
   const timeSinceCreated = computed(() =>
-    getPreciseTimeAgo(new Date(session.value.createdAt))
+    getPreciseTimeAgo(new Date(session.value.createdAt)),
   );
 
   const timeSinceFinished = computed(() => {
@@ -201,7 +201,9 @@ export const useForm = (props: { session: SessionState }) => {
     isDeleting.value = false;
   };
 
-  const onExport = () => {};
+  const onExport = () => {
+    console.log(JSON.stringify(session.value, null, 2));
+  };
 
   return {
     getStatusColor,

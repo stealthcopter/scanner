@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Button from "primevue/button";
-import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
+import TabView from "primevue/tabview";
 
 import { useStepper } from "./useStepper";
 
@@ -30,7 +30,7 @@ const launcher = useLauncher();
 
 <template>
   <div class="w-[900px] h-[550px] flex flex-col gap-2">
-    <TabView v-model:activeIndex="currentStepIndex" class="h-full">
+    <TabView v-model:active-index="currentStepIndex" class="h-full">
       <TabPanel v-for="step in steps" :key="step.id" :header="step.label">
         <component :is="step.component" />
       </TabPanel>

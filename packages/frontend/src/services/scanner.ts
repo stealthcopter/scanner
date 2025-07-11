@@ -18,8 +18,13 @@ export const useScannerService = defineStore("services.scanner", () => {
     const selectionState = store.selectionState.getState();
     const sessionsState = store.getState();
 
-    if (selectionState.type === "Selected" && sessionsState.type === "Success") {
-      return sessionsState.sessions.find(session => session.id === selectionState.sessionId);
+    if (
+      selectionState.type === "Selected" &&
+      sessionsState.type === "Success"
+    ) {
+      return sessionsState.sessions.find(
+        (session) => session.id === selectionState.sessionId,
+      );
     }
     return undefined;
   };
@@ -86,7 +91,9 @@ export const useScannerService = defineStore("services.scanner", () => {
 
   const deleteScanSession = async (sessionId: string) => {
     const currentSelection = store.selectionState.getState();
-    const isCurrentlySelected = currentSelection.type === "Selected" && currentSelection.sessionId === sessionId;
+    const isCurrentlySelected =
+      currentSelection.type === "Selected" &&
+      currentSelection.sessionId === sessionId;
 
     const result = await repository.deleteScanSession(sessionId);
     switch (result.kind) {

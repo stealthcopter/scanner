@@ -2,8 +2,8 @@ import {
   type CheckType,
   type Finding,
   type InterruptReason,
-  type ScanConfig,
   type ScanAggressivity,
+  type ScanConfig,
 } from "engine";
 
 /**

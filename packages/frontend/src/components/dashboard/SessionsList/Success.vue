@@ -2,12 +2,12 @@
 import Card from "primevue/card";
 import { computed } from "vue";
 
-import CaidoTab from "@/components/common/CaidoTab.vue";
-import { SessionItem } from "./SessionItem";
-import { useScannerService } from "@/services/scanner";
-
-import { type SessionsState } from "@/types/scanner";
 import None from "./None.vue";
+import { SessionItem } from "./SessionItem";
+
+import CaidoTab from "@/components/common/CaidoTab.vue";
+import { useScannerService } from "@/services/scanner";
+import { type SessionsState } from "@/types/scanner";
 
 defineProps<{
   state: SessionsState & { type: "Success" };
@@ -64,7 +64,7 @@ const handleRename = async (sessionId: string, newName: string) => {
             :label="session.title"
             :status="session.kind"
             @select="handleTabSelect(session.id)"
-            @rename="(newName: string) => handleRename(session.id, newName)"
+            @rename="(newName) => handleRename(session.id, newName)"
           />
         </div>
       </template>

@@ -1,6 +1,7 @@
 import { ScanAggressivity } from "engine";
-import { Checks } from "../checks";
 import { type UserConfig } from "shared";
+
+import { Checks } from "../checks";
 
 export class ConfigStore {
   private static _store?: ConfigStore;
