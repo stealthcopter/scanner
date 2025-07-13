@@ -108,7 +108,7 @@ export type SessionProgress = {
   checksHistory: CheckExecution[];
 };
 
-export type SessionState =
+export type Session =
   | { kind: "Pending"; id: string; createdAt: number; title: string }
   | {
       kind: "Running";
@@ -176,3 +176,7 @@ export function ok<T>(value: T): Result<T> {
 export function error<T>(error: string): Result<T> {
   return { kind: "Error", error };
 }
+
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};

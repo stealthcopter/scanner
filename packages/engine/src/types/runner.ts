@@ -1,7 +1,7 @@
 import { type SDK } from "caido:plugin";
 import { type Request, type Response } from "caido:utils";
-import { type ScanRunnableErrorCode } from "packages/engine/src/core/errors";
 
+import { type ScanRunnableErrorCode } from "../core/errors";
 import { type ParsedHtml } from "../utils/html/types";
 
 import { type CheckDefinition } from "./check";

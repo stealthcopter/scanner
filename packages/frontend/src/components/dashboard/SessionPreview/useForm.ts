@@ -1,11 +1,11 @@
 import { useTimestamp } from "@vueuse/core";
 import { Severity } from "engine";
-import { type SessionState } from "shared";
+import { type Session } from "shared";
 import { computed, ref, toRefs } from "vue";
 
 import { useScannerService } from "@/services/scanner";
 
-export const useForm = (props: { session: SessionState }) => {
+export const useForm = (props: { session: Session }) => {
   const { session } = toRefs(props);
   const now = useTimestamp({ interval: 50 });
 

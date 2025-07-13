@@ -1,11 +1,7 @@
-import type { SessionState } from "shared";
+import type { Session } from "shared";
 
 export type SessionsState =
   | { type: "Idle" }
   | { type: "Loading" }
   | { type: "Error"; error: string }
-  | { type: "Success"; sessions: SessionState[] };
-
-export type SessionsSelectionState =
-  | { type: "None" }
-  | { type: "Selected"; sessionId: string };
+  | { type: "Success"; sessions: Session[] };

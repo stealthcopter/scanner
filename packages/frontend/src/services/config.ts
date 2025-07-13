@@ -1,10 +1,9 @@
 import { defineStore } from "pinia";
-import { type UserConfig } from "shared";
+import { type DeepPartial, type UserConfig } from "shared";
 import { merge } from "ts-deepmerge";
 
 import { useConfigRepository } from "@/repositories/config";
 import { useConfigStore } from "@/stores/config";
-import { type DeepPartial } from "@/types/utils";
 
 export const useConfigService = defineStore("services.config", () => {
   const repository = useConfigRepository();

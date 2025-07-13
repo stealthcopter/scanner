@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { type SessionState } from "shared";
+import { type Session } from "shared";
 
 import { useTable } from "./useTable";
 
 const props = defineProps<{
-  session: SessionState;
+  session: Session;
 }>();
 
 const { checksHistory } = useTable(props);
@@ -19,6 +19,7 @@ const { checksHistory } = useTable(props);
     striped-rows
     scroll-height="flex"
     table-style="table-layout: fixed"
+    class="min-h-0"
   >
     <Column field="targetID" header="Target ID" style="width: 20%">
       <template #body="{ data }">

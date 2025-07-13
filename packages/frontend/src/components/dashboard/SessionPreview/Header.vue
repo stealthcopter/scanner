@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import Button from "primevue/button";
-import { type SessionState } from "shared";
+import { type Session } from "shared";
 
 import { useForm } from "./useForm";
 
 const props = defineProps<{
-  session: SessionState;
+  session: Session;
 }>();
 
 const {

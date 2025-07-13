@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import Card from "primevue/card";
 import ProgressBar from "primevue/progressbar";
-import { type SessionState } from "shared";
+import { type Session } from "shared";
 
+import { ChecksTable } from "./ChecksTable";
 import Header from "./Header.vue";
-import Table from "./Table.vue";
 import { useForm } from "./useForm";
 
 const props = defineProps<{
-  session: SessionState;
+  session: Session;
 }>();
 
 const {
@@ -31,7 +31,7 @@ const {
   <Card
     class="h-full"
     :pt="{
-      body: { class: 'h-full p-0' },
+      body: { class: 'h-full p-0 min-h-0' },
       content: { class: 'h-full flex flex-col' },
       header: { class: 'bg-surface-800' },
     }"
@@ -170,7 +170,7 @@ const {
             </div>
           </div>
         </div>
-        <Table :session="session" />
+        <ChecksTable :session="session" />
       </div>
     </template>
   </Card>

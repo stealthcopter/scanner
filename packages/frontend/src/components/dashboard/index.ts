@@ -1,1 +1,2 @@
-export { SessionsList } from "./SessionsList";
+export { SessionTabList } from "./SessionTabList";
+export { SessionPreview } from "./SessionPreview";

@@ -1,35 +1,21 @@
-import { reactive } from "vue";
-
-import { type SessionsSelectionState } from "@/types/scanner";
-
-type Context = {
-  state: SessionsSelectionState;
-};
-
-type Message = { type: "Reset" } | { type: "Select"; sessionId: string };
+import { ref } from "vue";
 
 export const useSelectionState = () => {
-  const context: Context = reactive({
-    state: { type: "None" },
-  });
+  const selectedSessionId = ref<string | undefined>(undefined);
 
-  const getState = () => context.state;
-
-  const send = (message: Message) => {
-    switch (message.type) {
-      case "Reset":
-        context.state = { type: "None" };
-        break;
-      case "Select":
-        context.state = { type: "Selected", sessionId: message.sessionId };
-        break;
-    }
+  const getState = () => selectedSessionId.value;
+  const select = (id: string | undefined) => {
+    selectedSessionId.value = id;
+  };
+  const reset = () => {
+    selectedSessionId.value = undefined;
   };
 
   return {
     selectionState: {
       getState,
-      send,
+      select,
+      reset,
     },
   };
 };

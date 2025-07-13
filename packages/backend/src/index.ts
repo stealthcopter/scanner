@@ -1,5 +1,6 @@
 import type { DefineAPI } from "caido:plugin";
 import { createRegistry } from "engine";
+import { error, ok, type Result } from "shared";
 
 import { checks } from "./checks";
 import { getChecks } from "./services/checks";
@@ -8,7 +9,6 @@ import { clearQueueTasks, getQueueTask, getQueueTasks } from "./services/queue";
 import {
   cancelScanSession,
   deleteScanSession,
-  getRequestResponse,
   getScanSession,
   getScanSessions,
   startActiveScan,
@@ -134,7 +134,7 @@ export function init(sdk: BackendSDK) {
         await runnable.run([request.getId()]);
       } catch (error) {
         // TODO: handle error, show UI warnings
-        sdk.console.log("error", error);
+        sdk.console.log("error=", error);
       } finally {
         queueStore.removeActiveRunnable(passiveTaskID);
         queueStore.removeTask(passiveTaskID);
@@ -143,3 +143,46 @@ export function init(sdk: BackendSDK) {
     });
   });
 }
+
+export const getRequestResponse = async (
+  sdk: BackendSDK,
+  requestId: string,
+): Promise<
+  Result<{
+    request: { id: string; raw: string };
+    response: { id: string; raw: string };
+  }>
+> => {
+  const result = await sdk.requests.get(requestId);
+
+  if (!result) {
+    return error("Request not found");
+  }
+
+  const { request, response } = result;
+
+  if (!response) {
+    return error("Response not found");
+  }
+
+  return ok({
+    request: {
+      id: request.getId(),
+      raw: Uint8ArrayToString(request.toSpecRaw().getRaw()),
+    },
+    response: {
+      id: response.getId(),
+      raw: response.getRaw().toText(),
+    },
+  });
+};
+
+const Uint8ArrayToString = (data: Uint8Array) => {
+  let output = "";
+  const chunkSize = 256;
+  for (let i = 0; i < data.length; i += chunkSize) {
+    output += String.fromCharCode(...data.subarray(i, i + chunkSize));
+  }
+
+  return output;
+};

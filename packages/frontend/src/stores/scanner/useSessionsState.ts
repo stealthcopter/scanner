@@ -1,4 +1,5 @@
-import { type SessionProgress, type SessionState } from "shared";
+import { type DeepPartial, type Session, type SessionProgress } from "shared";
+import { merge } from "ts-deepmerge";
 import { reactive } from "vue";
 
 import { type SessionsState } from "@/types/scanner";
@@ -10,13 +11,13 @@ type Context = {
 type Message =
   | { type: "Start" }
   | { type: "Error"; error: string }
-  | { type: "Success"; sessions: SessionState[] }
-  | { type: "AddSession"; session: SessionState }
-  | { type: "UpdateSession"; session: SessionState }
+  | { type: "Success"; sessions: Session[] }
+  | { type: "AddSession"; session: Session }
+  | { type: "UpdateSession"; session: Session }
   | {
       type: "UpdateSessionProgress";
       sessionId: string;
-      progress: Partial<SessionProgress>;
+      progress: DeepPartial<SessionProgress>;
     }
   | { type: "CancelSession"; sessionId: string }
   | { type: "DeleteSession"; sessionId: string }
@@ -110,11 +111,15 @@ const processSuccess = (
     case "UpdateSessionProgress":
       return {
         ...state,
-        sessions: state.sessions.map((session) =>
-          session.id === message.sessionId
-            ? ({ ...session, progress: message.progress } as SessionState)
-            : session,
-        ),
+        sessions: state.sessions.map((session) => {
+          if (session.id !== message.sessionId) {
+            return session;
+          }
+
+          return merge.withOptions({ mergeArrays: false }, session, {
+            progress: message.progress,
+          }) as Session;
+        }),
       };
     case "DeleteSession":
       return {
