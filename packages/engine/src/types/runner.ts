@@ -5,13 +5,13 @@ import { type ScanRunnableErrorCode } from "../core/errors";
 import { type ParsedHtml } from "../utils/html/types";
 
 import { type CheckDefinition } from "./check";
-import { type Finding } from "./finding";
+import { type Finding, type Severity } from "./finding";
 import { type JSONSerializable } from "./utils";
 
 export const ScanAggressivity = {
-  LOW: 0,
-  MEDIUM: 1,
-  HIGH: 2,
+  LOW: "low",
+  MEDIUM: "medium",
+  HIGH: "high",
 } as const;
 
 export type ScanAggressivity =
@@ -104,7 +104,6 @@ export type ScanTarget = {
 
 export type RuntimeContext = {
   target: ScanTarget;
-  activeCheckID?: string;
   sdk: SDK;
   runtime: {
     html: {
@@ -120,7 +119,8 @@ export type RuntimeContext = {
 export type ScanConfig = {
   aggressivity: ScanAggressivity;
   inScopeOnly: boolean;
-  concurrency: number;
+  concurrentChecks: number;
   scanTimeout: number;
   checkTimeout: number;
+  severities: Severity[];
 };

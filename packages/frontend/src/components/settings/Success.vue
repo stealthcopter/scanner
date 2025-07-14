@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import { ScanAggressivity, Severity } from "engine";
 import Card from "primevue/card";
 import InputNumber from "primevue/inputnumber";
-import Select from "primevue/select";
+import SelectButton from "primevue/selectbutton";
 import ToggleSwitch from "primevue/toggleswitch";
-import { toRefs } from "vue";
+import { computed, toRefs } from "vue";
 
 import { useForm } from "./useForm";
 
@@ -19,10 +20,25 @@ const {
   passiveEnabled,
   passiveAggressivity,
   passiveInScopeOnly,
-  passiveScansConcurrency,
-  aggressivityOptions,
+  passiveSeverities,
+  passiveConcurrentChecks,
 } = useForm(state);
+
+const severityOptions = computed(() =>
+  Object.values(Severity).map((severity) => ({
+    label: severity.charAt(0).toUpperCase() + severity.slice(1),
+    value: severity,
+  }))
+);
+
+const aggressivityOptions = computed(() =>
+  Object.values(ScanAggressivity).map((aggressivity) => ({
+    label: aggressivity.charAt(0).toUpperCase() + aggressivity.slice(1),
+    value: aggressivity,
+  }))
+);
 </script>
+
 <template>
   <Card
     class="h-full"
@@ -78,6 +94,24 @@ const {
 
               <div class="flex items-start justify-between gap-4">
                 <div class="flex flex-col gap-1 flex-1">
+                  <label class="text-sm font-medium">Checks Concurrency</label>
+                  <p class="text-xs text-surface-400">
+                    Number of checks that can run simultaneously. Higher values
+                    may impact performance.
+                  </p>
+                </div>
+                <div class="flex-shrink-0">
+                  <InputNumber
+                    v-model="passiveConcurrentChecks"
+                    :min="1"
+                    :max="30"
+                    :disabled="!passiveEnabled"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex flex-col gap-1 flex-1">
                   <label class="text-sm font-medium">Scan Aggressivity</label>
                   <p class="text-xs text-surface-400">
                     Controls the aggressiveness of passive scanning checks.
@@ -86,31 +120,31 @@ const {
                   </p>
                 </div>
                 <div class="flex-shrink-0">
-                  <Select
+                  <SelectButton
                     v-model="passiveAggressivity"
                     :options="aggressivityOptions"
                     option-label="label"
                     option-value="value"
                     :disabled="!passiveEnabled"
-                    class="w-32"
                   />
                 </div>
               </div>
 
               <div class="flex items-start justify-between gap-4">
                 <div class="flex flex-col gap-1 flex-1">
-                  <label class="text-sm font-medium">Scans Concurrency</label>
+                  <label class="text-sm font-medium">Severities</label>
                   <p class="text-xs text-surface-400">
-                    Number of passive scans that can run simultaneously. Higher
-                    values may impact performance.
+                    Select which severity levels to include in passive scanning
                   </p>
                 </div>
                 <div class="flex-shrink-0">
-                  <InputNumber
-                    v-model="passiveScansConcurrency"
-                    :min="1"
-                    :max="30"
+                  <SelectButton
+                    v-model="passiveSeverities"
+                    :options="severityOptions"
+                    option-label="label"
+                    option-value="value"
                     :disabled="!passiveEnabled"
+                    multiple
                   />
                 </div>
               </div>

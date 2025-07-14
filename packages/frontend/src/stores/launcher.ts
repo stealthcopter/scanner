@@ -1,4 +1,4 @@
-import { ScanAggressivity, type ScanConfig } from "engine";
+import { ScanAggressivity, type ScanConfig, Severity } from "engine";
 import { defineStore } from "pinia";
 import { type BasicRequest, type ScanRequestPayload } from "shared";
 import { reactive } from "vue";
@@ -21,7 +21,14 @@ export const useLauncher = defineStore("stores.launcher", () => {
       inScopeOnly: true,
       scanTimeout: 10 * 60,
       checkTimeout: 2 * 60,
-      concurrency: 2,
+      concurrentChecks: 2,
+      severities: [
+        Severity.INFO,
+        Severity.LOW,
+        Severity.MEDIUM,
+        Severity.HIGH,
+        Severity.CRITICAL,
+      ],
     },
     title: "Active Scan",
   };
@@ -40,7 +47,6 @@ export const useLauncher = defineStore("stores.launcher", () => {
 
     switch (result.kind) {
       case "Success": {
-        console.log("selecting session", result.value.id);
         scannerService.selectSession(result.value.id);
         incrementCount();
 

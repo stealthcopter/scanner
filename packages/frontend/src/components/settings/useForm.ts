@@ -1,4 +1,4 @@
-import { ScanAggressivity } from "engine";
+import { type ScanAggressivity, type Severity } from "engine";
 import { computed, type Ref } from "vue";
 
 import { useConfigService } from "@/services/config";
@@ -6,12 +6,6 @@ import { type ConfigState } from "@/types/config";
 
 export const useForm = (state: Ref<ConfigState & { type: "Success" }>) => {
   const configService = useConfigService();
-
-  const aggressivityOptions = [
-    { label: "Low", value: ScanAggressivity.LOW },
-    { label: "Medium", value: ScanAggressivity.MEDIUM },
-    { label: "High", value: ScanAggressivity.HIGH },
-  ];
 
   const passiveEnabled = computed({
     get: () => state.value.config.passive.enabled,
@@ -40,11 +34,20 @@ export const useForm = (state: Ref<ConfigState & { type: "Success" }>) => {
     },
   });
 
-  const passiveScansConcurrency = computed({
-    get: () => state.value.config.passive.scansConcurrency,
+  const passiveConcurrentChecks = computed({
+    get: () => state.value.config.passive.concurrentChecks,
     set: async (value: number) => {
       await configService.updateConfig({
-        passive: { scansConcurrency: value },
+        passive: { concurrentChecks: value },
+      });
+    },
+  });
+
+  const passiveSeverities = computed({
+    get: () => state.value.config.passive.severities,
+    set: async (value: Severity[]) => {
+      await configService.updateConfig({
+        passive: { severities: value },
       });
     },
   });
@@ -53,7 +56,7 @@ export const useForm = (state: Ref<ConfigState & { type: "Success" }>) => {
     passiveEnabled,
     passiveAggressivity,
     passiveInScopeOnly,
-    passiveScansConcurrency,
-    aggressivityOptions,
+    passiveConcurrentChecks,
+    passiveSeverities,
   };
 };

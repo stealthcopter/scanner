@@ -40,7 +40,6 @@ export enum ScanRunnableErrorCode {
   RUNTIME_ERROR = "RUNTIME_ERROR",
   UNKNOWN_CHECK_ERROR = "UNKNOWN_CHECK_ERROR",
   REQUEST_FAILED = "REQUEST_FAILED",
-  NO_ACTIVE_CHECK_ID = "NO_ACTIVE_CHECK_ID",
 }
 
 export class ScanRunnableError extends Error {

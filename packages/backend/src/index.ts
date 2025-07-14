@@ -66,7 +66,7 @@ export function init(sdk: BackendSDK) {
   const configStore = ConfigStore.get();
   const queueStore = QueueStore.get();
   const config = configStore.getUserConfig();
-  const passiveTaskQueue = new TaskQueue(config.passive.scansConcurrency);
+  const passiveTaskQueue = new TaskQueue(config.passive.concurrentChecks);
   queueStore.setPassiveTaskQueue(passiveTaskQueue);
 
   const passiveDedupeKeys = new Map<string, Set<string>>();
@@ -74,7 +74,7 @@ export function init(sdk: BackendSDK) {
     const config = configStore.getUserConfig();
     if (!config.passive.enabled) return;
 
-    passiveTaskQueue.setConcurrency(config.passive.scansConcurrency);
+    passiveTaskQueue.setConcurrency(config.passive.concurrentChecks);
 
     if (config.passive.inScopeOnly) {
       const inScope = sdk.requests.inScope(request);
@@ -103,8 +103,9 @@ export function init(sdk: BackendSDK) {
 
       const runnable = registry.create(sdk, {
         aggressivity: config.passive.aggressivity,
-        inScopeOnly: true,
-        concurrency: 1,
+        inScopeOnly: config.passive.inScopeOnly,
+        concurrentChecks: config.passive.concurrentChecks,
+        severities: config.passive.severities,
         scanTimeout: 5 * 60,
         checkTimeout: 2 * 60,
       });
@@ -116,17 +117,18 @@ export function init(sdk: BackendSDK) {
         queueStore.updateTaskStatus(passiveTaskID, "running");
         sdk.api.send("passive:queue-started", passiveTaskID);
 
-        runnable.on("scan:finding", async ({ finding }) => {
-          if (finding.correlation.requestID === undefined) return;
-
+        runnable.on("scan:finding", async ({ finding, checkID }) => {
           const request = await sdk.requests.get(finding.correlation.requestID);
           if (!request) return;
+          if (!config.passive.severities.includes(finding.severity)) return;
+
+          const wrappedDescription = `This finding has been assessed as \`${finding.severity.toUpperCase()}\` severity and was discovered by the \`${checkID}\` check.\n\n${finding.description}`;
 
           sdk.findings.create({
             reporter: "Scanner: Passive",
             request: request.request,
             title: finding.name,
-            description: finding.description,
+            description: wrappedDescription,
           });
         });
 

@@ -29,13 +29,22 @@ const launcher = useLauncher();
 </script>
 
 <template>
-  <div class="w-[900px] h-[550px] flex flex-col gap-2">
-    <TabView v-model:active-index="currentStepIndex" class="h-full">
+  <div class="w-[900px] h-[450px] flex flex-col gap-2">
+    <TabView
+      v-model:active-index="currentStepIndex"
+      class="flex-1 overflow-hidden"
+      :pt="{
+        panelContainer: {
+          class: 'overflow-auto',
+          style: 'padding: 0; height: 90%',
+        },
+      }"
+    >
       <TabPanel v-for="step in steps" :key="step.id" :header="step.label">
         <component :is="step.component" />
       </TabPanel>
     </TabView>
-    <div class="flex items-center justify-end gap-2">
+    <div class="flex items-center justify-end gap-2 flex-shrink-0">
       <Button
         v-if="canGoPrevious"
         label="Previous"

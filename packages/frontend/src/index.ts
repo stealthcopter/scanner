@@ -23,7 +23,6 @@ export const init = (sdk: FrontendSDK) => {
   });
 
   app.use(SDKPlugin, sdk);
-
   const root = document.createElement("div");
   Object.assign(root.style, {
     height: "100%",

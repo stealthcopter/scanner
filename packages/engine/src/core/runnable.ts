@@ -124,16 +124,71 @@ export const createRunnable = ({
     getInterruptReason: () => interruptReason,
   });
 
+  const createWrappedSdk = (checkID: string, targetRequestID: string): SDK => {
+    return {
+      ...sdk,
+      requests: {
+        ...sdk.requests,
+        send: async (request) => {
+          const pendingRequestID = Math.random().toString(36).substring(2, 15);
+
+          emit("scan:request-pending", {
+            pendingRequestID,
+            targetRequestID,
+            checkID,
+          });
+
+          try {
+            const result = await sdk.requests.send(request);
+            emit("scan:request-completed", {
+              pendingRequestID,
+              requestID: result.request.getId(),
+              responseID: result.response.getId(),
+              checkID,
+              targetRequestID,
+            });
+            return result;
+          } catch (error) {
+            const errorMessage =
+              error instanceof Error ? error.message : "Unknown error";
+
+            emit("scan:request-failed", {
+              pendingRequestID,
+              error: errorMessage,
+              targetRequestID,
+              checkID,
+            });
+
+            throw new ScanRunnableError(
+              `Request ID: ${targetRequestID} failed: ${errorMessage}`,
+              ScanRunnableErrorCode.REQUEST_FAILED,
+            );
+          }
+        },
+      },
+    } as SDK;
+  };
+
   const processBatch = async (
     batch: CheckDefinition[],
     context: RuntimeContext,
   ): Promise<void> => {
     const tasks = batch
       .filter((check) => isCheckApplicable(check, context))
-      .map((check) => check.create(context));
+      .map((check) => {
+        const wrappedSdk = createWrappedSdk(
+          check.metadata.id,
+          context.target.request.getId(),
+        );
+        const taskContext = {
+          ...context,
+          sdk: wrappedSdk,
+        };
+        return check.create(taskContext);
+      });
 
     const { errors } = await PromisePool.for(tasks)
-      .withConcurrency(context.config.concurrency)
+      .withConcurrency(context.config.concurrentChecks)
       .withTaskTimeout(context.config.checkTimeout * 1000)
       .handleError((error, _, pool) => {
         if (error instanceof ScanRunnableInterruptedError) {
@@ -156,8 +211,6 @@ export const createRunnable = ({
         });
       })
       .process(async (task) => {
-        context.activeCheckID = task.metadata.id;
-
         const result = await taskExecutor.tickUntilDone(task);
         if (result.findings) {
           findings.push(...result.findings);
@@ -204,63 +257,12 @@ export const createRunnable = ({
               );
             }
 
-            const wrappedSdk = {
-              ...sdk,
-              requests: {
-                ...sdk.requests,
-                send: async (request) => {
-                  if (context.activeCheckID === undefined) {
-                    throw new ScanRunnableError(
-                      "No active check ID. You should never reach this state, please report this as a bug.",
-                      ScanRunnableErrorCode.NO_ACTIVE_CHECK_ID,
-                    );
-                  }
-
-                  const pendingRequestID = Math.random()
-                    .toString(36)
-                    .substring(2, 15);
-                  emit("scan:request-pending", {
-                    pendingRequestID,
-                    targetRequestID: requestID,
-                    checkID: context.activeCheckID,
-                  });
-
-                  try {
-                    const result = await sdk.requests.send(request);
-                    emit("scan:request-completed", {
-                      pendingRequestID,
-                      requestID: result.request.getId(),
-                      responseID: result.response.getId(),
-                      checkID: context.activeCheckID,
-                      targetRequestID: requestID,
-                    });
-                    return result;
-                  } catch (error) {
-                    const errorMessage =
-                      error instanceof Error ? error.message : "Unknown error";
-
-                    emit("scan:request-failed", {
-                      pendingRequestID,
-                      error: errorMessage,
-                      targetRequestID: requestID,
-                      checkID: context.activeCheckID,
-                    });
-
-                    throw new ScanRunnableError(
-                      `Request ID: ${requestID} failed: ${errorMessage}`,
-                      ScanRunnableErrorCode.REQUEST_FAILED,
-                    );
-                  }
-                },
-              },
-            } as SDK;
-
             const context = createRuntimeContext(
               {
                 request: target.request,
                 response: target.response,
               },
-              wrappedSdk,
+              sdk,
             );
 
             for (const batch of batches) {

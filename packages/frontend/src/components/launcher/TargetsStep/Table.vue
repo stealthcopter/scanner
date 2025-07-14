@@ -34,7 +34,7 @@ const handleDeleteSelected = () => {
 </script>
 <template>
   <div class="flex flex-col h-full">
-    <div class="mb-2 flex justify-between items-center h-8 flex-shrink-0">
+    <div class="py-2 flex justify-between items-center h-8 flex-shrink-0">
       <div class="text-sm text-surface-400">
         {{ form.targets.length }} unique requests
       </div>
@@ -54,7 +54,7 @@ const handleDeleteSelected = () => {
       :value="form.targets"
       scrollable
       striped-rows
-      scroll-height="28rem"
+      scroll-height="flex"
       table-style="table-layout: fixed"
       selection-mode="multiple"
       :meta-key-selection="true"

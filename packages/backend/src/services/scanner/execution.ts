@@ -26,6 +26,10 @@ export const startActiveScan = (
     return error("Title is required");
   }
 
+  if (scanConfig.severities.length === 0) {
+    return error("Severities are required");
+  }
+
   const configStore = ConfigStore.get();
   const userConfig = configStore.getUserConfig();
 
@@ -74,6 +78,10 @@ export const startActiveScan = (
       runnable.on(
         "scan:finding",
         async ({ finding, targetRequestID, checkID }) => {
+          if (!scanConfig.severities.includes(finding.severity)) {
+            return;
+          }
+
           const findingAddedSession = scannerStore.addFinding(
             id,
             checkID,
@@ -87,11 +95,13 @@ export const startActiveScan = (
           const result = await sdk.requests.get(finding.correlation.requestID);
           if (!result) return;
 
+          const wrappedDescription = `This finding has been assessed as \`${finding.severity.toUpperCase()}\` severity and was discovered by the \`${checkID}\` check.\n\n${finding.description}`;
+
           sdk.findings.create({
             request: result.request,
             reporter: "Scanner: Active",
             title: finding.name,
-            description: finding.description,
+            description: wrappedDescription,
           });
         },
       );

@@ -14,8 +14,9 @@ export class ConfigStore {
         enabled: true,
         aggressivity: ScanAggressivity.HIGH,
         inScopeOnly: false,
-        scansConcurrency: 3,
+        concurrentChecks: 3,
         overrides: [],
+        severities: ["critical", "high", "medium", "low", "info"],
       },
       active: {
         overrides: [],

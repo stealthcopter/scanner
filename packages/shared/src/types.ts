@@ -4,6 +4,7 @@ import {
   type InterruptReason,
   type ScanAggressivity,
   type ScanConfig,
+  type Severity,
 } from "engine";
 
 /**
@@ -20,8 +21,9 @@ export type UserConfig = {
     enabled: boolean;
     aggressivity: ScanAggressivity;
     inScopeOnly: boolean;
-    scansConcurrency: number;
+    concurrentChecks: number;
     overrides: Override[];
+    severities: Severity[];
   };
   active: {
     overrides: Override[];
