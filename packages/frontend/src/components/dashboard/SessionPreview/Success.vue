@@ -14,7 +14,6 @@ const props = defineProps<{
 const {
   timeSinceCreated,
   progress,
-  hasFindings,
   requestsSent,
   requestsPending,
   requestsFailed,
@@ -34,6 +33,7 @@ const {
       body: { class: 'h-full p-0 min-h-0' },
       content: { class: 'h-full flex flex-col' },
       header: { class: 'bg-surface-800' },
+      root: { style: 'min-height: 0' },
     }"
   >
     <template #header>
@@ -51,7 +51,7 @@ const {
               </span>
             </div>
 
-            <div v-if="hasFindings" class="flex flex-col gap-2 flex-1">
+            <div class="flex flex-col gap-2 flex-1">
               <span class="text-sm text-surface-300 font-medium">Findings</span>
               <div class="flex flex-wrap gap-2">
                 <div
@@ -74,9 +74,9 @@ const {
                       (count) => count === 0,
                     )
                   "
-                  class="text-xs text-surface-500 italic"
+                  class="py-1 rounded-md text-xs text-surface-500 italic h-[23px] flex items-center"
                 >
-                  No findings {{ session.kind === "Running" ? "yet" : "found" }}
+                  No findings found
                 </div>
               </div>
             </div>

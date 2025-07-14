@@ -10,7 +10,7 @@ const scannerState = computed(() => scannerService.getState());
 </script>
 
 <template>
-  <div class="flex flex-col h-full gap-1">
+  <div class="flex flex-col h-full gap-1 overflow-y-auto">
     <Card
       class="h-fit"
       :pt="{
