@@ -35,7 +35,6 @@ export const startActiveScan = (
 
   const checksStore = ChecksStore.get();
   const activeChecks = checksStore.select({
-    type: "active",
     overrides: userConfig.active.overrides,
   });
 
