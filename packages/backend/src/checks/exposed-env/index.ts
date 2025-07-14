@@ -13,18 +13,13 @@ const ENV_FILES = [
   ".env.development",
   ".env.staging",
   ".env.test",
-  ".env.example",
-  ".env.sample",
   ".env.backup",
   ".env.old",
-  ".env.orig",
-  ".env.dist",
   ".env.bak",
   ".env.dev",
   ".env.prod",
   ".env.stage",
   ".env.live",
-  ".env_1",
 ];
 
 const getEnvFilesToTest = (aggressivity: ScanAggressivity): string[] => {
@@ -32,7 +27,7 @@ const getEnvFilesToTest = (aggressivity: ScanAggressivity): string[] => {
     case ScanAggressivity.LOW:
       return ENV_FILES.slice(0, 1);
     case ScanAggressivity.MEDIUM:
-      return ENV_FILES.slice(0, 5);
+      return ENV_FILES.slice(0, 4);
     case ScanAggressivity.HIGH:
       return ENV_FILES;
     default:
@@ -107,7 +102,12 @@ export default defineCheck<{
           result.response.getHeader("content-type")?.[0] ?? "";
 
         if (isValidEnvContent(bodyText, contentType)) {
-          return done({
+          return continueWith({
+            nextStep: "testEnvFile",
+            state: {
+              ...state,
+              envFiles: remainingFiles,
+            },
             findings: [
               {
                 name: "Exposed Environment File",
