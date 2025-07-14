@@ -1,6 +1,10 @@
 import { type CheckOutput, type CheckTask } from "../types/check";
 import { type Finding } from "../types/finding";
-import { type InterruptReason, type ScanEvents } from "../types/runner";
+import {
+  type InterruptReason,
+  type ScanEvents,
+  type StepExecutionRecord,
+} from "../types/runner";
 
 import {
   ScanRunnableError,
@@ -21,6 +25,12 @@ export type TaskExecutionResult =
       errorMessage: string;
     };
 
+export type TaskExecutorOptions = {
+  emit: <T extends keyof ScanEvents>(event: T, data: ScanEvents[T]) => void;
+  getInterruptReason: () => InterruptReason | undefined;
+  recordStepExecution: (record: StepExecutionRecord) => void;
+};
+
 export type TaskExecutor = {
   tickUntilDone: (task: CheckTask) => Promise<TaskExecutionResult>;
 };
@@ -28,10 +38,8 @@ export type TaskExecutor = {
 export const createTaskExecutor = ({
   emit,
   getInterruptReason,
-}: {
-  emit: <T extends keyof ScanEvents>(event: T, data: ScanEvents[T]) => void;
-  getInterruptReason: () => InterruptReason | undefined;
-}): TaskExecutor => {
+  recordStepExecution,
+}: TaskExecutorOptions): TaskExecutor => {
   const tick = async (task: CheckTask): Promise<TaskExecutionResult> => {
     const interruptReason = getInterruptReason();
     if (interruptReason) {
@@ -39,7 +47,13 @@ export const createTaskExecutor = ({
     }
 
     try {
+      const stateBefore = task.getCurrentState();
+      const currentStepName = task.getCurrentStepName() ?? "unknown";
+
       const result = await task.tick();
+
+      const stateAfter = task.getCurrentState();
+      const nextStepName = task.getCurrentStepName();
 
       if (result.findings) {
         for (const finding of result.findings) {
@@ -50,6 +64,18 @@ export const createTaskExecutor = ({
           });
         }
       }
+
+      const stepRecord: StepExecutionRecord = {
+        stepName: currentStepName,
+        stateBefore,
+        stateAfter,
+        findings: result.findings || [],
+        ...(result.status === "done"
+          ? { result: "done" }
+          : { result: "continue", nextStep: nextStepName ?? "unknown" }),
+      };
+
+      recordStepExecution(stepRecord);
 
       return {
         findings: result.findings,

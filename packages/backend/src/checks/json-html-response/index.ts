@@ -1,25 +1,33 @@
 import { defineCheck, done, Severity } from "engine";
 
 export default defineCheck(({ step }) => {
-  step("checkJsonHtmlResponse", (_, context) => {
+  step("checkJsonHtmlResponse", (state, context) => {
     const response = context.target.response;
     if (!response) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const contentType = response.getHeader("content-type")?.[0];
     if (contentType === undefined || !contentType.includes("text/html")) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const body = response.getBody();
     if (!body) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const bodyText = body.toText();
     if (!bodyText.trim()) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     try {
@@ -38,13 +46,18 @@ export default defineCheck(({ step }) => {
               },
             },
           ],
+          state,
         });
       }
     } catch {
-      return done();
+      return done({
+        state,
+      });
     }
 
-    return done();
+    return done({
+      state,
+    });
   });
 
   return {
@@ -55,6 +68,7 @@ export default defineCheck(({ step }) => {
         "Detects responses that contain valid JSON but have text/html Content-Type header",
       type: "passive",
       tags: ["xss"],
+      severities: [Severity.INFO],
       aggressivity: {
         minRequests: 0,
         maxRequests: 0,

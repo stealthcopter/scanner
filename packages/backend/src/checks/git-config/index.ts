@@ -116,12 +116,16 @@ export default defineCheck<{
 
   step("testGitFile", async (state, context) => {
     if (state.gitFiles.length === 0) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const [currentFile, ...remainingFiles] = state.gitFiles;
     if (currentFile === undefined) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const gitPath = state.basePath + "/" + currentFile;
@@ -130,7 +134,6 @@ export default defineCheck<{
     request.setPath(gitPath);
     request.setMethod("GET");
 
-    console.log("Sending request to", request.getPath());
     const result = await context.sdk.requests.send(request);
 
     if (result.response.getCode() === 200) {
@@ -164,6 +167,7 @@ export default defineCheck<{
                 },
               },
             ],
+            state,
           });
         }
       }
@@ -186,6 +190,7 @@ export default defineCheck<{
         "Detects publicly accessible Git files (.git/config, .git/logs/HEAD, etc.) that may contain sensitive repository information",
       type: "active",
       tags: ["information-disclosure", "git"],
+      severities: [Severity.MEDIUM, Severity.CRITICAL],
       aggressivity: {
         minRequests: 2,
         maxRequests: GIT_FILES.length,

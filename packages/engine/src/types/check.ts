@@ -1,4 +1,4 @@
-import { type Finding } from "./finding";
+import { type Finding, type Severity } from "./finding";
 import {
   type RuntimeContext,
   type ScanAggressivity,
@@ -19,6 +19,7 @@ export type CheckMetadata = {
   tags: string[];
   aggressivity: CheckAggressivity;
   type: CheckType;
+  severities: Severity[];
   dependsOn?: string[];
   minAggressivity?: ScanAggressivity;
 };
@@ -70,6 +71,8 @@ export type CheckTask = {
   getFindings: () => Finding[];
   getOutput: () => CheckOutput;
   getTarget: () => ScanTarget;
+  getCurrentStepName: () => string | undefined;
+  getCurrentState: () => JSONSerializable;
 };
 
 export type RunState<T> = {

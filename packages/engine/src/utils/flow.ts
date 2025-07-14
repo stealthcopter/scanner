@@ -20,13 +20,13 @@ export const continueWith = <T>(params: ContinueParams<T>): StepResult<T> => {
 
 type DoneParams<T> = {
   findings?: Finding[];
-  state?: T;
+  state: T;
 };
 
 /**
  * Creates a result that finishes the current scan task.
  */
-export const done = <T>(params?: DoneParams<T>): StepResult<T> => {
+export const done = <T>(params: DoneParams<T>): StepResult<T> => {
   return {
     kind: "Done",
     findings: params?.findings,

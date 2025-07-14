@@ -1,12 +1,14 @@
 import { defineCheck, done, Severity } from "engine";
 
 export default defineCheck(({ step }) => {
-  step("checkCorsHeaders", (_, context) => {
+  step("checkCorsHeaders", (state, context) => {
     const response = context.target.response;
     const request = context.target.request;
 
     if (!response) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const accessControlAllowOrigin = response.getHeader(
@@ -18,7 +20,9 @@ export default defineCheck(({ step }) => {
     const requestOrigin = request.getHeader("origin")?.[0];
 
     if (accessControlAllowOrigin === undefined) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     if (
@@ -37,6 +41,7 @@ export default defineCheck(({ step }) => {
             },
           },
         ],
+        state,
       });
     }
 
@@ -53,6 +58,7 @@ export default defineCheck(({ step }) => {
             },
           },
         ],
+        state,
       });
     }
 
@@ -75,10 +81,13 @@ export default defineCheck(({ step }) => {
             },
           },
         ],
+        state,
       });
     }
 
-    return done();
+    return done({
+      state,
+    });
   });
 
   return {
@@ -86,9 +95,10 @@ export default defineCheck(({ step }) => {
       id: "cors-misconfig",
       name: "CORS Misconfiguration",
       description:
-        "Detects common CORS misconfigurations including wildcard origins, null origins, reflected origins, and overly permissive settings",
+        "Detects common CORS misconfigurations including wildcard origins, null origins and reflected origins",
       type: "passive",
       tags: ["cors", "security-headers"],
+      severities: [Severity.LOW],
       aggressivity: {
         minRequests: 0,
         maxRequests: 0,

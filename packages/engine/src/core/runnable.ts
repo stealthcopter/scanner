@@ -12,6 +12,8 @@ import {
 import { type CheckDefinition, type CheckOutput } from "../types/check";
 import { type Finding } from "../types/finding";
 import {
+  type CheckExecutionRecord,
+  type ExecutionHistory,
   type InterruptReason,
   type RuntimeContext,
   type ScanConfig,
@@ -20,6 +22,7 @@ import {
   type ScanResult,
   type ScanRunnable,
   type ScanTarget,
+  type StepExecutionRecord,
 } from "../types/runner";
 import { parseHtmlFromString } from "../utils/html/parser";
 
@@ -42,6 +45,63 @@ export const createRunnable = ({
   let interruptReason: InterruptReason | undefined;
   let hasRun = false;
 
+  const executionHistory: ExecutionHistory = [];
+  const activeCheckRecords = new Map<
+    string,
+    {
+      checkId: string;
+      targetRequestId: string;
+      steps: StepExecutionRecord[];
+    }
+  >();
+
+  const recordStepExecution = (
+    checkId: string,
+    targetRequestId: string,
+    record: StepExecutionRecord
+  ) => {
+    const key = `${checkId}-${targetRequestId}`;
+    const activeRecord = activeCheckRecords.get(key);
+    if (activeRecord) {
+      activeRecord.steps.push(record);
+    }
+  };
+
+  const startCheckExecution = (checkId: string, targetRequestId: string) => {
+    const key = `${checkId}-${targetRequestId}`;
+    activeCheckRecords.set(key, {
+      checkId,
+      targetRequestId,
+      steps: [],
+    });
+  };
+
+  const endCheckExecution = (
+    checkId: string,
+    targetRequestId: string,
+    result:
+      | { status: "completed"; finalOutput: CheckOutput }
+      | {
+          status: "failed";
+          error: { code: ScanRunnableErrorCode; message: string };
+        }
+  ) => {
+    const key = `${checkId}-${targetRequestId}`;
+    const activeRecord = activeCheckRecords.get(key);
+
+    if (activeRecord) {
+      const checkRecord: CheckExecutionRecord = {
+        checkId: activeRecord.checkId,
+        targetRequestId: activeRecord.targetRequestId,
+        steps: activeRecord.steps,
+        ...result,
+      };
+
+      executionHistory.push(checkRecord);
+      activeCheckRecords.delete(key);
+    }
+  };
+
   const createDedupeKeysSnapshot = (): Map<string, Set<string>> => {
     const snapshot = new Map<string, Set<string>>();
     for (const [checkId, keySet] of dedupeKeys) {
@@ -54,7 +114,7 @@ export const createRunnable = ({
     if (hasRun) {
       throw new ScanRunnableError(
         "Cannot set dedupe keys after scan has started",
-        ScanRunnableErrorCode.SCAN_ALREADY_RUNNING,
+        ScanRunnableErrorCode.SCAN_ALREADY_RUNNING
       );
     }
     dedupeKeys = externalDedupeKeys;
@@ -63,8 +123,16 @@ export const createRunnable = ({
   const isCheckApplicable = (
     check: CheckDefinition,
     context: RuntimeContext,
-    targetDedupeKeys: Map<string, Set<string>> = dedupeKeys,
+    targetDedupeKeys: Map<string, Set<string>> = dedupeKeys
   ): boolean => {
+    if (
+      !check.metadata.severities.some((s) =>
+        context.config.severities.includes(s)
+      )
+    ) {
+      return false;
+    }
+
     if (
       check.metadata.minAggressivity !== undefined &&
       check.metadata.minAggressivity > context.config.aggressivity
@@ -98,7 +166,7 @@ export const createRunnable = ({
 
   const createRuntimeContext = (
     target: ScanTarget,
-    sdk: SDK,
+    sdk: SDK
   ): RuntimeContext => {
     return {
       target,
@@ -119,10 +187,18 @@ export const createRunnable = ({
     };
   };
 
-  const taskExecutor = createTaskExecutor({
-    emit,
-    getInterruptReason: () => interruptReason,
-  });
+  const createTaskExecutorForCheck = (
+    checkId: string,
+    targetRequestId: string
+  ) => {
+    return createTaskExecutor({
+      emit,
+      getInterruptReason: () => interruptReason,
+      recordStepExecution: (record: StepExecutionRecord) => {
+        recordStepExecution(checkId, targetRequestId, record);
+      },
+    });
+  };
 
   const createWrappedSdk = (checkID: string, targetRequestID: string): SDK => {
     return {
@@ -161,7 +237,7 @@ export const createRunnable = ({
 
             throw new ScanRunnableError(
               `Request ID: ${targetRequestID} failed: ${errorMessage}`,
-              ScanRunnableErrorCode.REQUEST_FAILED,
+              ScanRunnableErrorCode.REQUEST_FAILED
             );
           }
         },
@@ -171,14 +247,14 @@ export const createRunnable = ({
 
   const processBatch = async (
     batch: CheckDefinition[],
-    context: RuntimeContext,
+    context: RuntimeContext
   ): Promise<void> => {
     const tasks = batch
       .filter((check) => isCheckApplicable(check, context))
       .map((check) => {
         const wrappedSdk = createWrappedSdk(
           check.metadata.id,
-          context.target.request.getId(),
+          context.target.request.getId()
         );
         const taskContext = {
           ...context,
@@ -205,12 +281,17 @@ export const createRunnable = ({
         });
       })
       .onTaskStarted((task) => {
+        startCheckExecution(task.metadata.id, context.target.request.getId());
         emit("scan:check-started", {
           checkID: task.metadata.id,
           targetRequestID: context.target.request.getId(),
         });
       })
       .process(async (task) => {
+        const taskExecutor = createTaskExecutorForCheck(
+          task.metadata.id,
+          context.target.request.getId()
+        );
         const result = await taskExecutor.tickUntilDone(task);
         if (result.findings) {
           findings.push(...result.findings);
@@ -218,9 +299,20 @@ export const createRunnable = ({
 
         if (result.status === "done") {
           dependencies.set(task.metadata.id, result.output);
+          endCheckExecution(task.metadata.id, context.target.request.getId(), {
+            status: "completed",
+            finalOutput: result.output,
+          });
         }
 
         if (result.status === "failed") {
+          endCheckExecution(task.metadata.id, context.target.request.getId(), {
+            status: "failed",
+            error: {
+              code: result.errorCode,
+              message: result.errorMessage,
+            },
+          });
           emit("scan:check-failed", {
             checkID: task.metadata.id,
             targetRequestID: context.target.request.getId(),
@@ -253,7 +345,7 @@ export const createRunnable = ({
             if (target === undefined) {
               throw new ScanRunnableError(
                 `Request ${requestID} not found`,
-                ScanRunnableErrorCode.REQUEST_NOT_FOUND,
+                ScanRunnableErrorCode.REQUEST_NOT_FOUND
               );
             }
 
@@ -262,7 +354,7 @@ export const createRunnable = ({
                 request: target.request,
                 response: target.response,
               },
-              sdk,
+              sdk
             );
 
             for (const batch of batches) {
@@ -319,13 +411,13 @@ export const createRunnable = ({
             request: target.request,
             response: target.response,
           },
-          sdk,
+          sdk
         );
 
         const tasks = batches.map((batch) =>
           batch.filter((check) =>
-            isCheckApplicable(check, context, snapshotDedupeKeys),
-          ),
+            isCheckApplicable(check, context, snapshotDedupeKeys)
+          )
         );
 
         checksTotal += tasks.flat().length;
@@ -346,6 +438,7 @@ export const createRunnable = ({
     externalDedupeKeys: externalDedupeKeys,
     on: (event, callback) => on(event, callback),
     emit: (event, data) => emit(event, data),
+    getExecutionHistory: () => [...executionHistory],
   };
 };
 
@@ -363,7 +456,7 @@ const getCheckBatches = (checks: CheckDefinition[]): CheckDefinition[][] => {
       for (const dependencyId of dependencies) {
         if (!checkMap.has(dependencyId)) {
           throw new Error(
-            `Check '${check.metadata.id}' has unknown dependency '${dependencyId}'`,
+            `Check '${check.metadata.id}' has unknown dependency '${dependencyId}'`
           );
         }
         if (!dag[dependencyId]) {
@@ -382,6 +475,6 @@ const getCheckBatches = (checks: CheckDefinition[]): CheckDefinition[][] => {
         throw new Error(`Check '${checkId}' not found in checkMap`);
       }
       return check;
-    }),
+    })
   );
 };

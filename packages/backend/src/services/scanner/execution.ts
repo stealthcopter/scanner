@@ -200,6 +200,11 @@ export const startActiveScan = (
       );
 
       const result = await runnable.run(requestIDs);
+      const executionHistory = runnable.getExecutionHistory();
+      console.log(
+        "executionHistory=",
+        JSON.stringify(executionHistory, null, 2),
+      );
       switch (result.kind) {
         case "Finished": {
           const finishedSession = scannerStore.finishSession(id);

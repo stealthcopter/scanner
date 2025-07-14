@@ -4,7 +4,8 @@
   "type": "module",
   "types": "src/index.ts",
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@caido/sdk-backend": "^0.48.1",

@@ -4,7 +4,7 @@ import { type Request, type Response } from "caido:utils";
 import { type ScanRunnableErrorCode } from "../core/errors";
 import { type ParsedHtml } from "../utils/html/types";
 
-import { type CheckDefinition } from "./check";
+import { type CheckDefinition, type CheckOutput } from "./check";
 import { type Finding, type Severity } from "./finding";
 import { type JSONSerializable } from "./utils";
 
@@ -27,6 +27,7 @@ export type ScanRunnable = {
   estimate: (requestIDs: string[]) => Promise<ScanEstimateResult>;
   cancel: (reason: InterruptReason) => Promise<void>;
   externalDedupeKeys: (dedupeKeys: Map<string, Set<string>>) => void;
+  getExecutionHistory: () => ExecutionHistory;
   on: <T extends keyof ScanEvents>(
     event: T,
     callback: (data: ScanEvents[T]) => void,
@@ -115,6 +116,33 @@ export type RuntimeContext = {
   };
   config: ScanConfig;
 };
+
+export type StepExecutionRecord = {
+  stepName: string;
+  stateBefore: JSONSerializable;
+  stateAfter: JSONSerializable;
+  findings: Finding[];
+} & ({ result: "done" } | { result: "continue"; nextStep: string });
+
+export type CheckExecutionRecord = {
+  checkId: string;
+  targetRequestId: string;
+  steps: StepExecutionRecord[];
+} & (
+  | {
+      status: "completed";
+      finalOutput: CheckOutput;
+    }
+  | {
+      status: "failed";
+      error: {
+        code: ScanRunnableErrorCode;
+        message: string;
+      };
+    }
+);
+
+export type ExecutionHistory = CheckExecutionRecord[];
 
 export type ScanConfig = {
   aggressivity: ScanAggressivity;

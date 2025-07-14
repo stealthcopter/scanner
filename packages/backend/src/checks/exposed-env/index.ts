@@ -78,12 +78,16 @@ export default defineCheck<{
   step("testEnvFile", async (state, context) => {
     // If there are no more files to test, we're done
     if (state.envFiles.length === 0) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const [currentFile, ...remainingFiles] = state.envFiles;
     if (currentFile === undefined) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const envPath = state.basePath + "/" + currentFile;
@@ -142,6 +146,7 @@ export default defineCheck<{
         "Detects publicly accessible environment files (.env, .env.local, etc.) that may contain sensitive configuration data",
       type: "active",
       tags: ["information-disclosure"],
+      severities: [Severity.CRITICAL],
       aggressivity: {
         minRequests: 1,
         maxRequests: ENV_FILES.length,
