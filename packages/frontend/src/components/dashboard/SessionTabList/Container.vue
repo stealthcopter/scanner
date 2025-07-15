@@ -24,6 +24,10 @@ const handleTabSelect = (sessionId: string) => {
 const handleRename = (sessionId: string, newName: string) => {
   scannerService.updateSessionTitle(sessionId, newName);
 };
+
+const handleDelete = (sessionId: string) => {
+  scannerService.deleteScanSession(sessionId);
+};
 </script>
 
 <template>
@@ -45,6 +49,7 @@ const handleRename = (sessionId: string, newName: string) => {
           :status="session.kind"
           @select="handleTabSelect(session.id)"
           @rename="(newName) => handleRename(session.id, newName)"
+          @delete="handleDelete(session.id)"
         />
       </div>
     </template>

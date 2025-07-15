@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useDebounceFn, whenever } from "@vueuse/core";
 import Button from "primevue/button";
+import ContextMenu from "primevue/contextmenu";
 import { nextTick, ref } from "vue";
 
 const isEditable = defineModel<boolean>("isEditable", { default: false });
@@ -15,10 +16,29 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "select", event: MouseEvent): void;
   (e: "rename", newName: string): void;
+  (e: "delete"): void;
 }>();
 
 const newValue = ref("");
 const inputRef = ref<HTMLInputElement>();
+const contextMenuRef = ref<InstanceType<typeof ContextMenu>>();
+
+const contextMenuItems = [
+  {
+    label: "Rename",
+    icon: "fas fa-pencil",
+    command: () => {
+      isEditable.value = true;
+    },
+  },
+  {
+    label: "Delete",
+    icon: "fas fa-trash",
+    command: () => {
+      emit("delete");
+    },
+  },
+];
 
 const getStatusColor = (kind?: string) => {
   switch (kind) {
@@ -37,6 +57,10 @@ const getStatusColor = (kind?: string) => {
 
 const onDoubleClick = () => {
   isEditable.value = true;
+};
+
+const onRightClick = (event: MouseEvent) => {
+  contextMenuRef.value?.show(event);
 };
 
 whenever(isEditable, async () => {
@@ -68,6 +92,7 @@ const onSelect = (event: MouseEvent) => {
     :data-is-selected="isSelected"
     :data-is-editable="isEditable"
     @dblclick="onDoubleClick"
+    @contextmenu.prevent="onRightClick"
   >
     <Button
       :class="[
@@ -104,5 +129,7 @@ const onSelect = (event: MouseEvent) => {
         <span v-else class="px-1 whitespace-nowrap">{{ label }}</span>
       </div>
     </Button>
+
+    <ContextMenu ref="contextMenuRef" :model="contextMenuItems" />
   </div>
 </template>

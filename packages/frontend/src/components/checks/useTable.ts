@@ -1,4 +1,4 @@
-import type { CheckMetadata } from "engine";
+import type { CheckAggressivity, CheckMetadata } from "engine";
 import type { DataTableFilterMeta } from "primevue/datatable";
 import { computed, ref } from "vue";
 
@@ -7,14 +7,7 @@ import { useConfigService } from "@/services/config";
 
 export const useTable = () => {
   const search = ref("");
-  const typeFilter = ref("all");
   const expandedRows = ref([]);
-
-  const typeOptions = [
-    { label: "All Checks", value: "all" },
-    { label: "Passive", value: "passive" },
-    { label: "Active", value: "active" },
-  ];
 
   const checksService = useChecksService();
   const configService = useConfigService();
@@ -27,25 +20,43 @@ export const useTable = () => {
     const checksState = checksService.getState();
     if (checksState.type !== "Success") return [];
 
-    return checksState.checks.filter((check) => {
-      const typeMatches = filterByType(check.type, typeFilter.value ?? "all");
-      return typeMatches;
-    });
+    return checksState.checks;
   });
 
   const getAggressivityText = (check: CheckMetadata) => {
     const { minRequests, maxRequests } = check.aggressivity;
-    if (minRequests === maxRequests) {
-      return `${minRequests} request${minRequests === 1 ? "" : "s"}`;
+
+    if (minRequests === 0 && maxRequests === 0) {
+      return "No requests";
     }
-    return `${minRequests}-${
-      maxRequests === "Infinity" ? "Infinite" : maxRequests
-    } requests`;
+
+    if (minRequests === maxRequests) {
+      return `${minRequests} requests`;
+    }
+
+    if (maxRequests === "Infinity") {
+      return `${minRequests}+ requests`;
+    }
+
+    return `${minRequests}–${maxRequests} requests`;
   };
 
-  const filterByType = (value: string, filter: string) => {
-    if (!filter || filter === "all") return true;
-    return value === filter;
+  const getAggressivityBadgeClass = (aggressivity: CheckAggressivity) => {
+    const { minRequests, maxRequests } = aggressivity;
+
+    if (minRequests === 0 && maxRequests === 0) {
+      return "text-surface-300";
+    }
+
+    if (maxRequests === "Infinity") {
+      return "text-red-400";
+    }
+
+    if (maxRequests >= 10) {
+      return "text-amber-300";
+    }
+
+    return "text-red-300";
   };
 
   const getPassiveEnabled = (check: CheckMetadata) => {
@@ -123,14 +134,13 @@ export const useTable = () => {
 
   return {
     search,
-    typeFilter,
     expandedRows,
-    typeOptions,
     filters,
     checks,
     getPassiveEnabled,
     getActiveEnabled,
     getAggressivityText,
+    getAggressivityBadgeClass,
     togglePassiveCheck,
     toggleActiveCheck,
   };

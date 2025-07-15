@@ -3,6 +3,7 @@ import { createRegistry } from "engine";
 import { error, ok, type Result } from "shared";
 
 import { checks } from "./checks";
+import { IdSchema } from "./schemas";
 import { getChecks } from "./services/checks";
 import { getUserConfig, updateUserConfig } from "./services/config";
 import { clearQueueTasks, getQueueTask, getQueueTasks } from "./services/queue";
@@ -19,6 +20,7 @@ import { ConfigStore } from "./stores/config";
 import { QueueStore } from "./stores/queue";
 import { type BackendSDK } from "./types";
 import { TaskQueue } from "./utils/task-queue";
+import { validateInput } from "./utils/validation";
 
 export { type BackendEvents } from "./types";
 
@@ -66,7 +68,7 @@ export function init(sdk: BackendSDK) {
   const configStore = ConfigStore.get();
   const queueStore = QueueStore.get();
   const config = configStore.getUserConfig();
-  const passiveTaskQueue = new TaskQueue(config.passive.concurrentChecks);
+  const passiveTaskQueue = new TaskQueue(config.passive.concurrentScans);
   queueStore.setPassiveTaskQueue(passiveTaskQueue);
 
   const passiveDedupeKeys = new Map<string, Set<string>>();
@@ -74,7 +76,7 @@ export function init(sdk: BackendSDK) {
     const config = configStore.getUserConfig();
     if (!config.passive.enabled) return;
 
-    passiveTaskQueue.setConcurrency(config.passive.concurrentChecks);
+    passiveTaskQueue.setConcurrency(config.passive.concurrentScans);
 
     if (config.passive.inScopeOnly) {
       const inScope = sdk.requests.inScope(request);
@@ -104,10 +106,13 @@ export function init(sdk: BackendSDK) {
       const runnable = registry.create(sdk, {
         aggressivity: config.passive.aggressivity,
         inScopeOnly: config.passive.inScopeOnly,
-        concurrentChecks: config.passive.concurrentChecks,
+        concurrentChecks: config.passive.concurrentScans,
+        concurrentRequests: config.passive.concurrentRequests,
         severities: config.passive.severities,
+        concurrentTargets: 1,
         scanTimeout: 5 * 60,
         checkTimeout: 2 * 60,
+        requestsDelayMs: 0,
       });
 
       runnable.externalDedupeKeys(passiveDedupeKeys);
@@ -155,7 +160,12 @@ export const getRequestResponse = async (
     response: { id: string; raw: string };
   }>
 > => {
-  const result = await sdk.requests.get(requestId);
+  const validation = validateInput(IdSchema, requestId);
+  if (validation.kind === "Error") {
+    return validation;
+  }
+
+  const result = await sdk.requests.get(validation.value);
 
   if (!result) {
     return error("Request not found");

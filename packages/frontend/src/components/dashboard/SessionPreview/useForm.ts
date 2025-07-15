@@ -154,14 +154,6 @@ export const useForm = (props: { session: Session }) => {
     };
   });
 
-  const hasFindings = computed(() => {
-    return (
-      session.value.kind === "Running" ||
-      session.value.kind === "Done" ||
-      session.value.kind === "Interrupted"
-    );
-  });
-
   const severityOrder = [
     Severity.CRITICAL,
     Severity.HIGH,
@@ -201,10 +193,6 @@ export const useForm = (props: { session: Session }) => {
     isDeleting.value = false;
   };
 
-  const onExport = () => {
-    console.log(JSON.stringify(session.value, null, 2));
-  };
-
   return {
     getStatusColor,
     getSeverityBadgeColor,
@@ -217,12 +205,10 @@ export const useForm = (props: { session: Session }) => {
     checksFailed,
     checksRunning,
     findingsBySeverity,
-    hasFindings,
     timeSinceCreated,
     timeSinceFinished,
     onCancel,
     onDelete,
-    onExport,
     isDeleting,
     isCancelling,
   };

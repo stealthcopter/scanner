@@ -33,7 +33,7 @@ const handleDeleteSelected = () => {
 };
 </script>
 <template>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col h-full py-1">
     <div class="py-2 flex justify-between items-center h-8 flex-shrink-0">
       <div class="text-sm text-surface-400">
         {{ form.targets.length }} unique requests

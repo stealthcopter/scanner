@@ -25,6 +25,7 @@ import {
   type StepExecutionRecord,
 } from "../types/runner";
 import { parseHtmlFromString } from "../utils/html/parser";
+import { createRequestQueue } from "./request-queue";
 
 import { createTaskExecutor } from "./execution";
 
@@ -54,6 +55,13 @@ export const createRunnable = ({
       steps: StepExecutionRecord[];
     }
   >();
+
+  const requestQueue = createRequestQueue({
+    sdk,
+    config,
+    emit,
+    getInterruptReason: () => interruptReason,
+  });
 
   const recordStepExecution = (
     checkId: string,
@@ -214,32 +222,12 @@ export const createRunnable = ({
             checkID,
           });
 
-          try {
-            const result = await sdk.requests.send(request);
-            emit("scan:request-completed", {
-              pendingRequestID,
-              requestID: result.request.getId(),
-              responseID: result.response.getId(),
-              checkID,
-              targetRequestID,
-            });
-            return result;
-          } catch (error) {
-            const errorMessage =
-              error instanceof Error ? error.message : "Unknown error";
-
-            emit("scan:request-failed", {
-              pendingRequestID,
-              error: errorMessage,
-              targetRequestID,
-              checkID,
-            });
-
-            throw new ScanRunnableError(
-              `Request ID: ${targetRequestID} failed: ${errorMessage}`,
-              ScanRunnableErrorCode.REQUEST_FAILED
-            );
-          }
+          return requestQueue.enqueue(
+            request,
+            pendingRequestID,
+            targetRequestID,
+            checkID
+          );
         },
       },
     } as SDK;
@@ -340,7 +328,7 @@ export const createRunnable = ({
           hasRun = true;
           emit("scan:started", {});
 
-          for (const requestID of requestIDs) {
+          const processTarget = async (requestID: string): Promise<void> => {
             const target = await sdk.requests.get(requestID);
             if (target === undefined) {
               throw new ScanRunnableError(
@@ -364,6 +352,21 @@ export const createRunnable = ({
 
               await processBatch(batch, context);
             }
+          };
+
+          const { errors } = await PromisePool.for(requestIDs)
+            .withConcurrency(config.concurrentTargets)
+            .handleError((error, _, pool) => {
+              if (error instanceof ScanRunnableInterruptedError) {
+                pool.stop();
+                return;
+              }
+              throw error;
+            })
+            .process(processTarget);
+
+          if (errors.length > 0) {
+            throw new ScanRuntimeError(errors);
           }
 
           return { kind: "Finished", findings };

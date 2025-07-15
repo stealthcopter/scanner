@@ -80,7 +80,7 @@ onMounted(() => {
   <div class="h-full flex flex-col gap-1">
     <MenuBar :model="items" class="h-12 gap-2">
       <template #start>
-        <div class="px-4 font-bold">Scanner</div>
+        <div class="px-2 font-bold">Scanner</div>
       </template>
 
       <template #item="{ item }">

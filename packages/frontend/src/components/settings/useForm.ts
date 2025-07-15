@@ -34,11 +34,20 @@ export const useForm = (state: Ref<ConfigState & { type: "Success" }>) => {
     },
   });
 
-  const passiveConcurrentChecks = computed({
-    get: () => state.value.config.passive.concurrentChecks,
+  const passiveConcurrentScans = computed({
+    get: () => state.value.config.passive.concurrentScans,
     set: async (value: number) => {
       await configService.updateConfig({
-        passive: { concurrentChecks: value },
+        passive: { concurrentScans: value },
+      });
+    },
+  });
+
+  const passiveConcurrentRequests = computed({
+    get: () => state.value.config.passive.concurrentRequests,
+    set: async (value: number) => {
+      await configService.updateConfig({
+        passive: { concurrentRequests: value },
       });
     },
   });
@@ -56,7 +65,8 @@ export const useForm = (state: Ref<ConfigState & { type: "Success" }>) => {
     passiveEnabled,
     passiveAggressivity,
     passiveInScopeOnly,
-    passiveConcurrentChecks,
+    passiveConcurrentScans,
+    passiveConcurrentRequests,
     passiveSeverities,
   };
 };

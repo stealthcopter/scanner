@@ -9,7 +9,6 @@ import Dialog from "primevue/dialog";
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import InputText from "primevue/inputtext";
-import Select from "primevue/select";
 
 import CheckExpansion from "./Expansion.vue";
 import { useCheckPresets } from "./usePresets";
@@ -17,8 +16,6 @@ import { useTable } from "./useTable";
 
 const {
   search,
-  typeFilter,
-  typeOptions,
   expandedRows,
   filters,
   checks,
@@ -26,6 +23,8 @@ const {
   getActiveEnabled,
   togglePassiveCheck,
   toggleActiveCheck,
+  getAggressivityText,
+  getAggressivityBadgeClass,
 } = useTable();
 
 const {
@@ -61,25 +60,14 @@ const {
           </p>
         </div>
 
-        <div class="flex gap-2 items-center">
-          <Select
-            v-model="typeFilter"
-            :options="typeOptions"
-            option-label="label"
-            option-value="value"
-            placeholder="Filter by type"
-            class="w-40"
+        <IconField>
+          <InputIcon class="fas fa-magnifying-glass" />
+          <InputText
+            v-model="search"
+            placeholder="Search checks"
+            class="w-full"
           />
-
-          <IconField>
-            <InputIcon class="fas fa-magnifying-glass" />
-            <InputText
-              v-model="search"
-              placeholder="Search checks"
-              class="w-full"
-            />
-          </IconField>
-        </div>
+        </IconField>
       </div>
 
       <DataTable
@@ -92,6 +80,7 @@ const {
         :global-filter-fields="['name', 'id', 'description']"
         size="small"
         expandable-rows
+        removableSort
       >
         <template #empty>
           <div class="flex justify-center items-center h-32">
@@ -101,7 +90,7 @@ const {
 
         <Column :expander="true" header-style="width: 3rem" />
 
-        <Column field="name" header="Check Name" class="min-w-48">
+        <Column field="name" header="Name" class="min-w-48">
           <template #body="{ data }">
             <div>
               <div class="font-medium">{{ data.name }}</div>
@@ -113,6 +102,23 @@ const {
         <Column field="description" header="Description" class="min-w-64">
           <template #body="{ data }">
             <div class="text-sm">{{ data.description }}</div>
+          </template>
+        </Column>
+
+        <Column
+          field="aggressivity"
+          header="Aggressivity"
+          class="min-w-48"
+          sortable
+          sort-field="aggressivity.maxRequests"
+        >
+          <template #body="{ data }">
+            <div
+              class="inline-flex px-2 rounded-md text-sm font-mono"
+              :class="getAggressivityBadgeClass(data.aggressivity)"
+            >
+              {{ getAggressivityText(data) }}
+            </div>
           </template>
         </Column>
 

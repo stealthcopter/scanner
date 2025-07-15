@@ -8,14 +8,8 @@ const props = defineProps<{
   session: Session;
 }>();
 
-const {
-  getStatusColor,
-  onCancel,
-  onDelete,
-  onExport,
-  isCancelling,
-  isDeleting,
-} = useForm(props);
+const { getStatusColor, onCancel, onDelete, isCancelling, isDeleting } =
+  useForm(props);
 </script>
 
 <template>
@@ -63,15 +57,6 @@ const {
         outlined
         size="small"
         @click="onDelete"
-      />
-
-      <Button
-        v-if="session.kind === 'Done'"
-        label="Export"
-        severity="secondary"
-        outlined
-        size="small"
-        @click="onExport"
       />
     </div>
   </div>

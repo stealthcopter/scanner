@@ -29,7 +29,7 @@ const launcher = useLauncher();
 </script>
 
 <template>
-  <div class="w-[900px] h-[450px] flex flex-col gap-2">
+  <div class="w-[900px] h-[500px] flex flex-col gap-2">
     <TabView
       v-model:active-index="currentStepIndex"
       class="flex-1 overflow-hidden"

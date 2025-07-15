@@ -18,12 +18,15 @@ export const runCheck = async (
   options?: {
     config?: Partial<ScanConfig>;
     sendHandler?: SendHandler;
-  },
+  }
 ): Promise<ExecutionHistory> => {
   const fullConfig: ScanConfig = {
     aggressivity: ScanAggressivity.MEDIUM,
-    inScopeOnly: true,
+    inScopeOnly: false,
     concurrentChecks: 1,
+    concurrentRequests: 1,
+    concurrentTargets: 1,
+    requestsDelayMs: 0,
     scanTimeout: 30000,
     checkTimeout: 10000,
     severities: ["info", "low", "medium", "high", "critical"],

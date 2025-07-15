@@ -21,7 +21,8 @@ export type UserConfig = {
     enabled: boolean;
     aggressivity: ScanAggressivity;
     inScopeOnly: boolean;
-    concurrentChecks: number;
+    concurrentScans: number;
+    concurrentRequests: number;
     overrides: Override[];
     severities: Severity[];
   };

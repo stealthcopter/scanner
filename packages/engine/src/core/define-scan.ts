@@ -73,7 +73,7 @@ export const defineCheck = <T>(
 
         if (invalidSeverities.length > 0) {
           throw new CheckDefinitionError(
-            `Invalid severity: ${invalidSeverities.join(", ")} for check ${metadata.id}. You should never reach this state, please report this as a bug.`,
+            `Invalid severity received for check ${metadata.id}. You should never reach this state, please report this as a bug.`,
             CheckDefinitionErrorCode.INVALID_SEVERITY,
           );
         }

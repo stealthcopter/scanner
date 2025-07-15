@@ -18,10 +18,12 @@ export const useLauncher = defineStore("stores.launcher", () => {
     targets: [],
     config: {
       aggressivity: ScanAggressivity.MEDIUM,
-      inScopeOnly: true,
+      inScopeOnly: false,
       scanTimeout: 10 * 60,
       checkTimeout: 2 * 60,
       concurrentChecks: 2,
+      concurrentTargets: 2,
+      concurrentRequests: 5,
       severities: [
         Severity.INFO,
         Severity.LOW,
@@ -29,6 +31,7 @@ export const useLauncher = defineStore("stores.launcher", () => {
         Severity.HIGH,
         Severity.CRITICAL,
       ],
+      requestsDelayMs: 50,
     },
     title: "Active Scan",
   };
