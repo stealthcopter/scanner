@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import Button from "primevue/button";
+import TabPanel from "primevue/tabpanel";
+import TabView from "primevue/tabview";
 
 import { useStepper } from "./useStepper";
 
@@ -8,18 +10,17 @@ import { useLauncher } from "@/stores/launcher";
 import { type FrontendSDK } from "@/types";
 
 const {
-  activeStep,
   steps,
-  currentStep,
+  currentStepIndex,
   canGoPrevious,
   isLastStep,
-  setActiveStep,
   goNext,
   goPrevious,
 } = useStepper();
 
 const props = defineProps<{
   sdk: FrontendSDK;
+  incrementCount: () => void;
 }>();
 
 provideSDK(props.sdk);
@@ -28,72 +29,45 @@ const launcher = useLauncher();
 </script>
 
 <template>
-  <div class="flex w-[900px] h-[550px]">
-    <!-- Sidebar Navigation -->
-    <div class="w-48 p-2">
-      <nav class="space-y-2">
-        <Button
-          v-for="step in steps"
-          :key="step.id"
-          :label="step.label"
-          :icon="step.icon"
-          :severity="activeStep === step.id ? 'secondary' : 'info'"
-          :outlined="activeStep !== step.id"
-          class="w-full justify-start"
-          @click="setActiveStep(step.id)"
-        />
-      </nav>
-    </div>
-
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col px-4">
-      <!-- Header -->
-      <div class="py-2">
-        <h1 class="text-xl font-semibold text-gray-100 m-0">
-          {{ currentStep?.label }}
-        </h1>
-        <p class="text-sm text-gray-400">
-          {{ currentStep?.description }}
-        </p>
-      </div>
-
-      <!-- Step Content -->
-      <div class="flex-1 overflow-auto">
-        <component :is="currentStep?.component" />
-      </div>
-
-      <!-- Footer Actions -->
-      <div class="py-2">
-        <div class="flex items-center justify-between">
-          <Button
-            v-if="canGoPrevious"
-            label="Previous"
-            icon="fas fa-chevron-left"
-            severity="info"
-            outlined
-            @click="goPrevious"
-          />
-          <div v-else></div>
-
-          <div class="flex space-x-3">
-            <Button
-              v-if="!isLastStep"
-              label="Next"
-              icon="fas fa-chevron-right"
-              icon-pos="right"
-              severity="info"
-              @click="goNext"
-            />
-            <Button
-              v-else
-              label="Run Scan"
-              icon="fas fa-play"
-              severity="success"
-              @click="launcher.onSubmit(props.sdk)"
-            />
-          </div>
-        </div>
-      </div>
+  <div class="w-[900px] h-[500px] flex flex-col gap-2">
+    <TabView
+      v-model:active-index="currentStepIndex"
+      class="flex-1 overflow-hidden"
+      :pt="{
+        panelContainer: {
+          class: 'overflow-auto',
+          style: 'padding: 0; height: 90%',
+        },
+      }"
+    >
+      <TabPanel v-for="step in steps" :key="step.id" :header="step.label">
+        <component :is="step.component" />
+      </TabPanel>
+    </TabView>
+    <div class="flex items-center justify-end gap-2 flex-shrink-0">
+      <Button
+        v-if="canGoPrevious"
+        label="Previous"
+        icon="fas fa-chevron-left"
+        severity="info"
+        outlined
+        @click="goPrevious"
+      />
+      <Button
+        v-if="!isLastStep"
+        label="Next"
+        icon="fas fa-chevron-right"
+        icon-pos="right"
+        severity="info"
+        outlined
+        @click="goNext"
+      />
+      <Button
+        label="Run Scan"
+        icon="fas fa-play"
+        severity="success"
+        @click="launcher.onSubmit(props.sdk, props.incrementCount)"
+      />
     </div>
   </div>
 </template>

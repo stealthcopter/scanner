@@ -2,14 +2,9 @@ import {
   continueWith,
   defineCheck,
   done,
-  ScanStrength,
+  ScanAggressivity,
   Severity,
 } from "engine";
-
-type ScanState = {
-  envFiles: string[];
-  basePath: string;
-};
 
 const ENV_FILES = [
   ".env",
@@ -18,27 +13,22 @@ const ENV_FILES = [
   ".env.development",
   ".env.staging",
   ".env.test",
-  ".env.example",
-  ".env.sample",
   ".env.backup",
   ".env.old",
-  ".env.orig",
-  ".env.dist",
   ".env.bak",
   ".env.dev",
   ".env.prod",
   ".env.stage",
   ".env.live",
-  ".env_1",
 ];
 
-const getEnvFilesToTest = (strength: ScanStrength): string[] => {
-  switch (strength) {
-    case ScanStrength.LOW:
+const getEnvFilesToTest = (aggressivity: ScanAggressivity): string[] => {
+  switch (aggressivity) {
+    case ScanAggressivity.LOW:
       return ENV_FILES.slice(0, 1);
-    case ScanStrength.MEDIUM:
-      return ENV_FILES.slice(0, 5);
-    case ScanStrength.HIGH:
+    case ScanAggressivity.MEDIUM:
+      return ENV_FILES.slice(0, 4);
+    case ScanAggressivity.HIGH:
       return ENV_FILES;
     default:
       return ENV_FILES.slice(0, 1);
@@ -71,9 +61,12 @@ const isValidEnvContent = (bodyText: string, contentType: string): boolean => {
   return commentPattern.test(trimmedBody) || keyValuePattern.test(trimmedBody);
 };
 
-export default defineCheck<ScanState>(({ step }) => {
+export default defineCheck<{
+  envFiles: string[];
+  basePath: string;
+}>(({ step }) => {
   step("setupScan", (_, context) => {
-    const envFiles = getEnvFilesToTest(context.config.strength);
+    const envFiles = getEnvFilesToTest(context.config.aggressivity);
     const basePath = getBasePath(context.target.request.getPath());
 
     return continueWith({
@@ -85,12 +78,16 @@ export default defineCheck<ScanState>(({ step }) => {
   step("testEnvFile", async (state, context) => {
     // If there are no more files to test, we're done
     if (state.envFiles.length === 0) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const [currentFile, ...remainingFiles] = state.envFiles;
     if (currentFile === undefined) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const envPath = state.basePath + "/" + currentFile;
@@ -99,23 +96,29 @@ export default defineCheck<ScanState>(({ step }) => {
     request.setPath(envPath);
     request.setMethod("GET");
 
-    const { response } = await context.sdk.requests.send(request);
+    const result = await context.sdk.requests.send(request);
 
-    if (response.getCode() === 200) {
-      const body = response.getBody();
+    if (result.response.getCode() === 200) {
+      const body = result.response.getBody();
       if (body) {
         const bodyText = body.toText();
-        const contentType = response.getHeader("content-type")?.[0] ?? "";
+        const contentType =
+          result.response.getHeader("content-type")?.[0] ?? "";
 
         if (isValidEnvContent(bodyText, contentType)) {
-          return done({
+          return continueWith({
+            nextStep: "testEnvFile",
+            state: {
+              ...state,
+              envFiles: remainingFiles,
+            },
             findings: [
               {
                 name: "Exposed Environment File",
                 description: `Environment file is publicly accessible at \`${envPath}\`. This file may contain sensitive configuration data, API keys, or credentials.`,
                 severity: Severity.CRITICAL,
                 correlation: {
-                  requestID: context.target.request.getId(),
+                  requestID: result.request.getId(),
                   locations: [],
                 },
               },
@@ -143,6 +146,7 @@ export default defineCheck<ScanState>(({ step }) => {
         "Detects publicly accessible environment files (.env, .env.local, etc.) that may contain sensitive configuration data",
       type: "active",
       tags: ["information-disclosure"],
+      severities: [Severity.CRITICAL],
       aggressivity: {
         minRequests: 1,
         maxRequests: ENV_FILES.length,

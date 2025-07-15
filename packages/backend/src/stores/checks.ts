@@ -50,22 +50,27 @@ export class ChecksStore {
       selectedChecks = [...this.checks];
     }
 
-    if (options.type) {
-      const overrides = options.overrides ?? [];
-      const overrideMap = new Map(overrides.map((o) => [o.checkID, o.enabled]));
+    if (options.overrides) {
+      const overrideMap = new Map(
+        options.overrides.map((o) => [o.checkID, o.enabled]),
+      );
 
       selectedChecks = selectedChecks.filter((check) => {
         const override = overrideMap.get(check.metadata.id);
-        if (override === true) {
-          return true;
+        if (override !== undefined) {
+          return override;
         }
 
-        if (override === false) {
-          return false;
+        if (options.type) {
+          return check.metadata.type === options.type;
         }
 
-        return check.metadata.type === options.type;
+        return true;
       });
+    } else if (options.type) {
+      selectedChecks = selectedChecks.filter(
+        (check) => check.metadata.type === options.type,
+      );
     }
 
     if (options.exclude) {

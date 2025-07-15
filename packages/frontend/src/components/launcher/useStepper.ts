@@ -1,46 +1,31 @@
-import { type Component, computed, ref } from "vue";
+import { computed, ref } from "vue";
 
 import { ConfigStep } from "./ConfigStep";
 import { TargetsStep } from "./TargetsStep";
 
 type Step = "targets" | "configuration";
 
-type StepDefinition = {
-  id: Step;
-  label: string;
-  description: string;
-  icon: string;
-  component: Component;
-};
-
 export const useStepper = () => {
-  const activeStep = ref<Step>("targets");
+  const currentStepIndex = ref(0);
 
-  const steps: StepDefinition[] = [
+  const steps = [
     {
       id: "targets",
       label: "Targets",
-      description:
-        "Review and delete targets you don't want to include in the scan. Multi-select is supported.",
-      icon: "fas fa-bullseye",
       component: TargetsStep,
     },
     {
       id: "configuration",
       label: "Configuration",
-      description: "Configure the scan parameters.",
-      icon: "fas fa-cog",
       component: ConfigStep,
     },
   ];
 
-  const currentStepIndex = computed(() => {
-    return steps.findIndex((step) => step.id === activeStep.value);
-  });
+  const activeStep = computed(
+    () => steps[currentStepIndex.value]?.id ?? "targets",
+  );
 
-  const currentStep = computed(() => {
-    return steps.find((step) => step.id === activeStep.value);
-  });
+  const currentStep = computed(() => steps[currentStepIndex.value]);
 
   const canGoNext = computed(() => {
     return currentStepIndex.value < steps.length - 1;
@@ -55,26 +40,21 @@ export const useStepper = () => {
   });
 
   const setActiveStep = (stepId: Step) => {
-    activeStep.value = stepId;
+    const index = steps.findIndex((step) => step.id === stepId);
+    if (index !== -1) {
+      currentStepIndex.value = index;
+    }
   };
 
   const goNext = () => {
     if (canGoNext.value) {
-      const nextIndex = currentStepIndex.value + 1;
-      const nextStep = steps[nextIndex];
-      if (nextStep) {
-        activeStep.value = nextStep.id;
-      }
+      currentStepIndex.value++;
     }
   };
 
   const goPrevious = () => {
     if (canGoPrevious.value) {
-      const prevIndex = currentStepIndex.value - 1;
-      const prevStep = steps[prevIndex];
-      if (prevStep) {
-        activeStep.value = prevStep.id;
-      }
+      currentStepIndex.value--;
     }
   };
 

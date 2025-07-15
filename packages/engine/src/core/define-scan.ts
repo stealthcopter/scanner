@@ -12,14 +12,15 @@ import {
   type StepName,
   type StepTickResult,
 } from "../types";
+import { type JSONSerializable } from "../types/utils";
 
 import { CheckDefinitionError, CheckDefinitionErrorCode } from "./errors";
 
 export const defineCheck = <T>(
   definition: (utils: DefineUtils<T>) => {
     metadata: CheckMetadata;
+    dedupeKey: (target: ScanTarget) => string;
     initState?: () => T;
-    dedupeKey?: (target: ScanTarget) => string;
     when?: (target: ScanTarget) => boolean;
     output?: (state: T, context: RuntimeContext) => CheckOutput;
   },
@@ -64,37 +65,44 @@ export const defineCheck = <T>(
       }
 
       const result = await step.action(runState.state, context);
-      if (result.findings) {
+      if (result.findings !== undefined && result.findings.length > 0) {
+        const allowedSeverities = metadata.severities;
+        const invalidSeverities = result.findings.filter(
+          (finding) => !allowedSeverities.includes(finding.severity),
+        );
+
+        if (invalidSeverities.length > 0) {
+          throw new CheckDefinitionError(
+            `Invalid severity received for check ${metadata.id}. You should never reach this state, please report this as a bug.`,
+            CheckDefinitionErrorCode.INVALID_SEVERITY,
+          );
+        }
+
         runState.findings.push(...result.findings);
       }
-
       switch (result.kind) {
         case "Done":
           runState.nextStep = undefined;
           if (result.state !== undefined) {
             runState.state = result.state;
           }
-          return { isDone: true, findings: result.findings };
+
+          return { status: "done", findings: result.findings };
         case "Continue":
           runState.state = result.state;
           runState.nextStep = result.nextStep;
-          return { isDone: false, findings: result.findings };
+          return { status: "continue", findings: result.findings };
       }
-    };
-
-    const getOutput = (): CheckOutput => {
-      if (output === undefined) {
-        return undefined;
-      }
-
-      return output(runState.state, context);
     };
 
     return {
       metadata,
       tick,
       getFindings: () => runState.findings,
-      getOutput,
+      getOutput: () => output && output(runState.state, context),
+      getTarget: () => context.target,
+      getCurrentStepName: () => runState.nextStep,
+      getCurrentState: () => runState.state as JSONSerializable,
     };
   };
 

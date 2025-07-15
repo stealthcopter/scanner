@@ -45,11 +45,7 @@ export const createRegistry = (): ScanRegistry => {
     return createRunnable({
       sdk,
       checks,
-      context: (target) => ({
-        target,
-        sdk,
-        config,
-      }),
+      config,
     });
   };
 

@@ -1,19 +1,21 @@
 import { type SDK } from "caido:plugin";
 import { type Request, type Response } from "caido:utils";
 
+import { type ScanRunnableErrorCode } from "../core/errors";
 import { type ParsedHtml } from "../utils/html/types";
 
-import { type CheckDefinition } from "./check";
-import { type Finding } from "./finding";
+import { type CheckDefinition, type CheckOutput } from "./check";
+import { type Finding, type Severity } from "./finding";
 import { type JSONSerializable } from "./utils";
 
-export const ScanStrength = {
-  LOW: 0,
-  MEDIUM: 1,
-  HIGH: 2,
+export const ScanAggressivity = {
+  LOW: "low",
+  MEDIUM: "medium",
+  HIGH: "high",
 } as const;
 
-export type ScanStrength = (typeof ScanStrength)[keyof typeof ScanStrength];
+export type ScanAggressivity =
+  (typeof ScanAggressivity)[keyof typeof ScanAggressivity];
 
 export type ScanRegistry = {
   register: (check: CheckDefinition) => void;
@@ -22,7 +24,10 @@ export type ScanRegistry = {
 
 export type ScanRunnable = {
   run: (requestIDs: string[]) => Promise<ScanResult>;
-  cancel: (reason: InterruptReason) => void;
+  estimate: (requestIDs: string[]) => Promise<ScanEstimateResult>;
+  cancel: (reason: InterruptReason) => Promise<void>;
+  externalDedupeKeys: (dedupeKeys: Map<string, Set<string>>) => void;
+  getExecutionHistory: () => ExecutionHistory;
   on: <T extends keyof ScanEvents>(
     event: T,
     callback: (data: ScanEvents[T]) => void,
@@ -46,19 +51,51 @@ export type ScanResult =
       error: string;
     };
 
+export type ScanEstimateResult =
+  | {
+      kind: "Success";
+      checksTotal: number;
+    }
+  | {
+      kind: "Error";
+      error: string;
+    };
+
 export type ScanEvents = {
   "scan:started": unknown;
   "scan:finished": unknown;
   "scan:interrupted": { reason: InterruptReason };
-  "scan:finding": { finding: Finding };
-  "scan:check-started": { checkID: string };
-  "scan:check-finished": { checkID: string };
+  "scan:finding": {
+    targetRequestID: string;
+    checkID: string;
+    finding: Finding;
+  };
+  "scan:check-started": { checkID: string; targetRequestID: string };
+  "scan:check-finished": { checkID: string; targetRequestID: string };
+  "scan:check-failed": {
+    checkID: string;
+    targetRequestID: string;
+    errorCode: ScanRunnableErrorCode;
+    errorMessage: string;
+  };
+  "scan:request-pending": {
+    pendingRequestID: string;
+    targetRequestID: string;
+    checkID: string;
+  };
   "scan:request-completed": {
-    id: string;
+    pendingRequestID: string;
     requestID: string;
     responseID: string;
+    checkID: string;
+    targetRequestID: string;
   };
-  "scan:request-pending": { id: string };
+  "scan:request-failed": {
+    pendingRequestID: string;
+    targetRequestID: string;
+    checkID: string;
+    error: string;
+  };
 };
 
 export type ScanTarget = {
@@ -80,10 +117,41 @@ export type RuntimeContext = {
   config: ScanConfig;
 };
 
+export type StepExecutionRecord = {
+  stepName: string;
+  stateBefore: JSONSerializable;
+  stateAfter: JSONSerializable;
+  findings: Finding[];
+} & ({ result: "done" } | { result: "continue"; nextStep: string });
+
+export type CheckExecutionRecord = {
+  checkId: string;
+  targetRequestId: string;
+  steps: StepExecutionRecord[];
+} & (
+  | {
+      status: "completed";
+      finalOutput: CheckOutput;
+    }
+  | {
+      status: "failed";
+      error: {
+        code: ScanRunnableErrorCode;
+        message: string;
+      };
+    }
+);
+
+export type ExecutionHistory = CheckExecutionRecord[];
+
 export type ScanConfig = {
-  strength: ScanStrength;
+  aggressivity: ScanAggressivity;
   inScopeOnly: boolean;
-  concurrency: number;
+  concurrentChecks: number;
+  concurrentRequests: number;
+  concurrentTargets: number;
+  requestsDelayMs: number;
   scanTimeout: number;
   checkTimeout: number;
+  severities: Severity[];
 };

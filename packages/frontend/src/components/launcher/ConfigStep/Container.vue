@@ -1,96 +1,201 @@
 <script setup lang="ts">
-import { formatDuration } from "date-fns";
-import { ScanStrength } from "engine";
 import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
 import SelectButton from "primevue/selectbutton";
-import ToggleSwitch from "primevue/toggleswitch";
-import { computed, ref } from "vue";
 
-import { useLauncher } from "@/stores/launcher";
+import { useForm } from "./useForm";
 
-const { form } = useLauncher();
-
-const strengthOptions = ref([
-  { label: "Low", value: ScanStrength.LOW },
-  { label: "Medium", value: ScanStrength.MEDIUM },
-  { label: "High", value: ScanStrength.HIGH },
-]);
-
-const formatTimeout = computed(() => {
-  const seconds = form.config.scanTimeout;
-  if (isNaN(seconds) || seconds < 0) {
-    return "";
-  }
-
-  return formatDuration({ seconds });
-});
+const {
+  form,
+  aggressivityOptions,
+  severityOptions,
+  scopeOptions,
+  inScopeOnly,
+  readableTimeout,
+} = useForm();
 </script>
 
 <template>
-  <div class="space-y-4">
-    <div>
-      <label class="block text-sm font-medium mb-2">Scan Title</label>
+  <div class="w-full flex flex-col gap-6 py-3">
+    <div class="flex flex-col gap-2">
+      <div>
+        <label class="block text-sm font-medium text-surface-200">Title</label>
+        <small class="block text-sm text-surface-400">
+          Enter a descriptive title for your scan
+        </small>
+      </div>
       <InputText
         v-model="form.title"
-        placeholder="Enter a descriptive title for this scan"
+        placeholder="Enter a descriptive title for your scan"
         class="w-full"
       />
-      <p class="text-xs text-surface-400 mt-1">
-        Give your scan a meaningful name to help identify it later
-      </p>
     </div>
 
-    <div class="space-y-2">
-      <label class="block text-sm font-medium">Scan Strength</label>
-      <SelectButton
-        v-model="form.config.strength"
-        :options="strengthOptions"
-        option-label="label"
-        option-value="value"
-      />
-      <p class="text-xs text-surface-400">
-        Controls the aggressiveness of active scanning checks. Higher means more
-        thorough but slower scanning.
-      </p>
-    </div>
-
-    <div class="space-y-2">
-      <label class="block text-sm font-medium">Concurrency</label>
-      <InputNumber
-        v-model="form.config.concurrency"
-        :min="1"
-        :max="100"
-        class="w-full"
-      />
-      <p class="text-xs text-surface-400">
-        Limit the number of concurrent requests to avoid overwhelming the target
-      </p>
-    </div>
-
-    <div class="space-y-2">
-      <label class="block text-sm font-medium"
-        >Scan Timeout ({{ formatTimeout }})</label
-      >
-      <InputNumber
-        v-model="form.config.scanTimeout"
-        :min="1"
-        class="w-full"
-        placeholder="600"
-      />
-      <p class="text-xs text-surface-400">
-        Maximum time to wait for the entire scan to complete before timing out
-      </p>
-    </div>
-
-    <div class="flex items-center justify-between">
-      <div>
-        <label class="block text-sm font-medium mb-1">In-Scope Only</label>
-        <p class="text-xs text-surface-400">
-          Only scan requests that are within the defined scope
-        </p>
+    <div
+      class="grid grid-cols-3 gap-6"
+      style="grid-template-columns: 1.5fr 2fr 1fr"
+    >
+      <div class="flex flex-col gap-2">
+        <div>
+          <label class="block text-sm font-medium text-surface-200">
+            Aggressivity
+          </label>
+          <small class="block text-sm text-surface-400">
+            Level of aggressiveness for the scan
+          </small>
+        </div>
+        <SelectButton
+          v-model="form.config.aggressivity"
+          :options="aggressivityOptions"
+          :allow-empty="false"
+          option-label="label"
+          option-value="value"
+          :pt="{
+            root: {
+              style: 'width: fit-content; border-color: var(--p-surface-700)',
+            },
+          }"
+        />
       </div>
-      <ToggleSwitch v-model="form.config.inScopeOnly" />
+
+      <div class="flex flex-col gap-2">
+        <div>
+          <label class="block text-sm font-medium text-surface-200">
+            Severities
+          </label>
+          <small class="block text-sm text-surface-400">
+            Select the severities to report
+          </small>
+        </div>
+        <SelectButton
+          v-model="form.config.severities"
+          :options="severityOptions"
+          option-label="label"
+          option-value="value"
+          multiple
+          :pt="{
+            root: {
+              style: 'width: fit-content; border-color: var(--p-surface-700)',
+            },
+          }"
+        />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <div>
+          <label class="block text-sm font-medium text-surface-200">
+            Scope
+          </label>
+          <small class="block text-sm text-surface-400">
+            Define the scope of the scan
+          </small>
+        </div>
+        <SelectButton
+          v-model="inScopeOnly"
+          :options="scopeOptions"
+          option-label="label"
+          option-value="value"
+          :allow-empty="false"
+          :pt="{
+            root: {
+              style: 'width: fit-content; border-color: var(--p-surface-700)',
+            },
+          }"
+        />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <div>
+          <label class="block text-sm font-medium text-surface-200">
+            Checks Concurrency
+          </label>
+          <small class="block text-sm text-surface-400">
+            Number of checks to run simultaneously
+          </small>
+        </div>
+        <InputNumber
+          v-model="form.config.concurrentChecks"
+          :min="1"
+          :max="100"
+          class="w-full"
+        />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <div>
+          <label class="block text-sm font-medium text-surface-200">
+            Requests Concurrency
+          </label>
+          <small class="block text-sm text-surface-400">
+            Number of requests to send simultaneously
+          </small>
+        </div>
+        <InputNumber
+          v-model="form.config.concurrentRequests"
+          :min="1"
+          :max="100"
+          class="w-full"
+        />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <div>
+          <label class="block text-sm font-medium text-surface-200">
+            Requests Delay (ms)
+          </label>
+          <small class="block text-sm text-surface-400">
+            Delay between requests
+          </small>
+        </div>
+        <InputNumber
+          v-model="form.config.requestsDelayMs"
+          :min="0"
+          class="w-full"
+        />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <div>
+          <label
+            class="block text-sm font-medium text-surface-200 flex items-center gap-1"
+          >
+            Timeout (seconds)
+            <span
+              v-if="readableTimeout"
+              class="text-surface-500 text-xs font-normal"
+            >
+              ({{ readableTimeout }})
+            </span>
+          </label>
+          <small class="block text-sm text-surface-400">
+            Maximum time to wait for scan to finish
+          </small>
+        </div>
+        <InputNumber
+          :model-value="form.config.scanTimeout"
+          :min="1"
+          placeholder="600"
+          class="w-full"
+          @input="form.config.scanTimeout = $event.value"
+        />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <div>
+          <label class="block text-sm font-medium text-surface-200">
+            Targets Concurrency
+          </label>
+          <small class="block text-sm text-surface-400">
+            Number of targets to scan simultaneously
+          </small>
+        </div>
+        <InputNumber
+          v-model="form.config.concurrentTargets"
+          :min="1"
+          :max="100"
+          class="w-full"
+        />
+      </div>
     </div>
   </div>
 </template>

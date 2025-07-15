@@ -1,4 +1,5 @@
-import { type SessionState } from "shared";
+import { type DeepPartial, type Session, type SessionProgress } from "shared";
+import { merge } from "ts-deepmerge";
 import { reactive } from "vue";
 
 import { type SessionsState } from "@/types/scanner";
@@ -10,9 +11,16 @@ type Context = {
 type Message =
   | { type: "Start" }
   | { type: "Error"; error: string }
-  | { type: "Success"; sessions: SessionState[] }
-  | { type: "AddSession"; session: SessionState }
-  | { type: "UpdateSession"; session: SessionState }
+  | { type: "Success"; sessions: Session[] }
+  | { type: "AddSession"; session: Session }
+  | { type: "UpdateSession"; session: Session }
+  | {
+      type: "UpdateSessionProgress";
+      sessionId: string;
+      progress: DeepPartial<SessionProgress>;
+    }
+  | { type: "CancelSession"; sessionId: string }
+  | { type: "DeleteSession"; sessionId: string }
   | { type: "Clear" };
 
 export const useSessionsState = () => {
@@ -55,6 +63,9 @@ const processIdle = (
     case "Success":
     case "AddSession":
     case "UpdateSession":
+    case "CancelSession":
+    case "UpdateSessionProgress":
+    case "DeleteSession":
     case "Clear":
       return state;
   }
@@ -73,6 +84,9 @@ const processError = (
     case "Success":
     case "AddSession":
     case "UpdateSession":
+    case "CancelSession":
+    case "UpdateSessionProgress":
+    case "DeleteSession":
       return state;
   }
 };
@@ -94,11 +108,32 @@ const processSuccess = (
           session.id === message.session.id ? message.session : session,
         ),
       };
+    case "UpdateSessionProgress":
+      return {
+        ...state,
+        sessions: state.sessions.map((session) => {
+          if (session.id !== message.sessionId) {
+            return session;
+          }
+
+          return merge.withOptions({ mergeArrays: false }, session, {
+            progress: message.progress,
+          }) as Session;
+        }),
+      };
+    case "DeleteSession":
+      return {
+        ...state,
+        sessions: state.sessions.filter(
+          (session) => session.id !== message.sessionId,
+        ),
+      };
     case "Clear":
       return { type: "Idle" };
     case "Start":
     case "Error":
     case "Success":
+    case "CancelSession":
       return state;
   }
 };
@@ -115,6 +150,9 @@ const processLoading = (
     case "Start":
     case "AddSession":
     case "UpdateSession":
+    case "UpdateSessionProgress":
+    case "CancelSession":
+    case "DeleteSession":
     case "Clear":
       return state;
   }

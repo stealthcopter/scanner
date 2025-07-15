@@ -23,7 +23,6 @@ export const init = (sdk: FrontendSDK) => {
   });
 
   app.use(SDKPlugin, sdk);
-
   const root = document.createElement("div");
   Object.assign(root.style, {
     height: "100%",
@@ -46,6 +45,11 @@ export const init = (sdk: FrontendSDK) => {
   const sidebarItem = sdk.sidebar.registerItem("Scanner", "/scanner", {
     icon: "fas fa-shield-alt",
   });
+
+  const incrementCount = () => {
+    sidebarCount++;
+    sidebarItem.setCount(sidebarCount);
+  };
 
   sdk.commands.register("run-active-scanner", {
     name: "Run Active Scanner",
@@ -103,7 +107,7 @@ export const init = (sdk: FrontendSDK) => {
         {
           type: "Custom",
           component: defineComponent((props) => {
-            return () => h(ScanLauncher, { ...props, sdk });
+            return () => h(ScanLauncher, { ...props, sdk, incrementCount });
           }),
         },
         {
@@ -129,4 +133,6 @@ export const init = (sdk: FrontendSDK) => {
     commandId: "run-active-scanner",
     leadingIcon: "fas fa-shield-alt",
   });
+
+  sdk.navigation.goTo("/scanner");
 };

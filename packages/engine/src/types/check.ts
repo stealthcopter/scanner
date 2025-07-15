@@ -1,7 +1,7 @@
-import { type Finding } from "./finding";
+import { type Finding, type Severity } from "./finding";
 import {
   type RuntimeContext,
-  type ScanStrength,
+  type ScanAggressivity,
   type ScanTarget,
 } from "./runner";
 import { type JSONSerializable } from "./utils";
@@ -19,8 +19,9 @@ export type CheckMetadata = {
   tags: string[];
   aggressivity: CheckAggressivity;
   type: CheckType;
+  severities: Severity[];
   dependsOn?: string[];
-  minStrength?: ScanStrength;
+  minAggressivity?: ScanAggressivity;
 };
 
 export type CheckDefinition = {
@@ -60,7 +61,7 @@ export type Step<T> = {
 };
 
 export type StepTickResult = {
-  isDone: boolean;
+  status: "done" | "continue";
   findings?: Finding[];
 };
 
@@ -69,6 +70,9 @@ export type CheckTask = {
   tick: () => Promise<StepTickResult>;
   getFindings: () => Finding[];
   getOutput: () => CheckOutput;
+  getTarget: () => ScanTarget;
+  getCurrentStepName: () => string | undefined;
+  getCurrentState: () => JSONSerializable;
 };
 
 export type RunState<T> = {

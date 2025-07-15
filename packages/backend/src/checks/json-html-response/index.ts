@@ -1,46 +1,63 @@
 import { defineCheck, done, Severity } from "engine";
 
 export default defineCheck(({ step }) => {
-  step("checkJsonHtmlResponse", (_, context) => {
+  step("checkJsonHtmlResponse", (state, context) => {
     const response = context.target.response;
     if (!response) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const contentType = response.getHeader("content-type")?.[0];
     if (contentType === undefined || !contentType.includes("text/html")) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const body = response.getBody();
     if (!body) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const bodyText = body.toText();
     if (!bodyText.trim()) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     try {
-      JSON.parse(bodyText);
+      const result = JSON.parse(bodyText);
 
-      return done({
-        findings: [
-          {
-            name: "JSON Response with HTML Content-Type",
-            description: `Response contains valid JSON data but has 'text/html' Content-Type header. This may lead to XSS attacks.`,
-            severity: Severity.INFO,
-            correlation: {
-              requestID: context.target.request.getId(),
-              locations: [],
+      if (typeof result === "object" && result !== null) {
+        return done({
+          findings: [
+            {
+              name: "JSON Response with HTML Content-Type",
+              description: `Response contains valid JSON data but has 'text/html' Content-Type header. This may lead to XSS attacks.`,
+              severity: Severity.INFO,
+              correlation: {
+                requestID: context.target.request.getId(),
+                locations: [],
+              },
             },
-          },
-        ],
-      });
+          ],
+          state,
+        });
+      }
     } catch {
-      return done();
+      return done({
+        state,
+      });
     }
+
+    return done({
+      state,
+    });
   });
 
   return {
@@ -51,6 +68,7 @@ export default defineCheck(({ step }) => {
         "Detects responses that contain valid JSON but have text/html Content-Type header",
       type: "passive",
       tags: ["xss"],
+      severities: [Severity.INFO],
       aggressivity: {
         minRequests: 0,
         maxRequests: 0,

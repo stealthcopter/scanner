@@ -4,7 +4,8 @@
   "type": "module",
   "types": "src/index.ts",
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@caido/sdk-backend": "^0.48.1",
@@ -12,7 +13,9 @@
     "vitest": "^3.2.3"
   },
   "dependencies": {
+    "engine": "workspace:*",
     "mitt": "^3.0.1",
-    "engine": "workspace:*"
+    "mutative": "^1.2.0",
+    "zod": "^4.0.5"
   }
 }

@@ -5,7 +5,7 @@ import {
   defineCheck,
   done,
   findRedirection,
-  ScanStrength,
+  ScanAggressivity,
   Severity,
 } from "engine";
 
@@ -22,7 +22,6 @@ const keywords = [
 const getUrlParams = (query: string): string[] => {
   const params = new URLSearchParams(query);
 
-  // @ts-expect-error - TODO: figure out TS throwing here for .keys()
   return Array.from(params.keys()).filter((key: string) => {
     const keyLower = key.toLowerCase();
     const value = params.get(key) ?? "";
@@ -66,12 +65,14 @@ const getExpectedHostInfo = (
 export default defineCheck<{
   urlParams: string[];
 }>(({ step }) => {
-  step("findUrlParams", (_, context) => {
+  step("findUrlParams", (state, context) => {
     const query = context.target.request.getQuery();
     const urlParams = getUrlParams(query);
 
     if (urlParams.length === 0) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     return continueWith({
@@ -82,12 +83,16 @@ export default defineCheck<{
 
   step("testParam", async (state, context) => {
     if (state.urlParams.length === 0) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const [currentParam, ...remainingParams] = state.urlParams;
     if (currentParam === undefined) {
-      return done();
+      return done({
+        state,
+      });
     }
 
     const attackerHost = "example.com";
@@ -107,9 +112,9 @@ export default defineCheck<{
       protocol,
     });
 
-    if (context.config.strength === ScanStrength.LOW) {
+    if (context.config.aggressivity === ScanAggressivity.LOW) {
       generator = generator.limit(2);
-    } else if (context.config.strength === ScanStrength.MEDIUM) {
+    } else if (context.config.aggressivity === ScanAggressivity.MEDIUM) {
       generator = generator.limit(5);
     }
 
@@ -132,7 +137,6 @@ export default defineCheck<{
             context.target.request.getUrl(),
           );
           if (instance.validatesWith(redirectUrl)) {
-            context.sdk.console.log("found finding");
             return done({
               findings: [
                 {
@@ -145,6 +149,7 @@ export default defineCheck<{
                   },
                 },
               ],
+              state: { urlParams: remainingParams },
             });
           }
         } catch {
@@ -152,6 +157,13 @@ export default defineCheck<{
           // Ignore invalid redirect URLs
         }
       }
+    }
+
+    if (remainingParams.length === 0) {
+      return done({
+        findings: [],
+        state: { urlParams: remainingParams },
+      });
     }
 
     return continueWith({
@@ -168,9 +180,10 @@ export default defineCheck<{
       id: "open-redirect",
       name: "Open Redirect",
       description:
-        "Checks for open redirects using a variety of URL parser bypass techniques.",
+        "Checks for open redirects using a variety of URL parser bypass techniques",
       type: "active",
       tags: ["open-redirect"],
+      severities: [Severity.MEDIUM],
       aggressivity: {
         minRequests: 1,
         maxRequests: "Infinity",

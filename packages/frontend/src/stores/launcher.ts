@@ -1,4 +1,4 @@
-import { type ScanConfig, ScanStrength } from "engine";
+import { ScanAggressivity, type ScanConfig, Severity } from "engine";
 import { defineStore } from "pinia";
 import { type BasicRequest, type ScanRequestPayload } from "shared";
 import { reactive } from "vue";
@@ -17,11 +17,21 @@ export const useLauncher = defineStore("stores.launcher", () => {
   const defaultFormState: FormState = {
     targets: [],
     config: {
-      strength: ScanStrength.MEDIUM,
-      inScopeOnly: true,
-      scanTimeout: 10 * 60 * 1000,
-      checkTimeout: 2 * 60 * 1000,
-      concurrency: 2,
+      aggressivity: ScanAggressivity.MEDIUM,
+      inScopeOnly: false,
+      scanTimeout: 10 * 60,
+      checkTimeout: 2 * 60,
+      concurrentChecks: 2,
+      concurrentTargets: 2,
+      concurrentRequests: 5,
+      severities: [
+        Severity.INFO,
+        Severity.LOW,
+        Severity.MEDIUM,
+        Severity.HIGH,
+        Severity.CRITICAL,
+      ],
+      requestsDelayMs: 50,
     },
     title: "Active Scan",
   };
@@ -34,18 +44,27 @@ export const useLauncher = defineStore("stores.launcher", () => {
     title: form.title,
   });
 
-  const onSubmit = (sdk: FrontendSDK) => {
+  const onSubmit = async (sdk: FrontendSDK, incrementCount: () => void) => {
     const payload = toRequestPayload();
-    scannerService.startActiveScan(payload);
+    const result = await scannerService.startActiveScan(payload);
 
-    // todo: thats the only way currently to close a dialog, fix once we have a better way
-    const escapeEvent = new KeyboardEvent("keydown", {
-      key: "Escape",
-      code: "Escape",
-      bubbles: true,
-      cancelable: true,
-    });
-    document.dispatchEvent(escapeEvent);
+    switch (result.kind) {
+      case "Success": {
+        scannerService.selectSession(result.value.id);
+        incrementCount();
+
+        const escapeEvent = new KeyboardEvent("keydown", {
+          key: "Escape",
+          code: "Escape",
+          bubbles: true,
+          cancelable: true,
+        });
+        document.dispatchEvent(escapeEvent);
+        break;
+      }
+      case "Error":
+        break;
+    }
   };
 
   const restart = () => {

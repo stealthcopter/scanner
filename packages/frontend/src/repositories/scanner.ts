@@ -20,9 +20,27 @@ export const useScannerRepository = () => {
     return response;
   };
 
+  const cancelScanSession = async (sessionId: string) => {
+    const response = await sdk.backend.cancelScanSession(sessionId);
+    return response;
+  };
+
+  const deleteScanSession = async (sessionId: string) => {
+    const response = await sdk.backend.deleteScanSession(sessionId);
+    return response;
+  };
+
+  const updateSessionTitle = async (sessionId: string, title: string) => {
+    const response = await sdk.backend.updateSessionTitle(sessionId, title);
+    return response;
+  };
+
   return {
     startActiveScan,
     getScanSession,
     getScanSessions,
+    cancelScanSession,
+    deleteScanSession,
+    updateSessionTitle,
   };
 };

@@ -2,8 +2,9 @@ import {
   type CheckType,
   type Finding,
   type InterruptReason,
+  type ScanAggressivity,
   type ScanConfig,
-  type ScanStrength,
+  type Severity,
 } from "engine";
 
 /**
@@ -18,13 +19,23 @@ import {
 export type UserConfig = {
   passive: {
     enabled: boolean;
-    strength: ScanStrength;
+    aggressivity: ScanAggressivity;
     inScopeOnly: boolean;
+    concurrentScans: number;
+    concurrentRequests: number;
     overrides: Override[];
+    severities: Severity[];
   };
   active: {
     overrides: Override[];
   };
+  presets: Preset[];
+};
+
+export type Preset = {
+  name: string;
+  active: Override[];
+  passive: Override[];
 };
 
 export type Override = {
@@ -45,39 +56,96 @@ export type GetChecksOptions = Pick<
   "type" | "include" | "exclude"
 >;
 
+export type SentRequest =
+  | {
+      status: "pending";
+      pendingRequestID: string;
+      sentAt: number;
+    }
+  | {
+      status: "completed";
+      pendingRequestID: string;
+      requestID: string;
+      sentAt: number;
+      completedAt: number;
+    }
+  | {
+      status: "failed";
+      pendingRequestID: string;
+      error: string;
+      sentAt: number;
+      completedAt: number;
+    };
+
+export type CheckExecution =
+  | {
+      kind: "Running";
+      checkID: string;
+      targetRequestID: string;
+      startedAt: number;
+      requestsSent: SentRequest[];
+      findings: Finding[];
+    }
+  | {
+      kind: "Completed";
+      checkID: string;
+      targetRequestID: string;
+      startedAt: number;
+      completedAt: number;
+      requestsSent: SentRequest[];
+      findings: Finding[];
+    }
+  | {
+      kind: "Failed";
+      checkID: string;
+      targetRequestID: string;
+      startedAt: number;
+      failedAt: number;
+      error: string;
+      requestsSent: SentRequest[];
+      findings: Finding[];
+    };
+
 export type SessionProgress = {
-  checksCompleted: number;
-  requestsSent: number;
+  checksTotal: number;
+  checksHistory: CheckExecution[];
 };
 
-export type SessionState =
-  | { kind: "Pending"; id: string; createdAt: number }
+export type Session =
+  | { kind: "Pending"; id: string; createdAt: number; title: string }
   | {
       kind: "Running";
       id: string;
+      title: string;
       createdAt: number;
       startedAt: number;
-      findings: Finding[];
       progress: SessionProgress;
     }
   | {
       kind: "Done";
       id: string;
+      title: string;
       createdAt: number;
       startedAt: number;
       finishedAt: number;
-      findings: Finding[];
       progress: SessionProgress;
     }
   | {
       kind: "Interrupted";
       id: string;
+      title: string;
       createdAt: number;
       startedAt: number;
+      progress: SessionProgress;
       reason: InterruptReason;
-      findings: Finding[];
     }
-  | { kind: "Error"; id: string; createdAt: number; error: string };
+  | {
+      kind: "Error";
+      id: string;
+      title: string;
+      createdAt: number;
+      error: string;
+    };
 
 export type ScanRequestPayload = {
   requestIDs: string[];
@@ -94,6 +162,12 @@ export type BasicRequest = {
   method: string;
 };
 
+export type QueueTask = {
+  id: string;
+  requestID: string;
+  status: "pending" | "running";
+};
+
 export type Result<T> =
   | { kind: "Error"; error: string }
   | { kind: "Success"; value: T };
@@ -105,3 +179,7 @@ export function ok<T>(value: T): Result<T> {
 export function error<T>(error: string): Result<T> {
   return { kind: "Error", error };
 }
+
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};

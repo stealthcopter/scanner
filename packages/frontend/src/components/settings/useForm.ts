@@ -1,4 +1,4 @@
-import { ScanStrength } from "engine";
+import { type ScanAggressivity, type Severity } from "engine";
 import { computed, type Ref } from "vue";
 
 import { useConfigService } from "@/services/config";
@@ -6,12 +6,6 @@ import { type ConfigState } from "@/types/config";
 
 export const useForm = (state: Ref<ConfigState & { type: "Success" }>) => {
   const configService = useConfigService();
-
-  const strengthOptions = [
-    { label: "Low", value: ScanStrength.LOW },
-    { label: "Medium", value: ScanStrength.MEDIUM },
-    { label: "High", value: ScanStrength.HIGH },
-  ];
 
   const passiveEnabled = computed({
     get: () => state.value.config.passive.enabled,
@@ -22,11 +16,11 @@ export const useForm = (state: Ref<ConfigState & { type: "Success" }>) => {
     },
   });
 
-  const passiveStrength = computed({
-    get: () => state.value.config.passive.strength,
-    set: async (value: ScanStrength) => {
+  const passiveAggressivity = computed({
+    get: () => state.value.config.passive.aggressivity,
+    set: async (value: ScanAggressivity) => {
       await configService.updateConfig({
-        passive: { strength: value },
+        passive: { aggressivity: value },
       });
     },
   });
@@ -40,10 +34,39 @@ export const useForm = (state: Ref<ConfigState & { type: "Success" }>) => {
     },
   });
 
+  const passiveConcurrentScans = computed({
+    get: () => state.value.config.passive.concurrentScans,
+    set: async (value: number) => {
+      await configService.updateConfig({
+        passive: { concurrentScans: value },
+      });
+    },
+  });
+
+  const passiveConcurrentRequests = computed({
+    get: () => state.value.config.passive.concurrentRequests,
+    set: async (value: number) => {
+      await configService.updateConfig({
+        passive: { concurrentRequests: value },
+      });
+    },
+  });
+
+  const passiveSeverities = computed({
+    get: () => state.value.config.passive.severities,
+    set: async (value: Severity[]) => {
+      await configService.updateConfig({
+        passive: { severities: value },
+      });
+    },
+  });
+
   return {
     passiveEnabled,
-    passiveStrength,
+    passiveAggressivity,
     passiveInScopeOnly,
-    strengthOptions,
+    passiveConcurrentScans,
+    passiveConcurrentRequests,
+    passiveSeverities,
   };
 };
