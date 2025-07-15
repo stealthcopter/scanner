@@ -1,20 +1,21 @@
 import { type SDK } from "caido:plugin";
 import {
-  RequestResponse,
+  type RequestResponse,
   type RequestSpec,
   type RequestSpecRaw,
 } from "caido:utils";
+
+import {
+  type InterruptReason,
+  type ScanConfig,
+  type ScanEvents,
+} from "../types/runner";
 
 import {
   ScanRunnableError,
   ScanRunnableErrorCode,
   ScanRunnableInterruptedError,
 } from "./errors";
-import {
-  type InterruptReason,
-  type ScanConfig,
-  type ScanEvents,
-} from "../types/runner";
 
 type QueuedRequest = {
   request: RequestSpec | RequestSpecRaw;
@@ -30,7 +31,7 @@ type RequestQueue = {
     request: RequestSpec | RequestSpecRaw,
     pendingRequestID: string,
     targetRequestID: string,
-    checkID: string
+    checkID: string,
   ) => Promise<RequestResponse>;
 };
 
@@ -72,7 +73,7 @@ export const createRequestQueue = ({
           const timeSinceLastRequest = Date.now() - lastRequestTime;
           const delayNeeded = Math.max(
             0,
-            config.requestsDelayMs - timeSinceLastRequest
+            config.requestsDelayMs - timeSinceLastRequest,
           );
 
           if (delayNeeded > 0) {
@@ -119,8 +120,8 @@ export const createRequestQueue = ({
       item.reject(
         new ScanRunnableError(
           `Request ID: ${item.targetRequestID} failed: ${errorMessage}`,
-          ScanRunnableErrorCode.REQUEST_FAILED
-        )
+          ScanRunnableErrorCode.REQUEST_FAILED,
+        ),
       );
     }
   };
@@ -168,7 +169,7 @@ export const createRequestQueue = ({
     request: RequestSpec | RequestSpecRaw,
     pendingRequestID: string,
     targetRequestID: string,
-    checkID: string
+    checkID: string,
   ): Promise<RequestResponse> => {
     return new Promise((resolve, reject) => {
       queue.push({

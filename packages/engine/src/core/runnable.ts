@@ -25,9 +25,9 @@ import {
   type StepExecutionRecord,
 } from "../types/runner";
 import { parseHtmlFromString } from "../utils/html/parser";
-import { createRequestQueue } from "./request-queue";
 
 import { createTaskExecutor } from "./execution";
+import { createRequestQueue } from "./request-queue";
 
 export const createRunnable = ({
   sdk,
@@ -66,7 +66,7 @@ export const createRunnable = ({
   const recordStepExecution = (
     checkId: string,
     targetRequestId: string,
-    record: StepExecutionRecord
+    record: StepExecutionRecord,
   ) => {
     const key = `${checkId}-${targetRequestId}`;
     const activeRecord = activeCheckRecords.get(key);
@@ -92,7 +92,7 @@ export const createRunnable = ({
       | {
           status: "failed";
           error: { code: ScanRunnableErrorCode; message: string };
-        }
+        },
   ) => {
     const key = `${checkId}-${targetRequestId}`;
     const activeRecord = activeCheckRecords.get(key);
@@ -122,7 +122,7 @@ export const createRunnable = ({
     if (hasRun) {
       throw new ScanRunnableError(
         "Cannot set dedupe keys after scan has started",
-        ScanRunnableErrorCode.SCAN_ALREADY_RUNNING
+        ScanRunnableErrorCode.SCAN_ALREADY_RUNNING,
       );
     }
     dedupeKeys = externalDedupeKeys;
@@ -131,11 +131,11 @@ export const createRunnable = ({
   const isCheckApplicable = (
     check: CheckDefinition,
     context: RuntimeContext,
-    targetDedupeKeys: Map<string, Set<string>> = dedupeKeys
+    targetDedupeKeys: Map<string, Set<string>> = dedupeKeys,
   ): boolean => {
     if (
       !check.metadata.severities.some((s) =>
-        context.config.severities.includes(s)
+        context.config.severities.includes(s),
       )
     ) {
       return false;
@@ -174,7 +174,7 @@ export const createRunnable = ({
 
   const createRuntimeContext = (
     target: ScanTarget,
-    sdk: SDK
+    sdk: SDK,
   ): RuntimeContext => {
     return {
       target,
@@ -197,7 +197,7 @@ export const createRunnable = ({
 
   const createTaskExecutorForCheck = (
     checkId: string,
-    targetRequestId: string
+    targetRequestId: string,
   ) => {
     return createTaskExecutor({
       emit,
@@ -226,7 +226,7 @@ export const createRunnable = ({
             request,
             pendingRequestID,
             targetRequestID,
-            checkID
+            checkID,
           );
         },
       },
@@ -235,14 +235,14 @@ export const createRunnable = ({
 
   const processBatch = async (
     batch: CheckDefinition[],
-    context: RuntimeContext
+    context: RuntimeContext,
   ): Promise<void> => {
     const tasks = batch
       .filter((check) => isCheckApplicable(check, context))
       .map((check) => {
         const wrappedSdk = createWrappedSdk(
           check.metadata.id,
-          context.target.request.getId()
+          context.target.request.getId(),
         );
         const taskContext = {
           ...context,
@@ -278,7 +278,7 @@ export const createRunnable = ({
       .process(async (task) => {
         const taskExecutor = createTaskExecutorForCheck(
           task.metadata.id,
-          context.target.request.getId()
+          context.target.request.getId(),
         );
         const result = await taskExecutor.tickUntilDone(task);
         if (result.findings) {
@@ -333,7 +333,7 @@ export const createRunnable = ({
             if (target === undefined) {
               throw new ScanRunnableError(
                 `Request ${requestID} not found`,
-                ScanRunnableErrorCode.REQUEST_NOT_FOUND
+                ScanRunnableErrorCode.REQUEST_NOT_FOUND,
               );
             }
 
@@ -342,7 +342,7 @@ export const createRunnable = ({
                 request: target.request,
                 response: target.response,
               },
-              sdk
+              sdk,
             );
 
             for (const batch of batches) {
@@ -414,13 +414,13 @@ export const createRunnable = ({
             request: target.request,
             response: target.response,
           },
-          sdk
+          sdk,
         );
 
         const tasks = batches.map((batch) =>
           batch.filter((check) =>
-            isCheckApplicable(check, context, snapshotDedupeKeys)
-          )
+            isCheckApplicable(check, context, snapshotDedupeKeys),
+          ),
         );
 
         checksTotal += tasks.flat().length;
@@ -459,7 +459,7 @@ const getCheckBatches = (checks: CheckDefinition[]): CheckDefinition[][] => {
       for (const dependencyId of dependencies) {
         if (!checkMap.has(dependencyId)) {
           throw new Error(
-            `Check '${check.metadata.id}' has unknown dependency '${dependencyId}'`
+            `Check '${check.metadata.id}' has unknown dependency '${dependencyId}'`,
           );
         }
         if (!dag[dependencyId]) {
@@ -478,6 +478,6 @@ const getCheckBatches = (checks: CheckDefinition[]): CheckDefinition[][] => {
         throw new Error(`Check '${checkId}' not found in checkMap`);
       }
       return check;
-    })
+    }),
   );
 };

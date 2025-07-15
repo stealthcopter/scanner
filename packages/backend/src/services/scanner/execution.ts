@@ -16,7 +16,7 @@ import { validateInput } from "../../utils/validation";
 
 export const startActiveScan = (
   sdk: BackendSDK,
-  payload: ScanRequestPayload
+  payload: ScanRequestPayload,
 ): Result<Session> => {
   const validation = validateInput(ScanRequestPayloadSchema, payload);
   if (validation.kind === "Error") {
@@ -59,7 +59,7 @@ export const startActiveScan = (
 
       const startedSession = scannerStore.startSession(
         id,
-        estimate.checksTotal
+        estimate.checksTotal,
       );
       if (!startedSession) {
         throw new Error("Failed to start session");
@@ -80,7 +80,7 @@ export const startActiveScan = (
             id,
             checkID,
             targetRequestID,
-            finding
+            finding,
           );
           if (!findingAddedSession) return;
 
@@ -97,14 +97,14 @@ export const startActiveScan = (
             title: finding.name,
             description: wrappedDescription,
           });
-        }
+        },
       );
 
       runnable.on("scan:check-finished", ({ checkID, targetRequestID }) => {
         const checkFinishedSession = scannerStore.completeCheck(
           id,
           checkID,
-          targetRequestID
+          targetRequestID,
         );
         if (!checkFinishedSession || checkFinishedSession.kind !== "Running")
           return;
@@ -119,7 +119,7 @@ export const startActiveScan = (
             id,
             checkID,
             targetRequestID,
-            pendingRequestID
+            pendingRequestID,
           );
 
           if (
@@ -129,7 +129,7 @@ export const startActiveScan = (
             return;
 
           sdk.api.send("session:progress", id, requestPendingSession.progress);
-        }
+        },
       );
 
       runnable.on(
@@ -138,7 +138,7 @@ export const startActiveScan = (
           const requestCompletedSession = scannerStore.completeRequest(
             id,
             pendingRequestID,
-            requestID
+            requestID,
           );
           if (
             !requestCompletedSession ||
@@ -149,16 +149,16 @@ export const startActiveScan = (
           sdk.api.send(
             "session:progress",
             id,
-            requestCompletedSession.progress
+            requestCompletedSession.progress,
           );
-        }
+        },
       );
 
       runnable.on("scan:request-failed", ({ error, pendingRequestID }) => {
         const requestFailedSession = scannerStore.failRequest(
           id,
           pendingRequestID,
-          error
+          error,
         );
         if (!requestFailedSession || requestFailedSession.kind !== "Running")
           return;
@@ -170,7 +170,7 @@ export const startActiveScan = (
         const checkRunningSession = scannerStore.startCheck(
           id,
           checkID,
-          targetRequestID
+          targetRequestID,
         );
         if (!checkRunningSession || checkRunningSession.kind !== "Running")
           return;
@@ -185,13 +185,13 @@ export const startActiveScan = (
             id,
             checkID,
             targetRequestID,
-            errorMessage || "Unknown error"
+            errorMessage || "Unknown error",
           );
           if (!checkFailedSession || checkFailedSession.kind !== "Running")
             return;
 
           sdk.api.send("session:progress", id, checkFailedSession.progress);
-        }
+        },
       );
 
       const result = await runnable.run(requestIDs);
@@ -206,7 +206,7 @@ export const startActiveScan = (
         case "Interrupted": {
           const interruptedSession = scannerStore.interruptSession(
             id,
-            result.reason
+            result.reason,
           );
           if (!interruptedSession) break;
 
@@ -224,7 +224,7 @@ export const startActiveScan = (
     } catch (err) {
       const errorSession = scannerStore.errorSession(
         id,
-        err instanceof Error ? err.message : "Unknown error"
+        err instanceof Error ? err.message : "Unknown error",
       );
       if (!errorSession) return;
       sdk.api.send("session:updated", id, errorSession);

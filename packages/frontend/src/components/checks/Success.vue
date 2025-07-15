@@ -80,7 +80,7 @@ const {
         :global-filter-fields="['name', 'id', 'description']"
         size="small"
         expandable-rows
-        removableSort
+        removable-sort
       >
         <template #empty>
           <div class="flex justify-center items-center h-32">

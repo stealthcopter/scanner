@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
 import SelectButton from "primevue/selectbutton";
-import InputNumber from "primevue/inputnumber";
 
 import { useForm } from "./useForm";
 

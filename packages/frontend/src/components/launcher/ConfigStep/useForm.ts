@@ -1,7 +1,8 @@
-import { useLauncher } from "@/stores/launcher";
 import { ScanAggressivity, Severity } from "engine";
+import prettyMs from "pretty-ms";
 import { computed } from "vue";
-import prettyMs from 'pretty-ms';
+
+import { useLauncher } from "@/stores/launcher";
 
 export const useForm = () => {
   const { form } = useLauncher();
@@ -10,7 +11,7 @@ export const useForm = () => {
     (aggressivity) => ({
       label: aggressivity.charAt(0).toUpperCase() + aggressivity.slice(1),
       value: aggressivity,
-    })
+    }),
   );
 
   const severityOptions = Object.values(Severity).map((severity) => ({

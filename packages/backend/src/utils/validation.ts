@@ -1,5 +1,5 @@
-import { type ZodType, ZodError, type ZodIssue } from "zod";
 import { error, type Result } from "shared";
+import { ZodError, type ZodIssue, type ZodType } from "zod";
 
 export function validateInput<T>(
   schema: ZodType<T>,

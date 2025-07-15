@@ -66,7 +66,10 @@ export const updateSessionTitle = (
     return titleValidation;
   }
 
-  const result = ScannerStore.get().updateSessionTitle(idValidation.value, titleValidation.value);
+  const result = ScannerStore.get().updateSessionTitle(
+    idValidation.value,
+    titleValidation.value,
+  );
   if (!result) {
     return error(`Session ${idValidation.value} not found`);
   }

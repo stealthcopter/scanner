@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import { ConfigStep } from "./ConfigStep";
 import { TargetsStep } from "./TargetsStep";
 
-type Step = "targets" | "configuration" ;
+type Step = "targets" | "configuration";
 
 export const useStepper = () => {
   const currentStepIndex = ref(0);
@@ -18,7 +18,7 @@ export const useStepper = () => {
       id: "configuration",
       label: "Configuration",
       component: ConfigStep,
-    }
+    },
   ];
 
   const activeStep = computed(

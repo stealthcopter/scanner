@@ -29,14 +29,14 @@ const severityOptions = computed(() =>
   Object.values(Severity).map((severity) => ({
     label: severity.charAt(0).toUpperCase() + severity.slice(1),
     value: severity,
-  }))
+  })),
 );
 
 const aggressivityOptions = computed(() =>
   Object.values(ScanAggressivity).map((aggressivity) => ({
     label: aggressivity.charAt(0).toUpperCase() + aggressivity.slice(1),
     value: aggressivity,
-  }))
+  })),
 );
 </script>
 
@@ -127,7 +127,8 @@ const aggressivityOptions = computed(() =>
               <div class="flex flex-col gap-1 flex-1">
                 <label class="text-sm font-medium">Requests Concurrency</label>
                 <p class="text-xs text-surface-400">
-                  Number of requests to send simultaneously during single scan execution
+                  Number of requests to send simultaneously during single scan
+                  execution
                 </p>
               </div>
               <div class="flex-shrink-0">

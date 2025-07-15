@@ -18,7 +18,7 @@ export const runCheck = async (
   options?: {
     config?: Partial<ScanConfig>;
     sendHandler?: SendHandler;
-  }
+  },
 ): Promise<ExecutionHistory> => {
   const fullConfig: ScanConfig = {
     aggressivity: ScanAggressivity.MEDIUM,
