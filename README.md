@@ -20,7 +20,8 @@ A web vulnerability scanner plugin for Caido.
 
 Scanner is a vulnerability detection plugin that brings automated security testing capabilities to Caido. Scanner provides a user-friendly interface for identifying common web application vulnerabilities.
 
-https://github.com/caido-community/scanner/raw/refs/heads/main/assets/demo.mp4
+https://github.com/user-attachments/assets/05b14d8a-3333-4136-a220-efd10b98ff2d
+
 
 ## 🚀 Getting Started
 
