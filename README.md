@@ -42,11 +42,11 @@ https://github.com/user-attachments/assets/05b14d8a-3333-4136-a220-efd10b98ff2d
 
 Scanner's modular architecture makes it easy to add new vulnerability checks:
 
-1. Create a new check in [packages/backend/src/checks/](https://github.com/caido-community/scanner/tree/main/packages/backend/src/checks)
-2. Register the check in the main checks [index file](https://github.com/caido-community/scanner/blob/main/packages/backend/src/checks/index.ts)
-
 > [!NOTE]
 > We plan to release documentation on building checks in the future. For now, you can explore the existing checks in the repository to understand how they are implemented.
+
+1. Create a new check in [packages/backend/src/checks/](https://github.com/caido-community/scanner/tree/main/packages/backend/src/checks)
+2. Register the check in the main checks [index file](https://github.com/caido-community/scanner/blob/main/packages/backend/src/checks/index.ts)
 
 
 ## 💚 Community
