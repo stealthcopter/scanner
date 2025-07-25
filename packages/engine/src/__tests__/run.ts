@@ -14,7 +14,7 @@ import { type MockRequestResponsePair, type SendHandler } from "./mocks/types";
 
 export const runCheck = async (
   checkDefinition: CheckDefinition,
-  requestResponsePairs: Array<{ request: Request; response?: Response }>,
+  requestResponsePairs: { request: Request; response?: Response }[],
   options?: {
     config?: Partial<ScanConfig>;
     sendHandler?: SendHandler;

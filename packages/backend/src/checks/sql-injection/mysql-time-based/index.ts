@@ -1,9 +1,10 @@
 import { continueWith, defineCheck, done, Severity } from "engine";
+
 import {
   buildTestRequest,
   extractParameters,
   isTargetEligible,
-  TestParam,
+  type TestParam,
 } from "../utils";
 
 type State = {
@@ -35,12 +36,12 @@ export default defineCheck<State>(({ step }) => {
       return done({ state });
     }
 
-    let baselineTime = context.target.response?.getRoundtripTime() || 0;
-    if (baselineTime === 0) {
+    let baselineTime = context.target.response?.getRoundtripTime();
+    if (baselineTime === undefined || baselineTime === 0) {
       const { response } = await context.sdk.requests.send(
-        context.target.request.toSpec()
+        context.target.request.toSpec(),
       );
-      if (response) {
+      if (response !== undefined) {
         baselineTime = response.getRoundtripTime();
       }
     }
@@ -52,7 +53,7 @@ export default defineCheck<State>(({ step }) => {
         testParams,
         currentPayloadIndex: 0,
         currentParamIndex: 0,
-        baselineTime,
+        baselineTime: baselineTime ?? 0,
       },
     });
   });
@@ -66,7 +67,7 @@ export default defineCheck<State>(({ step }) => {
     }
 
     const currentParam = state.testParams[state.currentParamIndex];
-    if (!currentParam) {
+    if (currentParam === undefined) {
       return done({ state });
     }
 
@@ -87,19 +88,19 @@ export default defineCheck<State>(({ step }) => {
     }
 
     const currentPayload = MYSQL_TIME_PAYLOADS[state.currentPayloadIndex];
-    if (!currentPayload) {
+    if (currentPayload === undefined) {
       return done({ state });
     }
 
     const testRequestSpec = buildTestRequest(
       context,
       currentParam,
-      currentPayload
+      currentPayload,
     );
     const { request: testRequest, response: testResponse } =
       await context.sdk.requests.send(testRequestSpec);
 
-    if (testResponse) {
+    if (testResponse !== undefined) {
       const testTime = testResponse.getRoundtripTime();
 
       if (testTime - state.baselineTime >= TIME_THRESHOLD_MS) {
@@ -145,9 +146,10 @@ export default defineCheck<State>(({ step }) => {
     },
     dedupeKey: (context) => {
       const query = context.request.getQuery();
-      const paramKeys = query
-        ? Array.from(new URLSearchParams(query).keys()).sort().join(",")
-        : "";
+      const paramKeys =
+        query !== ""
+          ? Array.from(new URLSearchParams(query).keys()).sort().join(",")
+          : "";
 
       return (
         context.request.getMethod() +

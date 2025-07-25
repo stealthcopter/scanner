@@ -12,9 +12,9 @@ export class ConfigStore {
     this.config = {
       passive: {
         enabled: true,
-        aggressivity: ScanAggressivity.HIGH,
+        aggressivity: ScanAggressivity.LOW,
         inScopeOnly: false,
-        concurrentScans: 3,
+        concurrentChecks: 3,
         concurrentRequests: 3,
         overrides: [],
         severities: ["critical", "high", "medium", "low", "info"],
@@ -70,6 +70,22 @@ export class ConfigStore {
               checkID: Checks.OPEN_REDIRECT,
               enabled: true,
             },
+            {
+              checkID: Checks.BASIC_REFLECTED_XSS,
+              enabled: true,
+            },
+            {
+              checkID: Checks.PHPINFO,
+              enabled: true,
+            },
+            {
+              checkID: Checks.CORS_MISCONFIG,
+              enabled: true,
+            },
+            {
+              checkID: Checks.MYSQL_ERROR_BASED_SQLI,
+              enabled: true,
+            },
           ],
           passive: [
             {
@@ -83,6 +99,18 @@ export class ConfigStore {
             {
               checkID: Checks.OPEN_REDIRECT,
               enabled: false,
+            },
+            {
+              checkID: Checks.MYSQL_ERROR_BASED_SQLI,
+              enabled: true,
+            },
+            {
+              checkID: Checks.BASIC_REFLECTED_XSS,
+              enabled: true,
+            },
+            {
+              checkID: Checks.PHPINFO,
+              enabled: true,
             },
           ],
         },
@@ -101,6 +129,30 @@ export class ConfigStore {
               checkID: Checks.OPEN_REDIRECT,
               enabled: true,
             },
+            {
+              checkID: Checks.GIT_CONFIG,
+              enabled: true,
+            },
+            {
+              checkID: Checks.CORS_MISCONFIG,
+              enabled: true,
+            },
+            {
+              checkID: Checks.PHPINFO,
+              enabled: true,
+            },
+            {
+              checkID: Checks.BASIC_REFLECTED_XSS,
+              enabled: true,
+            },
+            {
+              checkID: Checks.MYSQL_TIME_BASED_SQLI,
+              enabled: true,
+            },
+            {
+              checkID: Checks.MYSQL_ERROR_BASED_SQLI,
+              enabled: true,
+            },
           ],
           passive: [
             {
@@ -113,6 +165,30 @@ export class ConfigStore {
             },
             {
               checkID: Checks.OPEN_REDIRECT,
+              enabled: true,
+            },
+            {
+              checkID: Checks.GIT_CONFIG,
+              enabled: true,
+            },
+            {
+              checkID: Checks.CORS_MISCONFIG,
+              enabled: true,
+            },
+            {
+              checkID: Checks.PHPINFO,
+              enabled: true,
+            },
+            {
+              checkID: Checks.BASIC_REFLECTED_XSS,
+              enabled: true,
+            },
+            {
+              checkID: Checks.MYSQL_TIME_BASED_SQLI,
+              enabled: true,
+            },
+            {
+              checkID: Checks.MYSQL_ERROR_BASED_SQLI,
               enabled: true,
             },
           ],

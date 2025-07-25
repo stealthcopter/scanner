@@ -1,6 +1,6 @@
 {
   "name": "scanner",
-  "version": "0.0.",
+  "version": "0.0.0",
   "private": true,
   "description": "Monorepo for the Caido Scanner project",
   "author": "Caido Labs Inc. <dev@caido.io>",
@@ -14,20 +14,18 @@
   },
   "devDependencies": {
     "@caido-community/dev": "^0.1.6",
-    "@caido/eslint-config": "^0.4.0",
+    "@caido/eslint-config": "^0.6.0",
     "@caido/tailwindcss": "0.0.1",
-    "@types/node": "^24.0.1",
-    "@vitejs/plugin-vue": "5.2.1",
-    "@vitest/ui": "^3.2.3",
-    "eslint": "^9.29.0",
-    "postcss-prefixwrap": "1.51.0",
+    "@types/node": "^24.1.0",
+    "@vitejs/plugin-vue": "6.0.0",
+    "@vitest/ui": "^3.2.4",
+    "eslint": "^9.31.0",
+    "postcss-prefixwrap": "1.56.0",
     "rollup-plugin-dts": "^6.2.1",
     "tailwindcss": "3.4.13",
-    "tailwindcss-primeui": "0.3.4",
+    "tailwindcss-primeui": "0.6.1",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
-    "vitest": "^3.2.3"
-  },
-  "dependencies": {
+    "vitest": "^3.2.4"
   }
 }

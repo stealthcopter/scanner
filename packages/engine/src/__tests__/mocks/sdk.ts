@@ -80,8 +80,32 @@ const useRequests = () => {
           throw new Error("Only MockRequestSpec is supported in test SDK");
         }
 
-        const result = sendHandler(spec);
-        return await Promise.resolve(result);
+        const result = await sendHandler(spec);
+
+        if (config.requests) {
+          config.requests[result.request.getId()] = {
+            request: {
+              id: result.request.getId(),
+              host: result.request.getHost(),
+              port: result.request.getPort(),
+              tls: result.request.getTls(),
+              method: result.request.getMethod(),
+              path: result.request.getPath(),
+              query: result.request.getQuery(),
+              headers: result.request.getHeaders(),
+              body: result.request.getBody()?.toText(),
+            },
+            response: {
+              id: result.response.getId(),
+              code: result.response.getCode(),
+              headers: result.response.getHeaders(),
+              body: result.response.getBody()?.toText(),
+              roundtripTime: result.response.getRoundtripTime(),
+            },
+          };
+        }
+
+        return result;
       },
 
       inScope: (request: Request | RequestSpec): boolean => {

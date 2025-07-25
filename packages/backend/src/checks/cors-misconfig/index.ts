@@ -10,13 +10,11 @@ type CorsTestResult = {
   testType: string;
   allowOriginHeader: string | undefined;
   allowCredentialsHeader: string | undefined;
-  finding:
-    | {
-        name: string;
-        description: string;
-        severity: Severity;
-      }
-    | undefined;
+  finding?: {
+    name: string;
+    description: string;
+    severity: Severity;
+  };
 };
 
 type CorsState = {
@@ -58,7 +56,6 @@ const createOriginTests = (host: string, scheme: string) => {
     },
   ];
 
-  // Add regex bypass test only if host has multiple dots (like api.example.com)
   if (host.split(".").length > 2) {
     tests.push({
       name: "regex-bypass",
@@ -74,9 +71,9 @@ const analyzeResult = (
   testType: string,
   origin: string,
   allowOriginHeader: string | undefined,
-  allowCredentialsHeader: string | undefined
+  allowCredentialsHeader: string | undefined,
 ) => {
-  if (!allowOriginHeader) return undefined;
+  if (allowOriginHeader === undefined) return undefined;
 
   const hasCredentials = allowCredentialsHeader?.toLowerCase() === "true";
 
@@ -154,15 +151,14 @@ export default defineCheck<CorsState>(({ step }) => {
     }
 
     const allowOriginHeader = response.getHeader(
-      "access-control-allow-origin"
+      "access-control-allow-origin",
     )?.[0];
     const allowCredentialsHeader = response.getHeader(
-      "access-control-allow-credentials"
+      "access-control-allow-credentials",
     )?.[0];
 
     const findings = [];
 
-    // Check for wildcard with credentials (this is always a passive finding)
     if (
       allowOriginHeader === "*" &&
       allowCredentialsHeader?.toLowerCase() === "true"
@@ -182,8 +178,7 @@ export default defineCheck<CorsState>(({ step }) => {
       return done({ findings, state });
     }
 
-    // Proceed to active tests if this looks like it might have CORS enabled
-    if (allowOriginHeader) {
+    if (allowOriginHeader !== undefined) {
       const url = new URL(request.getUrl());
 
       return continueWith({
@@ -202,23 +197,19 @@ export default defineCheck<CorsState>(({ step }) => {
   });
 
   step("activeTest", async (state, context) => {
-    if (!state) {
+    if (state === undefined) {
       return done({ state });
     }
 
     const originTests = createOriginTests(
       state.requestHost,
-      state.requestScheme
+      state.requestScheme,
     );
 
     if (state.currentTestIndex >= originTests.length) {
-      // All tests completed, analyze results
       const findings = state.testResults
         .map((result) => result.finding)
-        .filter(
-          (finding): finding is NonNullable<typeof finding> =>
-            finding !== undefined
-        )
+        .filter((finding) => finding !== undefined)
         .map((finding) => ({
           ...finding,
           correlation: {
@@ -231,17 +222,18 @@ export default defineCheck<CorsState>(({ step }) => {
     }
 
     const currentTest = originTests[state.currentTestIndex];
-    if (!currentTest) {
+    if (currentTest === undefined) {
       return done({ state });
     }
 
-    // Limit tests based on aggressivity
-    const maxTests =
-      context.config.aggressivity === ScanAggressivity.LOW
-        ? 3
-        : context.config.aggressivity === ScanAggressivity.MEDIUM
-          ? 5
-          : originTests.length;
+    let maxTests: number;
+    if (context.config.aggressivity === ScanAggressivity.LOW) {
+      maxTests = 3;
+    } else if (context.config.aggressivity === ScanAggressivity.MEDIUM) {
+      maxTests = 5;
+    } else {
+      maxTests = originTests.length;
+    }
 
     if (state.currentTestIndex >= maxTests) {
       return done({ state });
@@ -254,17 +246,17 @@ export default defineCheck<CorsState>(({ step }) => {
       const { response } = await context.sdk.requests.send(spec);
 
       const allowOriginHeader = response?.getHeader(
-        "access-control-allow-origin"
+        "access-control-allow-origin",
       )?.[0];
       const allowCredentialsHeader = response?.getHeader(
-        "access-control-allow-credentials"
+        "access-control-allow-credentials",
       )?.[0];
 
       const finding = analyzeResult(
         currentTest.name,
         currentTest.origin,
         allowOriginHeader,
-        allowCredentialsHeader
+        allowCredentialsHeader,
       );
 
       const testResult: CorsTestResult = {
@@ -283,7 +275,6 @@ export default defineCheck<CorsState>(({ step }) => {
         },
       });
     } catch {
-      // Continue to next test on failure
       return continueWith({
         nextStep: "activeTest",
         state: {
@@ -323,11 +314,6 @@ export default defineCheck<CorsState>(({ step }) => {
         context.request.getPort() +
         context.request.getPath()
       );
-    },
-
-    when: (context) => {
-      // Run on any request that might have CORS headers
-      return true;
     },
   };
 });

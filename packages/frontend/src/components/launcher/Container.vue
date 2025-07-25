@@ -40,7 +40,12 @@ const launcher = useLauncher();
         },
       }"
     >
-      <TabPanel v-for="step in steps" :key="step.id" :header="step.label">
+      <TabPanel
+        v-for="step in steps"
+        :key="step.id"
+        :header="step.label"
+        :value="step.id"
+      >
         <component :is="step.component" />
       </TabPanel>
     </TabView>

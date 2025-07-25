@@ -5,7 +5,7 @@ import jsonHtmlResponseScan from "./json-html-response";
 import openRedirectScan from "./open-redirect";
 import phpinfoScan from "./phpinfo";
 import { basicReflectedXSSScan } from "./reflected-xss";
-import { mysqlTimeBased, mysqlErrorBased } from "./sql-injection";
+import { mysqlErrorBased, mysqlTimeBased } from "./sql-injection";
 
 export type CheckID = (typeof Checks)[keyof typeof Checks];
 export const Checks = {

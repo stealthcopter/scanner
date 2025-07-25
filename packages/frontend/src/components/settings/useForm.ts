@@ -35,10 +35,10 @@ export const useForm = (state: Ref<ConfigState & { type: "Success" }>) => {
   });
 
   const passiveConcurrentScans = computed({
-    get: () => state.value.config.passive.concurrentScans,
+    get: () => state.value.config.passive.concurrentChecks,
     set: async (value: number) => {
       await configService.updateConfig({
-        passive: { concurrentScans: value },
+        passive: { concurrentChecks: value },
       });
     },
   });

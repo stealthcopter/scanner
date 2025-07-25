@@ -1,4 +1,5 @@
 import { continueWith, defineCheck, done, Severity } from "engine";
+
 import {
   buildTestRequest,
   extractReflectedParameters,
@@ -62,12 +63,16 @@ export default defineCheck<State>(({ step }) => {
       const { request, response } =
         await context.sdk.requests.send(requestSpec);
 
-      if (response) {
+      if (response !== undefined) {
         const responseBody = response.getBody()?.toText();
-        if (responseBody && responseBody.includes(currentPayload)) {
-          const originalReflectionCount = originalResponseBody
-            ? originalResponseBody.split(currentPayload).length - 1
-            : 0;
+        if (
+          responseBody !== undefined &&
+          responseBody.includes(currentPayload)
+        ) {
+          const originalReflectionCount =
+            originalResponseBody !== undefined
+              ? originalResponseBody.split(currentPayload).length - 1
+              : 0;
           const newReflectionCount =
             responseBody.split(currentPayload).length - 1;
 
@@ -127,9 +132,10 @@ export default defineCheck<State>(({ step }) => {
     },
     dedupeKey: (context) => {
       const query = context.request.getQuery();
-      const paramKeys = query
-        ? Array.from(new URLSearchParams(query).keys()).sort().join(",")
-        : "";
+      const paramKeys =
+        query !== ""
+          ? Array.from(new URLSearchParams(query).keys()).sort().join(",")
+          : "";
 
       return (
         context.request.getMethod() +

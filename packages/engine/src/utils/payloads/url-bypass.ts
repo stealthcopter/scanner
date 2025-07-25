@@ -10,11 +10,13 @@ export type UrlBypassTechnique =
   | "SchemeRelative"
   | "BackslashPrefix"
   | "UnescapedRegexDot"
-  | "Base64Bypass";
+  | "Base64Bypass"
+  | "ContainsBypass";
 
 export type UrlBypassGeneratorConfig = {
   expectedHost: string;
   attackerHost: string;
+  originalValue: string;
   protocol: string;
 };
 
@@ -141,11 +143,21 @@ const STRATEGIES: Readonly<Record<UrlBypassTechnique, BypassStrategy>> = {
       };
     },
   }),
+  ContainsBypass: ({ attackerHost, protocol, originalValue }) => ({
+    technique: "ContainsBypass",
+    description:
+      "Uses a payload that contains the original value but redirects to the attacker host.",
+    generate: () => ({
+      value: `${protocol}//${attackerHost}/?${originalValue}`,
+      validatesWith: (url) => url.hostname.includes(attackerHost),
+    }),
+  }),
 };
 
 export function createUrlBypassGenerator(input: {
   expectedHost: string;
   attackerHost: string;
+  originalValue: string;
   protocol?: string;
 }): UrlBypassGenerator {
   const config: UrlBypassGeneratorConfig = {

@@ -9,7 +9,3 @@ export const GetChecksOptionsSchema = z
     exclude: z.array(z.string()).optional(),
   })
   .optional();
-
-export const GetChecksParamsSchema = z.object({
-  options: GetChecksOptionsSchema,
-});

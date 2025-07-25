@@ -108,7 +108,7 @@ export type RuntimeContext = {
   sdk: SDK;
   runtime: {
     html: {
-      parse: (raw: string) => ParsedHtml;
+      parse: (requestID: string) => Promise<ParsedHtml>;
     };
     dependencies: {
       get: (key: string) => JSONSerializable | undefined;

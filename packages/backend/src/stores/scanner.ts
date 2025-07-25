@@ -211,6 +211,7 @@ export class ScannerStore {
 
       const newExecution: CheckExecution = {
         kind: "Running",
+        id: "check-" + Math.random().toString(36).substring(2, 15),
         checkID: checkId,
         targetRequestID: targetId,
         startedAt: Date.now(),

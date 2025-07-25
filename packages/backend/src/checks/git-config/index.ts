@@ -83,11 +83,6 @@ const isValidGitContent = (bodyText: string, contentType: string): boolean => {
     return false;
   }
 
-  const nonPrintableChars = /[\x00-\x08\x0E-\x1F\x7F-\xFF]/;
-  if (nonPrintableChars.test(bodyText)) {
-    return false;
-  }
-
   return true;
 };
 

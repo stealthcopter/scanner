@@ -1,7 +1,8 @@
+import { type Dialog } from "@caido/sdk-frontend/src/types/types/window";
 import { ScanAggressivity, type ScanConfig, Severity } from "engine";
 import { defineStore } from "pinia";
 import { type BasicRequest, type ScanRequestPayload } from "shared";
-import { reactive } from "vue";
+import { reactive, ref } from "vue";
 
 import { useScannerService } from "@/services/scanner";
 import { type FrontendSDK } from "@/types";
@@ -36,6 +37,8 @@ export const useLauncher = defineStore("stores.launcher", () => {
     title: "Active Scan",
   };
 
+  const dialog = ref<Dialog | undefined>(undefined);
+
   const form = reactive<FormState>({ ...defaultFormState });
 
   const toRequestPayload = (): ScanRequestPayload => ({
@@ -53,13 +56,7 @@ export const useLauncher = defineStore("stores.launcher", () => {
         scannerService.selectSession(result.value.id);
         incrementCount();
 
-        const escapeEvent = new KeyboardEvent("keydown", {
-          key: "Escape",
-          code: "Escape",
-          bubbles: true,
-          cancelable: true,
-        });
-        document.dispatchEvent(escapeEvent);
+        dialog.value?.close();
         break;
       }
       case "Error":
@@ -71,9 +68,15 @@ export const useLauncher = defineStore("stores.launcher", () => {
     Object.assign(form, defaultFormState);
   };
 
+  const setDialog = (newDialog: Dialog) => {
+    dialog.value = newDialog;
+  };
+
   return {
     form,
+    dialog,
     onSubmit,
     restart,
+    setDialog,
   };
 });

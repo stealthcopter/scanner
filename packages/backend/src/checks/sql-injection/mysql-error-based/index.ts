@@ -1,9 +1,10 @@
 import { continueWith, defineCheck, done, Severity } from "engine";
+
 import {
   buildTestRequest,
   extractParameters,
   isTargetEligible,
-  TestParam,
+  type TestParam,
 } from "../utils";
 
 type State = {
@@ -12,12 +13,7 @@ type State = {
   currentParamIndex: number;
 };
 
-const MYSQL_ERROR_PAYLOADS = [
-  "'",
-  '"',
-  "\\",
-  "' OR SLEEP()=SLEEP() --",
-];
+const MYSQL_ERROR_PAYLOADS = ["'", '"', "\\", "' OR SLEEP()=SLEEP() --"];
 
 const MYSQL_ERROR_SIGNATURES = [
   "You have an error in your SQL syntax",
@@ -57,7 +53,7 @@ export default defineCheck<State>(({ step }) => {
     }
 
     const currentParam = state.testParams[state.currentParamIndex];
-    if (!currentParam) {
+    if (currentParam === undefined) {
       return done({ state });
     }
 
@@ -78,7 +74,7 @@ export default defineCheck<State>(({ step }) => {
     }
 
     const currentPayload = MYSQL_ERROR_PAYLOADS[state.currentPayloadIndex];
-    if (!currentPayload) {
+    if (currentPayload === undefined) {
       return done({ state });
     }
 
@@ -87,9 +83,9 @@ export default defineCheck<State>(({ step }) => {
     const { request: testRequest, response: testResponse } =
       await context.sdk.requests.send(testRequestSpec);
 
-    if (testResponse) {
+    if (testResponse !== undefined) {
       const responseBody = testResponse.getBody()?.toText();
-      if (responseBody) {
+      if (responseBody !== undefined) {
         for (const signature of MYSQL_ERROR_SIGNATURES) {
           if (responseBody.includes(signature)) {
             return done({
@@ -136,9 +132,10 @@ export default defineCheck<State>(({ step }) => {
     },
     dedupeKey: (context) => {
       const query = context.request.getQuery();
-      const paramKeys = query
-        ? Array.from(new URLSearchParams(query).keys()).sort().join(",")
-        : "";
+      const paramKeys =
+        query !== undefined
+          ? Array.from(new URLSearchParams(query).keys()).sort().join(",")
+          : "";
 
       return (
         context.request.getMethod() +

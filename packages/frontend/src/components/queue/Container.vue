@@ -3,7 +3,6 @@ import Button from "primevue/button";
 import Card from "primevue/card";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { type QueueTask } from "shared";
 
 import { useQueueService } from "@/services/queue";
 import { type QueueState } from "@/types/queue";
@@ -25,10 +24,6 @@ const getStatusIcon = (status: string) => {
 const getStatusLabel = (status: string) => {
   return status === "running" ? "Running" : "Pending";
 };
-
-const selection = defineModel<QueueTask | undefined>("selection", {
-  required: true,
-});
 </script>
 
 <template>
@@ -61,10 +56,8 @@ const selection = defineModel<QueueTask | undefined>("selection", {
       </div>
 
       <DataTable
-        v-model:selection="selection"
         :value="state.tasks"
         scrollable
-        selection-mode="single"
         scroll-height="flex"
         striped-rows
         size="small"

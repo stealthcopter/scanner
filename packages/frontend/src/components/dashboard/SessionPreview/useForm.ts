@@ -28,23 +28,6 @@ export const useForm = (props: { session: Session }) => {
     }
   };
 
-  const getSeverityBadgeColor = (severity: string) => {
-    switch (severity) {
-      case Severity.CRITICAL:
-        return "bg-red-500/20 text-red-400 border-red-500/30";
-      case Severity.HIGH:
-        return "bg-orange-500/20 text-orange-400 border-orange-500/30";
-      case Severity.MEDIUM:
-        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
-      case Severity.LOW:
-        return "bg-blue-500/20 text-blue-400 border-blue-500/30";
-      case Severity.INFO:
-        return "bg-surface-500/20 text-surface-400 border-surface-500/30";
-      default:
-        return "bg-surface-500/20 text-surface-400 border-surface-500/30";
-    }
-  };
-
   const progress = computed(() => {
     if (session.value.kind === "Running" || session.value.kind === "Done") {
       const checksCompleted = session.value.progress.checksHistory.filter(
@@ -121,39 +104,6 @@ export const useForm = (props: { session: Session }) => {
     return [];
   });
 
-  const findingsBySeverity = computed(() => {
-    if (
-      session.value.kind === "Running" ||
-      session.value.kind === "Done" ||
-      session.value.kind === "Interrupted"
-    ) {
-      const findings = session.value.progress.checksHistory.flatMap(
-        (check) => check.findings,
-      );
-
-      const counts = {
-        [Severity.CRITICAL]: 0,
-        [Severity.HIGH]: 0,
-        [Severity.MEDIUM]: 0,
-        [Severity.LOW]: 0,
-        [Severity.INFO]: 0,
-      };
-
-      findings.forEach((finding) => {
-        counts[finding.severity]++;
-      });
-
-      return counts;
-    }
-    return {
-      [Severity.CRITICAL]: 0,
-      [Severity.HIGH]: 0,
-      [Severity.MEDIUM]: 0,
-      [Severity.LOW]: 0,
-      [Severity.INFO]: 0,
-    };
-  });
-
   const severityOrder = [
     Severity.CRITICAL,
     Severity.HIGH,
@@ -193,9 +143,22 @@ export const useForm = (props: { session: Session }) => {
     isDeleting.value = false;
   };
 
+  const findings = computed(() => {
+    if (
+      session.value.kind !== "Running" &&
+      session.value.kind !== "Done" &&
+      session.value.kind !== "Interrupted"
+    ) {
+      return [];
+    }
+
+    return session.value.progress.checksHistory.flatMap(
+      (check) => check.findings,
+    );
+  });
+
   return {
     getStatusColor,
-    getSeverityBadgeColor,
     severityOrder,
     progress,
     requestsSent,
@@ -204,12 +167,12 @@ export const useForm = (props: { session: Session }) => {
     checksCompleted,
     checksFailed,
     checksRunning,
-    findingsBySeverity,
     timeSinceCreated,
     timeSinceFinished,
     onCancel,
     onDelete,
     isDeleting,
     isCancelling,
+    findings,
   };
 };

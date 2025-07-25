@@ -43,7 +43,7 @@ describe("phpinfo check", () => {
       {
         sendHandler,
         config: { aggressivity: ScanAggressivity.LOW },
-      }
+      },
     );
 
     expect(executionHistory).toMatchObject([
@@ -124,7 +124,7 @@ describe("phpinfo check", () => {
       {
         sendHandler,
         config: { aggressivity: ScanAggressivity.LOW },
-      }
+      },
     );
 
     expect(executionHistory).toEqual([
@@ -214,7 +214,7 @@ describe("phpinfo check", () => {
       {
         sendHandler,
         config: { aggressivity: ScanAggressivity.LOW },
-      }
+      },
     );
 
     expect(executionHistory).toEqual([
@@ -304,7 +304,7 @@ describe("phpinfo check", () => {
       {
         sendHandler,
         config: { aggressivity: ScanAggressivity.LOW },
-      }
+      },
     );
 
     expect(executionHistory).toEqual([
@@ -394,7 +394,7 @@ describe("phpinfo check", () => {
       {
         sendHandler,
         config: { aggressivity: ScanAggressivity.LOW },
-      }
+      },
     );
 
     expect(executionHistory).toEqual([
@@ -486,7 +486,7 @@ describe("phpinfo check", () => {
       {
         sendHandler,
         config: { aggressivity: ScanAggressivity.MEDIUM },
-      }
+      },
     );
 
     expect(executionHistory).toEqual([

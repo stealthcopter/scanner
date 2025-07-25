@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { createMockRequest, createMockResponse, runCheck } from "engine";
+import { describe, expect, it } from "vitest";
 
 import reflectedXssCheck from "./index";
 
@@ -45,7 +45,7 @@ describe("basic-reflected-xss check", () => {
     const executionHistory = await runCheck(
       reflectedXssCheck,
       [{ request, response }],
-      { sendHandler }
+      { sendHandler },
     );
 
     expect(executionHistory).toMatchObject([
@@ -122,7 +122,7 @@ describe("basic-reflected-xss check", () => {
     const executionHistory = await runCheck(
       reflectedXssCheck,
       [{ request, response }],
-      { sendHandler }
+      { sendHandler },
     );
 
     expect(executionHistory).toMatchObject([
@@ -173,10 +173,9 @@ describe("basic-reflected-xss check", () => {
       body: "<html><body>Search results page</body></html>",
     });
 
-    const executionHistory = await runCheck(
-      reflectedXssCheck,
-      [{ request, response }],
-    );
+    const executionHistory = await runCheck(reflectedXssCheck, [
+      { request, response },
+    ]);
 
     expect(executionHistory).toEqual([
       {
@@ -234,7 +233,7 @@ describe("basic-reflected-xss check", () => {
         headers: {
           "Content-Type": ["text/html"],
         },
-        body: 'You searched for: &quot;&gt;&lt;img src=x onerror=alert(1)&gt;',
+        body: "You searched for: &quot;&gt;&lt;img src=x onerror=alert(1)&gt;",
       });
 
       return Promise.resolve({ request: mockRequest, response: mockResponse });
@@ -243,41 +242,41 @@ describe("basic-reflected-xss check", () => {
     const executionHistory = await runCheck(
       reflectedXssCheck,
       [{ request, response }],
-      { sendHandler }
+      { sendHandler },
     );
 
-         expect(executionHistory).toMatchObject([
-       {
-         checkId: "basic-reflected-xss",
-         targetRequestId: "1",
-         steps: [
-           {
-             stepName: "findParameters",
-             findings: [],
-             result: "continue",
-             nextStep: "testPayloads",
-           },
-           {
-             stepName: "testPayloads",
-             findings: [],
-             result: "continue",
-             nextStep: "testPayloads",
-           },
-           {
-             stepName: "testPayloads",
-             findings: [],
-             result: "continue",
-             nextStep: "testPayloads",
-           },
-           {
-             stepName: "testPayloads",
-             findings: [],
-             result: "done",
-           },
-         ],
-         status: "completed",
-       },
-     ]);
+    expect(executionHistory).toMatchObject([
+      {
+        checkId: "basic-reflected-xss",
+        targetRequestId: "1",
+        steps: [
+          {
+            stepName: "findParameters",
+            findings: [],
+            result: "continue",
+            nextStep: "testPayloads",
+          },
+          {
+            stepName: "testPayloads",
+            findings: [],
+            result: "continue",
+            nextStep: "testPayloads",
+          },
+          {
+            stepName: "testPayloads",
+            findings: [],
+            result: "continue",
+            nextStep: "testPayloads",
+          },
+          {
+            stepName: "testPayloads",
+            findings: [],
+            result: "done",
+          },
+        ],
+        status: "completed",
+      },
+    ]);
   });
 
   it("should not detect when response is not HTML", async () => {
@@ -298,10 +297,9 @@ describe("basic-reflected-xss check", () => {
       body: JSON.stringify({ query: "hello", results: [] }),
     });
 
-    const executionHistory = await runCheck(
-      reflectedXssCheck,
-      [{ request, response }],
-    );
+    const executionHistory = await runCheck(reflectedXssCheck, [
+      { request, response },
+    ]);
 
     expect(executionHistory).toEqual([]);
   });
@@ -315,10 +313,9 @@ describe("basic-reflected-xss check", () => {
       query: "q=hello",
     });
 
-    const executionHistory = await runCheck(
-      reflectedXssCheck,
-      [{ request, response: undefined }],
-    );
+    const executionHistory = await runCheck(reflectedXssCheck, [
+      { request, response: undefined },
+    ]);
 
     expect(executionHistory).toEqual([]);
   });

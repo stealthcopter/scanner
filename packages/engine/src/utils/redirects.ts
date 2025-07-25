@@ -1,5 +1,3 @@
-import { type Response } from "caido:utils";
-
 import { type RuntimeContext } from "../types/runner";
 
 export type RedirectionType =
@@ -19,10 +17,20 @@ export type RedirectionInfo =
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
  * https://code.google.com/archive/p/html5security/wikis/RedirectionMethods.wiki
  */
-export function findRedirection(
-  response: Response,
+export async function findRedirection(
+  requestID: string,
   context: RuntimeContext,
-): RedirectionInfo {
+): Promise<RedirectionInfo> {
+  const request = await context.sdk.requests.get(requestID);
+  if (request === undefined) {
+    return { hasRedirection: false };
+  }
+
+  const response = request.response;
+  if (response === undefined) {
+    return { hasRedirection: false };
+  }
+
   // HTTP redirects (3xx status codes with Location header)
   const statusCode = response.getCode();
   if (statusCode >= 300 && statusCode < 400) {
@@ -55,7 +63,7 @@ export function findRedirection(
   }
 
   // HTML redirects
-  const html = context.runtime.html.parse(response.getBody()?.toText() ?? "");
+  const html = await context.runtime.html.parse(requestID);
   if (html !== undefined) {
     // <meta> refresh redirects
     const metaElements = html.findElements({ tagName: "meta" });

@@ -85,14 +85,15 @@ describe("cors-misconfig check", () => {
             id: `test-${Math.random()}`,
             code: 200,
             headers: {
-              "Access-Control-Allow-Origin": origin ? [origin] : [],
+              "Access-Control-Allow-Origin":
+                origin !== undefined ? [origin] : [],
             },
             body: "test",
           });
 
           return { request, response };
         },
-      }
+      },
     );
 
     // Should trigger active tests and find origin reflection
@@ -102,8 +103,8 @@ describe("cors-misconfig check", () => {
 
     const hasOriginReflectionFinding = executionHistory[0]?.steps.some((step) =>
       step.findings.some(
-        (finding) => finding.name === "CORS Arbitrary Origin Reflection"
-      )
+        (finding) => finding.name === "CORS Arbitrary Origin Reflection",
+      ),
     );
     expect(hasOriginReflectionFinding).toBe(true);
   });
@@ -155,7 +156,7 @@ describe("cors-misconfig check", () => {
 
           return { request, response };
         },
-      }
+      },
     );
 
     // Should trigger active tests and find null origin
@@ -165,8 +166,8 @@ describe("cors-misconfig check", () => {
 
     const hasNullOriginFinding = executionHistory[0]?.steps.some((step) =>
       step.findings.some(
-        (finding) => finding.name === "CORS Null Origin Allowed"
-      )
+        (finding) => finding.name === "CORS Null Origin Allowed",
+      ),
     );
     expect(hasNullOriginFinding).toBe(true);
   });
@@ -218,7 +219,7 @@ describe("cors-misconfig check", () => {
 
           return { request, response };
         },
-      }
+      },
     );
 
     // Should trigger active tests and find subdomain wildcard
@@ -229,8 +230,8 @@ describe("cors-misconfig check", () => {
     const hasSubdomainWildcardFinding = executionHistory[0]?.steps.some(
       (step) =>
         step.findings.some(
-          (finding) => finding.name === "CORS Subdomain Wildcard"
-        )
+          (finding) => finding.name === "CORS Subdomain Wildcard",
+        ),
     );
     expect(hasSubdomainWildcardFinding).toBe(true);
   });
@@ -313,9 +314,9 @@ describe("cors-misconfig check", () => {
       executionHistory[0]?.steps.every(
         (step) =>
           !step.findings.some((finding) =>
-            finding.name.includes("Wildcard with Credentials")
-          )
-      )
+            finding.name.includes("Wildcard with Credentials"),
+          ),
+      ),
     ).toBe(true);
   });
 

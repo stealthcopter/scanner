@@ -1,9 +1,11 @@
 import { defineStore } from "pinia";
 
+import { useSDK } from "@/plugins/sdk";
 import { useChecksRepository } from "@/repositories/checks";
 import { useChecksStore } from "@/stores/checks";
 
 export const useChecksService = defineStore("services.checks", () => {
+  const sdk = useSDK();
   const repository = useChecksRepository();
   const store = useChecksStore();
 
@@ -17,6 +19,9 @@ export const useChecksService = defineStore("services.checks", () => {
       store.send({ type: "Success", checks: result.value });
     } else {
       store.send({ type: "Error", error: result.error });
+      sdk.window.showToast("Failed to load checks", {
+        variant: "error",
+      });
     }
   };
 

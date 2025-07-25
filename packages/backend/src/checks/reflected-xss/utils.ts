@@ -1,4 +1,4 @@
-import { RuntimeContext, ScanTarget } from "engine";
+import { type RuntimeContext, type ScanTarget } from "engine";
 
 export type ParamSource = "query" | "body" | "header";
 export type TestParam = {
@@ -10,7 +10,7 @@ export type TestParam = {
 export function buildTestRequest(
   context: RuntimeContext,
   param: TestParam,
-  value: string
+  value: string,
 ) {
   const requestSpec = context.target.request.toSpec();
 
@@ -21,12 +21,15 @@ export function buildTestRequest(
     requestSpec.setQuery(urlParams.toString());
   } else if (param.source === "body") {
     const body = requestSpec.getBody()?.toText();
-    if (body) {
+    if (body !== undefined) {
       const contentType = requestSpec
         .getHeader("Content-Type")?.[0]
         ?.toLowerCase();
 
-      if (contentType?.includes("application/json")) {
+      if (
+        contentType !== undefined &&
+        contentType.includes("application/json")
+      ) {
         try {
           const bodyParams = JSON.parse(body) as Record<string, string>;
           bodyParams[param.name] = value;
@@ -46,14 +49,14 @@ export function buildTestRequest(
 }
 
 export function extractReflectedParameters(
-  context: RuntimeContext
+  context: RuntimeContext,
 ): TestParam[] {
   let params: TestParam[] = [];
 
   const { request, response } = context.target;
 
   const queryString = request.getQuery();
-  if (queryString) {
+  if (queryString !== undefined) {
     const urlParams = new URLSearchParams(queryString);
     for (const [name, value] of urlParams.entries()) {
       if (name && value) {
@@ -66,11 +69,17 @@ export function extractReflectedParameters(
     }
   }
 
-  if (request.getMethod().toUpperCase() === "POST" && request.getBody()) {
+  if (
+    request.getMethod().toUpperCase() === "POST" &&
+    request.getBody() !== undefined
+  ) {
     const contentType = request.getHeader("Content-Type")?.[0]?.toLowerCase();
-    if (contentType?.includes("application/x-www-form-urlencoded")) {
+    if (
+      contentType !== undefined &&
+      contentType.includes("application/x-www-form-urlencoded")
+    ) {
       const body = request.getBody()?.toText();
-      if (body) {
+      if (body !== undefined) {
         const bodyParams = new URLSearchParams(body);
         for (const [name, value] of bodyParams.entries()) {
           if (name && value) {
@@ -84,9 +93,9 @@ export function extractReflectedParameters(
       }
     }
 
-    if (contentType?.includes("application/json")) {
+    if (contentType !== undefined && contentType.includes("application/json")) {
       const body = request.getBody()?.toText();
-      if (body) {
+      if (body !== undefined) {
         try {
           const bodyParams = JSON.parse(body) as Record<string, string>;
           for (const [name, value] of Object.entries(bodyParams)) {
@@ -105,10 +114,10 @@ export function extractReflectedParameters(
     }
   }
 
-  if (response) {
+  if (response !== undefined) {
     const body = response.getBody()?.toText();
 
-    if (body) {
+    if (body !== undefined) {
       params = params.filter((param) => {
         return body.includes(param.originalValue);
       });
@@ -121,12 +130,12 @@ export function extractReflectedParameters(
 export function isExploitable(target: ScanTarget): boolean {
   const { request, response } = target;
 
-  if (!response) {
+  if (response === undefined) {
     return false;
   }
 
   const contentType = response.getHeader("Content-Type")?.[0]?.toLowerCase();
-  if (contentType && !contentType.includes("text/html")) {
+  if (contentType !== undefined && !contentType.includes("text/html")) {
     return false;
   }
 
@@ -136,7 +145,7 @@ export function isExploitable(target: ScanTarget): boolean {
   }
 
   const responseBody = response.getBody()?.toText();
-  if (!responseBody || responseBody.length === 0) {
+  if (responseBody === undefined || responseBody.length === 0) {
     return false;
   }
 
