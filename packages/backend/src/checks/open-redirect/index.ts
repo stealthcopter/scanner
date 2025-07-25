@@ -99,7 +99,7 @@ export default defineCheck<{
 
     const originalQueryForParamValue = context.target.request.getQuery() || "";
     const paramsForParamValue = new URLSearchParams(originalQueryForParamValue);
-    const paramValue = paramsForParamValue.get(currentParam) ?? undefined;
+    const paramValue = paramsForParamValue.get(currentParam) ?? "";
 
     const { host: expectedHost, protocol } = getExpectedHostInfo(
       context.target.request,
@@ -110,6 +110,7 @@ export default defineCheck<{
       expectedHost,
       attackerHost,
       protocol,
+      originalValue: paramValue,
     });
 
     if (context.config.aggressivity === ScanAggressivity.LOW) {
@@ -128,14 +129,16 @@ export default defineCheck<{
       const spec = context.target.request.toSpec();
       spec.setQuery(params.toString());
 
-      const { request, response } = await context.sdk.requests.send(spec);
-      const redirectInfo = findRedirection(response, context);
+      const { request } = await context.sdk.requests.send(spec);
+
+      const redirectInfo = await findRedirection(request.getId(), context);
       if (redirectInfo.hasRedirection && redirectInfo.location) {
         try {
           const redirectUrl = new URL(
             redirectInfo.location,
             context.target.request.getUrl(),
           );
+
           if (instance.validatesWith(redirectUrl)) {
             return done({
               findings: [
@@ -193,6 +196,7 @@ export default defineCheck<{
     initState: () => ({ urlParams: [] }),
     dedupeKey: (context) => {
       return (
+        context.request.getMethod() +
         context.request.getHost() +
         context.request.getPort() +
         context.request.getPath()

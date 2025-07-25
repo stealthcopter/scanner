@@ -68,7 +68,7 @@ export function init(sdk: BackendSDK) {
   const configStore = ConfigStore.get();
   const queueStore = QueueStore.get();
   const config = configStore.getUserConfig();
-  const passiveTaskQueue = new TaskQueue(config.passive.concurrentScans);
+  const passiveTaskQueue = new TaskQueue(config.passive.concurrentChecks);
   queueStore.setPassiveTaskQueue(passiveTaskQueue);
 
   const passiveDedupeKeys = new Map<string, Set<string>>();
@@ -76,7 +76,7 @@ export function init(sdk: BackendSDK) {
     const config = configStore.getUserConfig();
     if (!config.passive.enabled) return;
 
-    passiveTaskQueue.setConcurrency(config.passive.concurrentScans);
+    passiveTaskQueue.setConcurrency(config.passive.concurrentChecks);
 
     if (config.passive.inScopeOnly) {
       const inScope = sdk.requests.inScope(request);
@@ -106,10 +106,10 @@ export function init(sdk: BackendSDK) {
       const runnable = registry.create(sdk, {
         aggressivity: config.passive.aggressivity,
         inScopeOnly: config.passive.inScopeOnly,
-        concurrentChecks: config.passive.concurrentScans,
+        concurrentChecks: config.passive.concurrentChecks,
         concurrentRequests: config.passive.concurrentRequests,
-        severities: config.passive.severities,
         concurrentTargets: 1,
+        severities: config.passive.severities,
         scanTimeout: 5 * 60,
         checkTimeout: 2 * 60,
         requestsDelayMs: 0,

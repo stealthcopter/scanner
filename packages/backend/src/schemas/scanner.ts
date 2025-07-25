@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { IdSchema, ScanAggressivitySchema, SeveritySchema } from "./common";
+import { ScanAggressivitySchema, SeveritySchema } from "./common";
 
 export const ScanConfigSchema = z.object({
   aggressivity: ScanAggressivitySchema,
@@ -21,28 +21,3 @@ export const ScanRequestPayloadSchema = z.object({
 });
 
 export const SessionTitleSchema = z.string().min(1).max(100);
-
-export const StartActiveScanParamsSchema = z.object({
-  payload: ScanRequestPayloadSchema,
-});
-
-export const GetScanSessionParamsSchema = z.object({
-  id: IdSchema,
-});
-
-export const CancelScanSessionParamsSchema = z.object({
-  id: IdSchema,
-});
-
-export const DeleteScanSessionParamsSchema = z.object({
-  id: IdSchema,
-});
-
-export const UpdateSessionTitleParamsSchema = z.object({
-  id: IdSchema,
-  title: SessionTitleSchema,
-});
-
-export const GetRequestResponseParamsSchema = z.object({
-  requestId: IdSchema,
-});

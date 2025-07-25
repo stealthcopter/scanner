@@ -21,7 +21,7 @@ export type UserConfig = {
     enabled: boolean;
     aggressivity: ScanAggressivity;
     inScopeOnly: boolean;
-    concurrentScans: number;
+    concurrentChecks: number;
     concurrentRequests: number;
     overrides: Override[];
     severities: Severity[];
@@ -80,6 +80,7 @@ export type SentRequest =
 export type CheckExecution =
   | {
       kind: "Running";
+      id: string;
       checkID: string;
       targetRequestID: string;
       startedAt: number;
@@ -88,6 +89,7 @@ export type CheckExecution =
     }
   | {
       kind: "Completed";
+      id: string;
       checkID: string;
       targetRequestID: string;
       startedAt: number;
@@ -97,6 +99,7 @@ export type CheckExecution =
     }
   | {
       kind: "Failed";
+      id: string;
       checkID: string;
       targetRequestID: string;
       startedAt: number;

@@ -22,6 +22,7 @@ export type CheckMetadata = {
   severities: Severity[];
   dependsOn?: string[];
   minAggressivity?: ScanAggressivity;
+  skipIfFoundBy?: string[];
 };
 
 export type CheckDefinition = {

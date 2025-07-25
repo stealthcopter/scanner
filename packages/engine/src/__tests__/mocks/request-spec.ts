@@ -22,6 +22,7 @@ export class MockRequestSpec implements RequestSpec {
   private query: string;
   private headers: Record<string, string[]>;
   private body?: string;
+  private id: number = Math.random() * 1000000;
 
   constructor(urlOrData: string | MockRequestSpecData) {
     if (typeof urlOrData === "string") {
@@ -77,6 +78,10 @@ export class MockRequestSpec implements RequestSpec {
 
   setTls(tls: boolean): void {
     this.tls = tls;
+  }
+
+  getId(): string {
+    return this.id.toString();
   }
 
   getMethod(): string;

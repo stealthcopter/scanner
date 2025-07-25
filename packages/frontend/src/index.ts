@@ -1,7 +1,7 @@
 import { Classic } from "@caido/primevue";
 import { createPinia } from "pinia";
 import PrimeVue from "primevue/config";
-import { createApp, defineComponent, h } from "vue";
+import { createApp } from "vue";
 
 import { SDKPlugin } from "./plugins/sdk";
 import "./styles/index.css";
@@ -103,12 +103,13 @@ export const init = (sdk: FrontendSDK) => {
         method: "GET",
       }));
 
-      sdk.window.showDialog(
+      const dialog = sdk.window.showDialog(
         {
-          type: "Custom",
-          component: defineComponent((props) => {
-            return () => h(ScanLauncher, { ...props, sdk, incrementCount });
-          }),
+          component: ScanLauncher,
+          props: {
+            sdk,
+            incrementCount: () => incrementCount, // we can't just do incrementCount because it auto-executes it when creating dialog
+          },
         },
         {
           title: "Scan Launcher",
@@ -118,6 +119,7 @@ export const init = (sdk: FrontendSDK) => {
           position: "center",
         },
       );
+      launcherStore.setDialog(dialog);
     },
     group: "Scanner",
     when: (context) => {
@@ -130,6 +132,12 @@ export const init = (sdk: FrontendSDK) => {
 
   sdk.menu.registerItem({
     type: "RequestRow",
+    commandId: "run-active-scanner",
+    leadingIcon: "fas fa-shield-alt",
+  });
+
+  sdk.menu.registerItem({
+    type: "Request",
     commandId: "run-active-scanner",
     leadingIcon: "fas fa-shield-alt",
   });

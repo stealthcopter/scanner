@@ -2,10 +2,12 @@ import { defineStore } from "pinia";
 import { type DeepPartial, type UserConfig } from "shared";
 import { merge } from "ts-deepmerge";
 
+import { useSDK } from "@/plugins/sdk";
 import { useConfigRepository } from "@/repositories/config";
 import { useConfigStore } from "@/stores/config";
 
 export const useConfigService = defineStore("services.config", () => {
+  const sdk = useSDK();
   const repository = useConfigRepository();
   const store = useConfigStore();
 
@@ -20,6 +22,9 @@ export const useConfigService = defineStore("services.config", () => {
       store.send({ type: "Success", config: result.value });
     } else {
       store.send({ type: "Error", error: result.error });
+      sdk.window.showToast("Failed to load configuration", {
+        variant: "error",
+      });
     }
   };
 
@@ -36,6 +41,9 @@ export const useConfigService = defineStore("services.config", () => {
         store.send({ type: "UpdateConfig", config: updatedConfig });
       } else {
         store.send({ type: "Error", error: result.error });
+        sdk.window.showToast("Failed to update configuration", {
+          variant: "error",
+        });
       }
     }
   };

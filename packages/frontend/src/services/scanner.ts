@@ -1,5 +1,10 @@
+import { useThrottleFn } from "@vueuse/core";
 import { defineStore } from "pinia";
-import { type ScanRequestPayload } from "shared";
+import {
+  type DeepPartial,
+  type ScanRequestPayload,
+  type SessionProgress,
+} from "shared";
 import { computed } from "vue";
 
 import { useSDK } from "@/plugins/sdk";
@@ -34,21 +39,28 @@ export const useScannerService = defineStore("services.scanner", () => {
       store.send({ type: "Success", sessions: result.value });
     } else {
       store.send({ type: "Error", error: result.error });
+      sdk.window.showToast("Failed to load scan sessions", {
+        variant: "error",
+      });
     }
 
     sdk.backend.onEvent("session:updated", (_, state) => {
-      console.log("session:updated", state);
       store.send({ type: "UpdateSession", session: state });
     });
 
     sdk.backend.onEvent("session:created", (id, state) => {
-      console.log("session:created", state);
       store.send({ type: "AddSession", session: state });
     });
 
+    const throttledProgressUpdate = useThrottleFn(
+      (id: string, progress: DeepPartial<SessionProgress>) => {
+        store.send({ type: "UpdateSessionProgress", sessionId: id, progress });
+      },
+      200,
+    );
+
     sdk.backend.onEvent("session:progress", (id, progress) => {
-      console.log("session:progress", progress);
-      store.send({ type: "UpdateSessionProgress", sessionId: id, progress });
+      throttledProgressUpdate(id, progress);
     });
   };
 

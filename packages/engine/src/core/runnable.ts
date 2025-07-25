@@ -1,6 +1,12 @@
 import { PromisePool } from "@supercharge/promise-pool";
 import { batchingToposort } from "batching-toposort-ts";
 import { type SDK } from "caido:plugin";
+import {
+  type Request,
+  type RequestSpec,
+  type RequestSpecRaw,
+  type Response,
+} from "caido:utils";
 import mitt from "mitt";
 
 import {
@@ -25,6 +31,7 @@ import {
   type StepExecutionRecord,
 } from "../types/runner";
 import { parseHtmlFromString } from "../utils/html/parser";
+import { type ParsedHtml } from "../utils/html/types";
 
 import { createTaskExecutor } from "./execution";
 import { createRequestQueue } from "./request-queue";
@@ -40,8 +47,9 @@ export const createRunnable = ({
 }): ScanRunnable => {
   const { on, emit } = mitt<ScanEvents>();
   const batches = getCheckBatches(checks);
-  const findings: Finding[] = [];
+  const findings: Map<string, Finding[]> = new Map();
   const dependencies = new Map<string, CheckOutput>();
+  const htmlCache = new Map<string, ParsedHtml>();
   let dedupeKeys = new Map<string, Set<string>>();
   let interruptReason: InterruptReason | undefined;
   let hasRun = false;
@@ -72,41 +80,6 @@ export const createRunnable = ({
     const activeRecord = activeCheckRecords.get(key);
     if (activeRecord) {
       activeRecord.steps.push(record);
-    }
-  };
-
-  const startCheckExecution = (checkId: string, targetRequestId: string) => {
-    const key = `${checkId}-${targetRequestId}`;
-    activeCheckRecords.set(key, {
-      checkId,
-      targetRequestId,
-      steps: [],
-    });
-  };
-
-  const endCheckExecution = (
-    checkId: string,
-    targetRequestId: string,
-    result:
-      | { status: "completed"; finalOutput: CheckOutput }
-      | {
-          status: "failed";
-          error: { code: ScanRunnableErrorCode; message: string };
-        },
-  ) => {
-    const key = `${checkId}-${targetRequestId}`;
-    const activeRecord = activeCheckRecords.get(key);
-
-    if (activeRecord) {
-      const checkRecord: CheckExecutionRecord = {
-        checkId: activeRecord.checkId,
-        targetRequestId: activeRecord.targetRequestId,
-        steps: activeRecord.steps,
-        ...result,
-      };
-
-      executionHistory.push(checkRecord);
-      activeCheckRecords.delete(key);
     }
   };
 
@@ -182,8 +155,38 @@ export const createRunnable = ({
       sdk,
       runtime: {
         html: {
-          parse: (raw: string) => {
-            return parseHtmlFromString(raw);
+          parse: async (requestID: string) => {
+            const cachedHtml = htmlCache.get(requestID);
+            if (cachedHtml) {
+              return cachedHtml;
+            }
+
+            const request = await sdk.requests.get(requestID);
+            if (!request) {
+              throw new ScanRunnableError(
+                `Request ${requestID} not found`,
+                ScanRunnableErrorCode.REQUEST_NOT_FOUND,
+              );
+            }
+
+            if (request.response === undefined) {
+              throw new ScanRunnableError(
+                `Response for request ${requestID} not found`,
+                ScanRunnableErrorCode.REQUEST_NOT_FOUND,
+              );
+            }
+
+            const body = request.response.getBody();
+            if (body === undefined) {
+              throw new ScanRunnableError(
+                `Body for request ${requestID} not found`,
+                ScanRunnableErrorCode.REQUEST_NOT_FOUND,
+              );
+            }
+
+            const parsedHtml = parseHtmlFromString(body.toText());
+            htmlCache.set(requestID, parsedHtml);
+            return parsedHtml;
           },
         },
         dependencies: {
@@ -195,25 +198,24 @@ export const createRunnable = ({
     };
   };
 
-  const createTaskExecutorForCheck = (
-    checkId: string,
-    targetRequestId: string,
-  ) => {
-    return createTaskExecutor({
-      emit,
-      getInterruptReason: () => interruptReason,
-      recordStepExecution: (record: StepExecutionRecord) => {
-        recordStepExecution(checkId, targetRequestId, record);
-      },
-    });
-  };
-
   const createWrappedSdk = (checkID: string, targetRequestID: string): SDK => {
     return {
       ...sdk,
       requests: {
-        ...sdk.requests,
-        send: async (request) => {
+        // ...sdk.requests didn't work :(
+        inScope: (request: Request | RequestSpec) => {
+          return sdk.requests.inScope(request);
+        },
+        query: () => {
+          return sdk.requests.query();
+        },
+        matches: (filter: string, request: Request, response?: Response) => {
+          return sdk.requests.matches(filter, request, response);
+        },
+        get: async (id: string) => {
+          return sdk.requests.get(id);
+        },
+        send: async (request: RequestSpec | RequestSpecRaw) => {
           const pendingRequestID = Math.random().toString(36).substring(2, 15);
 
           emit("scan:request-pending", {
@@ -229,7 +231,7 @@ export const createRunnable = ({
             checkID,
           );
         },
-      },
+      } as unknown as SDK["requests"],
     } as SDK;
   };
 
@@ -269,38 +271,83 @@ export const createRunnable = ({
         });
       })
       .onTaskStarted((task) => {
-        startCheckExecution(task.metadata.id, context.target.request.getId());
+        const key = `${task.metadata.id}-${context.target.request.getId()}`;
+        activeCheckRecords.set(key, {
+          checkId: task.metadata.id,
+          targetRequestId: context.target.request.getId(),
+          steps: [],
+        });
         emit("scan:check-started", {
           checkID: task.metadata.id,
           targetRequestID: context.target.request.getId(),
         });
       })
       .process(async (task) => {
-        const taskExecutor = createTaskExecutorForCheck(
-          task.metadata.id,
-          context.target.request.getId(),
-        );
+        if (task.metadata.skipIfFoundBy) {
+          const existingFindings = findings.get(task.metadata.id) || [];
+          if (existingFindings.length > 0) {
+            return;
+          }
+        }
+
+        const taskExecutor = createTaskExecutor({
+          emit,
+          getInterruptReason: () => interruptReason,
+          recordStepExecution: (record: StepExecutionRecord) => {
+            recordStepExecution(
+              task.metadata.id,
+              context.target.request.getId(),
+              record,
+            );
+          },
+        });
         const result = await taskExecutor.tickUntilDone(task);
         if (result.findings) {
-          findings.push(...result.findings);
+          const existingFindings = findings.get(task.metadata.id) || [];
+          findings.set(task.metadata.id, [
+            ...existingFindings,
+            ...result.findings,
+          ]);
         }
 
         if (result.status === "done") {
           dependencies.set(task.metadata.id, result.output);
-          endCheckExecution(task.metadata.id, context.target.request.getId(), {
-            status: "completed",
-            finalOutput: result.output,
-          });
+          const key = `${task.metadata.id}-${context.target.request.getId()}`;
+          const activeRecord = activeCheckRecords.get(key);
+
+          if (activeRecord) {
+            const checkRecord: CheckExecutionRecord = {
+              checkId: activeRecord.checkId,
+              targetRequestId: activeRecord.targetRequestId,
+              steps: activeRecord.steps,
+              status: "completed",
+              finalOutput: result.output,
+            };
+
+            executionHistory.push(checkRecord);
+            activeCheckRecords.delete(key);
+          }
         }
 
         if (result.status === "failed") {
-          endCheckExecution(task.metadata.id, context.target.request.getId(), {
-            status: "failed",
-            error: {
-              code: result.errorCode,
-              message: result.errorMessage,
-            },
-          });
+          const key = `${task.metadata.id}-${context.target.request.getId()}`;
+          const activeRecord = activeCheckRecords.get(key);
+
+          if (activeRecord) {
+            const checkRecord: CheckExecutionRecord = {
+              checkId: activeRecord.checkId,
+              targetRequestId: activeRecord.targetRequestId,
+              steps: activeRecord.steps,
+              status: "failed",
+              error: {
+                code: result.errorCode,
+                message: result.errorMessage,
+              },
+            };
+
+            executionHistory.push(checkRecord);
+            activeCheckRecords.delete(key);
+          }
           emit("scan:check-failed", {
             checkID: task.metadata.id,
             targetRequestID: context.target.request.getId(),
@@ -369,11 +416,18 @@ export const createRunnable = ({
             throw new ScanRuntimeError(errors);
           }
 
-          return { kind: "Finished", findings };
+          return {
+            kind: "Finished",
+            findings: Array.from(findings.values()).flat(),
+          };
         } catch (error) {
           if (error instanceof ScanRunnableInterruptedError) {
             emit("scan:interrupted", { reason: error.reason });
-            return { kind: "Interrupted", reason: error.reason, findings };
+            return {
+              kind: "Interrupted",
+              reason: error.reason,
+              findings: Array.from(findings.values()).flat(),
+            };
           }
 
           return {
@@ -391,7 +445,11 @@ export const createRunnable = ({
             if (!interruptReason) {
               interruptReason = "Timeout";
             }
-            resolve({ kind: "Interrupted", reason: "Timeout", findings });
+            resolve({
+              kind: "Interrupted",
+              reason: "Timeout",
+              findings: Array.from(findings.values()).flat(),
+            });
           }, config.scanTimeout * 1000);
         });
 
@@ -438,7 +496,7 @@ export const createRunnable = ({
         on("scan:interrupted", () => resolve());
       });
     },
-    externalDedupeKeys: externalDedupeKeys,
+    externalDedupeKeys,
     on: (event, callback) => on(event, callback),
     emit: (event, data) => emit(event, data),
     getExecutionHistory: () => [...executionHistory],

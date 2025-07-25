@@ -7,6 +7,8 @@ import { ChecksTable } from "./ChecksTable";
 import Header from "./Header.vue";
 import { useForm } from "./useForm";
 
+import FindingsBySeverity from "@/components/common/FindingsBySeverity.vue";
+
 const props = defineProps<{
   session: Session;
 }>();
@@ -17,12 +19,10 @@ const {
   requestsSent,
   requestsPending,
   requestsFailed,
-  severityOrder,
   checksCompleted,
   checksFailed,
   checksRunning,
-  findingsBySeverity,
-  getSeverityBadgeColor,
+  findings,
 } = useForm(props);
 </script>
 
@@ -53,32 +53,7 @@ const {
 
             <div class="flex flex-col gap-2 flex-1">
               <span class="text-sm text-surface-300 font-medium">Findings</span>
-              <div class="flex flex-wrap gap-2">
-                <div
-                  v-for="severity in severityOrder"
-                  v-show="findingsBySeverity[severity] > 0"
-                  :key="severity"
-                  :class="[
-                    'px-2 py-1 rounded-md border text-xs font-medium',
-                    getSeverityBadgeColor(severity),
-                  ]"
-                >
-                  {{
-                    severity.charAt(0).toUpperCase() +
-                    severity.slice(1).toLowerCase()
-                  }}: {{ findingsBySeverity[severity] }}
-                </div>
-                <div
-                  v-if="
-                    Object.values(findingsBySeverity).every(
-                      (count) => count === 0,
-                    )
-                  "
-                  class="py-1 rounded-md text-xs text-surface-500 italic h-[23px] flex items-center"
-                >
-                  No findings found
-                </div>
-              </div>
+              <FindingsBySeverity :findings="findings" />
             </div>
           </div>
 

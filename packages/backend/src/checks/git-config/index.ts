@@ -56,12 +56,29 @@ const isValidGitLogs = (bodyText: string): boolean => {
 const isValidGitContent = (bodyText: string, contentType: string): boolean => {
   const normalizedContentType = contentType.toLowerCase().split(";")[0]?.trim();
 
-  if (
-    normalizedContentType !== undefined &&
-    (normalizedContentType.startsWith("text/html") ||
+  if (normalizedContentType !== undefined) {
+    if (
+      normalizedContentType.startsWith("text/html") ||
       normalizedContentType.startsWith("text/xml") ||
-      bodyText.toLowerCase().includes("<html") ||
-      bodyText.toLowerCase().includes("<body"))
+      normalizedContentType.startsWith("image/") ||
+      normalizedContentType.startsWith("video/") ||
+      normalizedContentType.startsWith("audio/") ||
+      normalizedContentType.startsWith("application/octet-stream") ||
+      normalizedContentType.startsWith("application/pdf") ||
+      normalizedContentType.includes("json") ||
+      normalizedContentType.includes("javascript")
+    ) {
+      return false;
+    }
+  }
+
+  const bodyLower = bodyText.toLowerCase();
+  if (
+    bodyLower.includes("<html") ||
+    bodyLower.includes("<body") ||
+    bodyLower.includes("<!doctype") ||
+    bodyLower.includes("{") ||
+    bodyLower.includes("}")
   ) {
     return false;
   }

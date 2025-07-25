@@ -73,6 +73,9 @@ export const useEditor = () => {
     const result = await sdk.backend.getRequestResponse(requestID);
     if (result.kind !== "Success") {
       send({ type: "Error", requestID, error: result.error });
+      sdk.window.showToast("Failed to load request", {
+        variant: "error",
+      });
       return;
     }
 

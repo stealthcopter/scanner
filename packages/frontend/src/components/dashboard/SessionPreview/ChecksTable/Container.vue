@@ -5,6 +5,8 @@ import { type Session } from "shared";
 
 import { useTable } from "./useTable";
 
+import FindingsBySeverity from "@/components/common/FindingsBySeverity.vue";
+
 const props = defineProps<{
   session: Session;
 }>();
@@ -21,7 +23,7 @@ const { checksHistory } = useTable(props);
     table-style="table-layout: fixed"
     class="min-h-0"
   >
-    <Column field="targetID" header="Target ID" style="width: 20%">
+    <Column field="targetID" header="Target ID" style="width: 10%">
       <template #body="{ data }">
         <div class="text-sm font-mono truncate">{{ data.targetID }}</div>
       </template>
@@ -31,14 +33,14 @@ const { checksHistory } = useTable(props);
         <div class="text-sm truncate">{{ data.name }}</div>
       </template>
     </Column>
-    <Column field="requestsSent" header="Requests Sent" style="width: 15%">
+    <Column field="requestsSent" header="Requests" style="width: 10%">
       <template #body="{ data }">
         <div class="text-sm font-mono">{{ data.requestsSent }}</div>
       </template>
     </Column>
-    <Column field="findings" header="Findings" style="width: 15%">
+    <Column field="findings" header="Findings" style="width: 30%">
       <template #body="{ data }">
-        <div class="text-sm font-mono">{{ data.findings }}</div>
+        <FindingsBySeverity :findings="data.findings" />
       </template>
     </Column>
     <Column field="status" header="Status" style="width: 20%">
@@ -48,11 +50,6 @@ const { checksHistory } = useTable(props);
             {{ data.status }}
           </span>
         </div>
-      </template>
-    </Column>
-    <Column field="duration" header="Duration" style="width: 15%">
-      <template #body="{ data }">
-        <div class="text-sm font-mono">{{ data.duration }}</div>
       </template>
     </Column>
   </DataTable>

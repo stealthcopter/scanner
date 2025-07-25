@@ -6,21 +6,21 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@caido/primevue": "0.1.14",
-    "@caido/sdk-frontend": "0.48.2-beta.11",
+    "@caido/primevue": "0.2.1",
+    "@caido/sdk-frontend": "0.50.0",
     "@vueuse/core": "^13.5.0",
     "pinia": "^3.0.3",
     "pretty-ms": "^9.2.0",
-    "primevue": "4.1.0",
+    "primevue": "4.3.6",
     "shared": "workspace:*",
     "ts-deepmerge": "^7.0.3",
-    "vue": "3.5.13"
+    "vue": "3.5.18"
   },
   "devDependencies": {
-    "@caido/sdk-backend": "^0.46.0",
-    "@codemirror/view": "6.28.1",
+    "@caido/sdk-backend": "^0.50.0",
+    "@codemirror/view": "6.38.1",
     "backend": "workspace:*",
     "engine": "workspace:*",
-    "vue-tsc": "2.0.29"
+    "vue-tsc": "3.0.4"
   }
 }
