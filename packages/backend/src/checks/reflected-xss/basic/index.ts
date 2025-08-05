@@ -129,7 +129,7 @@ export default defineCheck<State>(({ step }) => {
               return done({
                 findings: [
                   {
-                    name: "Basic Reflected XSS in " + param.name,
+                    name: "Basic Reflected XSS in parameter '" + param.name + "'",
                     description: `Parameter \`${param.name}\` in ${param.source} reflects XSS payload without proper encoding.\n\n**Payload used:**\n\`\`\`\n${currentPayload}\n\`\`\``,
                     severity: Severity.HIGH,
                     correlation: {
@@ -151,7 +151,7 @@ export default defineCheck<State>(({ step }) => {
             return done({
               findings: [
                 {
-                  name: "Potential XSS with WAF Protection in " + param.name,
+                  name: "Potential XSS with WAF Protection in parameter '" + param.name + "'",
                   description: `Parameter \`${param.name}\` in ${param.source} reflects harmless payloads but blocks XSS attempts, indicating potential WAF or input validation.`,
                   severity: Severity.MEDIUM,
                   correlation: {

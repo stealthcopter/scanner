@@ -91,7 +91,7 @@ export default defineCheck<State>(({ step }) => {
             return done({
               findings: [
                 {
-                  name: "MySQL Error-Based SQL Injection in " + currentParam.name,
+                  name: "MySQL Error-Based SQL Injection in parameter '" + currentParam.name + "'",
                   description: `Parameter \`${currentParam.name}\` in ${currentParam.source} is vulnerable to MySQL error-based SQL injection. The application returned a MySQL error message, indicating that user input is not properly sanitized.\n\n**Payload used:**\n\`\`\`\n${testValue}\n\`\`\`\n\n**Error signature detected:**\n\`\`\`\n${signature}\n\`\`\``,
                   severity: Severity.CRITICAL,
                   correlation: {
