@@ -114,7 +114,7 @@ export default defineCheck<{
                 {
                   name: "Path Traversal",
                   description: `Parameter \`${currentParam.name}\` in ${currentParam.source} allows path traversal access to system files.\n\n**Payload used:**\n\`\`\`\n${payload}\n\`\`\`\n\nThe response contained sensitive file content matching the expected pattern.`,
-                  severity: Severity.HIGH,
+                  severity: Severity.CRITICAL,
                   correlation: {
                     requestID: request.getId(),
                     locations: [],
@@ -151,11 +151,11 @@ export default defineCheck<{
       description:
         "Detects path traversal vulnerabilities by attempting to access system files and directories",
       type: "active",
-      tags: ["path-traversal", "lfi", "directory-traversal"],
-      severities: [Severity.MEDIUM, Severity.HIGH],
+      tags: ["information-disclosure"],
+      severities: [Severity.CRITICAL],
       aggressivity: {
-        minRequests: 6,
-        maxRequests: 32,
+        minRequests: 0,
+        maxRequests: "Infinity",
       },
     },
     dedupeKey: (context) => {
