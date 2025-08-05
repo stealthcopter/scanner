@@ -60,42 +60,65 @@ const createFinding = (
     case "arbitrary-origin-reflection":
       return {
         name: "CORS Arbitrary Origin Reflection",
-        description: `The server reflects any origin back in the Access-Control-Allow-Origin header. This means an attacker can make the victim's browser send requests with credentials to this endpoint from any malicious website.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
+        description: `The server reflects any origin back in the Access-Control-Allow-Origin header. This means an attacker can make the victim's browser send requests with credentials to this endpoint from any malicious website.
+
+**Tested Origin:** \`${origin}\`
+
+**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`
+
+**Credentials Allowed:** ${hasCredentials ? "Yes" : "No"}`,
         severity: hasCredentials ? Severity.LOW : Severity.INFO,
       };
 
     case "subdomain-wildcard":
       return {
         name: "CORS Subdomain Wildcard",
-        description: `The server allows requests from subdomains of the target domain. If an attacker can control or register a subdomain, they can access this endpoint.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
-        severity: hasCredentials ? Severity.LOW : Severity.INFO,
-      };
+        description: `The server allows requests from subdomains of the target domain. If an attacker can control or register a subdomain, they can access this endpoint.
 
-    case "domain-prefix":
-      return {
-        name: "CORS Domain Prefix Bypass",
-        description: `The server allows origins that have the target domain as a suffix. An attacker could register a similar domain to bypass CORS.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
+**Tested Origin:** \`${origin}\`
+
+**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`
+
+**Credentials Allowed:** ${hasCredentials ? "Yes" : "No"}`,
         severity: hasCredentials ? Severity.LOW : Severity.INFO,
       };
 
     case "null-origin":
       return {
         name: "CORS Null Origin Allowed",
-        description: `The server allows the 'null' origin, which can be triggered by sandboxed iframes, data URLs, and file URLs. Attackers can exploit this to bypass CORS protections.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
+        description: `The server allows the 'null' origin, which can be triggered by sandboxed iframes, data URLs, and file URLs. Attackers can exploit this to bypass CORS protections.
+
+**Tested Origin:** \`${origin}\`
+
+**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`
+
+**Credentials Allowed:** ${hasCredentials ? "Yes" : "No"}`,
         severity: hasCredentials ? Severity.LOW : Severity.INFO,
       };
 
     case "underscore-bypass":
       return {
         name: "CORS Underscore Bypass",
-        description: `The server accepts origins with underscore characters that may not be properly validated. This could allow subdomain takeover attacks.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
+        description: `The server accepts origins with underscore characters that may not be properly validated. This could allow subdomain takeover attacks.
+
+**Tested Origin:** \`${origin}\`
+
+**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`
+
+**Credentials Allowed:** ${hasCredentials ? "Yes" : "No"}`,
         severity: hasCredentials ? Severity.LOW : Severity.INFO,
       };
 
     case "regex-bypass":
       return {
         name: "CORS Regex Bypass",
-        description: `The server uses unescaped dots in regex patterns for origin validation. The dot character matches any character in regex, allowing bypass of origin restrictions.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
+        description: `The server uses unescaped dots in regex patterns for origin validation. The dot character matches any character in regex, allowing bypass of origin restrictions.
+
+**Tested Origin:** \`${origin}\`
+
+**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`
+
+**Credentials Allowed:** ${hasCredentials ? "Yes" : "No"}`,
         severity: hasCredentials ? Severity.LOW : Severity.INFO,
       };
 
