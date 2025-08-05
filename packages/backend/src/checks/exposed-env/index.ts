@@ -42,10 +42,14 @@ const getBasePath = (originalPath: string): string => {
 const isValidEnvContent = (bodyText: string, contentType: string): boolean => {
   const normalizedContentType = contentType.toLowerCase().split(";")[0]?.trim();
 
+  if (bodyText.length > 500) {
+    return false;
+  }
+
   if (
-    normalizedContentType === undefined ||
-    (normalizedContentType !== "application/octet-stream" &&
-      !normalizedContentType.startsWith("text/"))
+    normalizedContentType !== undefined &&
+    normalizedContentType !== "application/octet-stream" &&
+    !normalizedContentType.startsWith("text/")
   ) {
     return false;
   }
@@ -55,10 +59,23 @@ const isValidEnvContent = (bodyText: string, contentType: string): boolean => {
     return false;
   }
 
-  const commentPattern = /^#\s*\w+/m;
-  const keyValuePattern = /^\w+\s*=\s*.+/m;
+  if (trimmedBody.includes("<html")) {
+    return false;
+  }
 
-  return commentPattern.test(trimmedBody) || keyValuePattern.test(trimmedBody);
+  const commentPattern = /^#\s{0,10}\w+/m;
+  const keyValuePattern = /^\w+=\w+/m;
+  const envKeyPattern = /^[a-z_]*(KEY|TOKEN|PASS|SECRET|DB_URL|DATABASE_URL|MAILER_URL|APP_|DB_)[a-z_]*=/mi;
+
+  const hasComments = commentPattern.test(trimmedBody);
+  const hasKeyValue = keyValuePattern.test(trimmedBody);
+  const hasEnvKeys = envKeyPattern.test(trimmedBody);
+
+  if (normalizedContentType === "application/octet-stream") {
+    return (hasComments || hasKeyValue) && hasEnvKeys;
+  }
+
+  return hasEnvKeys;
 };
 
 export default defineCheck<{
