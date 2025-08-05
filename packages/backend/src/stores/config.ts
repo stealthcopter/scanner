@@ -153,6 +153,10 @@ export class ConfigStore {
               checkID: Checks.MYSQL_ERROR_BASED_SQLI,
               enabled: true,
             },
+            {
+              checkID: Checks.PATH_TRAVERSAL,
+              enabled: true,
+            },
           ],
           passive: [
             {
@@ -189,6 +193,10 @@ export class ConfigStore {
             },
             {
               checkID: Checks.MYSQL_ERROR_BASED_SQLI,
+              enabled: true,
+            },
+            {
+              checkID: Checks.PATH_TRAVERSAL,
               enabled: true,
             },
           ],
