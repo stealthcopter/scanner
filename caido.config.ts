@@ -10,8 +10,8 @@ const id = "scanner";
 export default defineConfig({
   id,
   name: "Scanner",
-  description: "Scanner",
-  version: "0.0.1",
+  description: "Passive and active vulnerability scanner",
+  version: "1.0.0",
   author: {
     name: "Caido Labs Inc.",
     email: "dev@caido.io",
