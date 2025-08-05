@@ -1,10 +1,10 @@
 import { continueWith, defineCheck, done, Severity } from "engine";
 
 import {
-  type Parameter,
   createRequestWithParameter,
   extractParameters,
   hasParameters,
+  type Parameter,
 } from "../../../utils";
 
 type State = {
@@ -107,7 +107,10 @@ export default defineCheck<State>(({ step }) => {
         return done({
           findings: [
             {
-              name: "MySQL Time-Based SQL Injection in parameter '" + currentParam.name + "'",
+              name:
+                "MySQL Time-Based SQL Injection in parameter '" +
+                currentParam.name +
+                "'",
               description: `Parameter \`${currentParam.name}\` in ${currentParam.source} is vulnerable to MySQL time-based SQL injection.\n\n**Payload used:**\n\`\`\`\n${currentPayload}\n\`\`\`\n\n**Timing evidence:**\n- Baseline response time: ${state.baselineTime}ms\n- Payload response time: ${testTime}ms\n- Time difference: ${testTime - state.baselineTime}ms`,
               severity: Severity.CRITICAL,
               correlation: {

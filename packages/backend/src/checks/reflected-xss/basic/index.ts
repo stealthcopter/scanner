@@ -1,9 +1,15 @@
-import { continueWith, defineCheck, done, Severity, type ScanTarget } from "engine";
+import {
+  continueWith,
+  defineCheck,
+  done,
+  type ScanTarget,
+  Severity,
+} from "engine";
 
 import {
-  type Parameter,
   createRequestWithParameter,
   extractReflectedParameters,
+  type Parameter,
 } from "../../../utils";
 
 function isExploitable(target: ScanTarget): boolean {
@@ -41,23 +47,23 @@ type State = {
 const REFLECTION_PAYLOADS = [
   {
     payload: '"><z xxx=a()>',
-    type: 'waf-evasion',
-    description: 'Dummy tag with fictive event to avoid WAF detection'
+    type: "waf-evasion",
+    description: "Dummy tag with fictive event to avoid WAF detection",
   },
   {
     payload: '"><img src=x onerror=alert(1)>',
-    type: 'standard',
-    description: 'Standard image tag with onerror event'
+    type: "standard",
+    description: "Standard image tag with onerror event",
   },
   {
     payload: '"><script>alert(1)</script>',
-    type: 'standard',
-    description: 'Script tag injection'
+    type: "standard",
+    description: "Script tag injection",
   },
   {
     payload: '"><svg onload=alert(1)>',
-    type: 'standard',
-    description: 'SVG tag with onload event'
+    type: "standard",
+    description: "SVG tag with onload event",
   },
 ];
 
@@ -97,7 +103,11 @@ export default defineCheck<State>(({ step }) => {
     const originalResponseBody = originalResponse?.getBody()?.toText();
 
     for (const param of state.testParams) {
-      const requestSpec = createRequestWithParameter(context, param, currentPayload);
+      const requestSpec = createRequestWithParameter(
+        context,
+        param,
+        currentPayload,
+      );
       const { request, response } =
         await context.sdk.requests.send(requestSpec);
 
@@ -115,7 +125,7 @@ export default defineCheck<State>(({ step }) => {
             responseBody.split(currentPayload).length - 1;
 
           if (newReflectionCount > originalReflectionCount) {
-            if (currentPayloadConfig.type === 'waf-evasion') {
+            if (currentPayloadConfig.type === "waf-evasion") {
               const newWafEvadedParams = [...state.wafEvadedParams, param];
               return continueWith({
                 nextStep: "testPayloads",
@@ -129,7 +139,8 @@ export default defineCheck<State>(({ step }) => {
               return done({
                 findings: [
                   {
-                    name: "Basic Reflected XSS in parameter '" + param.name + "'",
+                    name:
+                      "Basic Reflected XSS in parameter '" + param.name + "'",
                     description: `Parameter \`${param.name}\` in ${param.source} reflects XSS payload without proper encoding.\n\n**Payload used:**\n\`\`\`\n${currentPayload}\n\`\`\``,
                     severity: Severity.HIGH,
                     correlation: {
@@ -142,16 +153,19 @@ export default defineCheck<State>(({ step }) => {
               });
             }
           }
-        } else if (currentPayloadConfig.type === 'standard') {
-          const isWafEvaded = state.wafEvadedParams.some(p =>
-            p.name === param.name && p.source === param.source
+        } else if (currentPayloadConfig.type === "standard") {
+          const isWafEvaded = state.wafEvadedParams.some(
+            (p) => p.name === param.name && p.source === param.source,
           );
 
           if (isWafEvaded) {
             return done({
               findings: [
                 {
-                  name: "Potential XSS with WAF Protection in parameter '" + param.name + "'",
+                  name:
+                    "Potential XSS with WAF Protection in parameter '" +
+                    param.name +
+                    "'",
                   description: `Parameter \`${param.name}\` in ${param.source} reflects harmless payloads but blocks XSS attempts, indicating potential WAF or input validation.`,
                   severity: Severity.MEDIUM,
                   correlation: {

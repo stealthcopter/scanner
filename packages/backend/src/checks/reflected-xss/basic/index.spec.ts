@@ -73,7 +73,7 @@ describe("basic-reflected-xss check", () => {
     const executionHistory = await runCheck(
       reflectedXssCheck,
       [{ request, response }],
-      { sendHandler }
+      { sendHandler },
     );
 
     expect(executionHistory).toMatchObject([
@@ -97,7 +97,7 @@ describe("basic-reflected-xss check", () => {
             stepName: "testPayloads",
             findings: [
               {
-                name: "Basic Reflected XSS",
+                name: "Basic Reflected XSS in parameter 'q'",
                 severity: "high",
                 correlation: {
                   requestID: "3",
@@ -177,7 +177,7 @@ describe("basic-reflected-xss check", () => {
     const executionHistory = await runCheck(
       reflectedXssCheck,
       [{ request, response }],
-      { sendHandler }
+      { sendHandler },
     );
 
     expect(executionHistory).toMatchObject([
@@ -201,7 +201,7 @@ describe("basic-reflected-xss check", () => {
             stepName: "testPayloads",
             findings: [
               {
-                name: "Basic Reflected XSS",
+                name: "Basic Reflected XSS in parameter 'name'",
                 severity: "high",
                 correlation: {
                   requestID: "3",
@@ -335,7 +335,7 @@ describe("basic-reflected-xss check", () => {
     const executionHistory = await runCheck(
       reflectedXssCheck,
       [{ request, response }],
-      { sendHandler }
+      { sendHandler },
     );
 
     expect(executionHistory).toMatchObject([
@@ -359,7 +359,7 @@ describe("basic-reflected-xss check", () => {
             stepName: "testPayloads",
             findings: [
               {
-                name: "Potential XSS with WAF Protection",
+                name: "Potential XSS with WAF Protection in parameter 'q'",
                 severity: "medium",
                 correlation: {
                   requestID: "3",
@@ -417,7 +417,7 @@ describe("basic-reflected-xss check", () => {
     const executionHistory = await runCheck(
       reflectedXssCheck,
       [{ request, response }],
-      { sendHandler }
+      { sendHandler },
     );
 
     expect(executionHistory).toMatchObject([
@@ -595,7 +595,7 @@ describe("basic-reflected-xss check", () => {
             result: "done",
             findings: [
               {
-                name: "Basic Reflected XSS",
+                name: "Basic Reflected XSS in parameter 'name'",
                 severity: "high",
                 correlation: {
                   requestID: "3",
@@ -701,7 +701,7 @@ describe("basic-reflected-xss check", () => {
             result: "done",
             findings: [
               {
-                name: "Potential XSS with WAF Protection",
+                name: "Potential XSS with WAF Protection in parameter 'term'",
                 severity: "medium",
                 correlation: {
                   requestID: "3",

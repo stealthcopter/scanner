@@ -74,6 +74,17 @@ onMounted(() => {
   configService.initialize();
   queueService.initialize();
 });
+
+// PrimeVue update broke types and we can't just do :label="item.label"
+const handleLabel = (
+  label: string | ((...args: unknown[]) => string) | undefined,
+) => {
+  if (typeof label === "function") {
+    return label();
+  }
+
+  return label;
+};
 </script>
 
 <template>
@@ -89,8 +100,8 @@ onMounted(() => {
           :outlined="item.isActive()"
           size="small"
           :text="!item.isActive()"
+          :label="handleLabel(item.label)"
           @mousedown="item.onClick()"
-          :label="item.label as string"
         />
       </template>
     </MenuBar>

@@ -88,7 +88,10 @@ function extractQueryParameters(queryString: string): Parameter[] {
   return parameters;
 }
 
-function extractBodyParameters(body: string, contentType: ContentType): Parameter[] {
+function extractBodyParameters(
+  body: string,
+  contentType: ContentType,
+): Parameter[] {
   const parameters: Parameter[] = [];
 
   if (contentType === "form") {
@@ -122,7 +125,10 @@ export function extractParameters(context: RuntimeContext): Parameter[] {
   }
 
   const requestBody = request.getBody();
-  if (request.getMethod().toUpperCase() !== "GET" && requestBody !== undefined) {
+  if (
+    request.getMethod().toUpperCase() !== "GET" &&
+    requestBody !== undefined
+  ) {
     const body = requestBody.toText();
     if (body !== undefined) {
       const contentType = getContentType(request.getHeaders());

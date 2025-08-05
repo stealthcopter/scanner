@@ -143,7 +143,7 @@ describe("path-traversal check", () => {
             result: "done",
             findings: [
               {
-                name: "Path Traversal",
+                name: "Path Traversal in parameter 'file'",
                 severity: "critical",
                 correlation: {
                   requestID: "2",
@@ -212,7 +212,7 @@ describe("path-traversal check", () => {
             result: "done",
             findings: [
               {
-                name: "Path Traversal",
+                name: "Path Traversal in parameter 'file'",
                 severity: "critical",
                 correlation: {
                   requestID: "2",
@@ -283,7 +283,7 @@ describe("path-traversal check", () => {
             result: "done",
             findings: [
               {
-                name: "Path Traversal",
+                name: "Path Traversal in parameter 'file'",
                 severity: "critical",
                 correlation: {
                   requestID: "2",

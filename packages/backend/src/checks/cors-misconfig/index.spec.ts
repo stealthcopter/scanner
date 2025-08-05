@@ -266,18 +266,14 @@ describe("cors-misconfig check", () => {
           {
             stepName: "passiveCheck",
             stateBefore: {
-              currentTestIndex: 0,
-              testResults: [],
+              originTests: [],
               requestHost: "",
               requestScheme: "",
-              originalUrl: "",
             },
             stateAfter: {
-              currentTestIndex: 0,
-              testResults: [],
+              originTests: [],
               requestHost: "",
               requestScheme: "",
-              originalUrl: "",
             },
             findings: [],
             result: "done",
@@ -370,18 +366,14 @@ describe("cors-misconfig check", () => {
           {
             stepName: "passiveCheck",
             stateBefore: {
-              currentTestIndex: 0,
-              testResults: [],
+              originTests: [],
               requestHost: "",
               requestScheme: "",
-              originalUrl: "",
             },
             stateAfter: {
-              currentTestIndex: 0,
-              testResults: [],
+              originTests: [],
               requestHost: "",
               requestScheme: "",
-              originalUrl: "",
             },
             findings: [],
             result: "done",

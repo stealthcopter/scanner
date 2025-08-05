@@ -6,25 +6,6 @@ import {
   Severity,
 } from "engine";
 
-type CorsTestResult = {
-  testType: string;
-  allowOriginHeader: string | undefined;
-  allowCredentialsHeader: string | undefined;
-  finding?: {
-    name: string;
-    description: string;
-    severity: Severity;
-  };
-};
-
-type CorsState = {
-  currentTestIndex: number;
-  testResults: CorsTestResult[];
-  requestHost: string;
-  requestScheme: string;
-  originalUrl: string;
-};
-
 const createOriginTests = (host: string, scheme: string) => {
   const tests = [
     {
@@ -67,82 +48,67 @@ const createOriginTests = (host: string, scheme: string) => {
   return tests;
 };
 
-const analyzeResult = (
+const createFinding = (
   testType: string,
   origin: string,
-  allowOriginHeader: string | undefined,
+  allowOriginHeader: string,
   allowCredentialsHeader: string | undefined,
 ) => {
-  if (allowOriginHeader === undefined) return undefined;
-
   const hasCredentials = allowCredentialsHeader?.toLowerCase() === "true";
 
   switch (testType) {
     case "arbitrary-origin-reflection":
-      if (allowOriginHeader === origin) {
-        return {
-          name: "CORS Arbitrary Origin Reflection",
-          description: `The server reflects any origin back in the Access-Control-Allow-Origin header. This means an attacker can make the victim's browser send requests with credentials to this endpoint from any malicious website.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
-          severity: hasCredentials ? Severity.LOW : Severity.INFO,
-        };
-      }
-      break;
+      return {
+        name: "CORS Arbitrary Origin Reflection",
+        description: `The server reflects any origin back in the Access-Control-Allow-Origin header. This means an attacker can make the victim's browser send requests with credentials to this endpoint from any malicious website.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
+        severity: hasCredentials ? Severity.LOW : Severity.INFO,
+      };
 
     case "subdomain-wildcard":
-      if (allowOriginHeader === origin) {
-        return {
-          name: "CORS Subdomain Wildcard",
-          description: `The server allows requests from subdomains of the target domain. If an attacker can control or register a subdomain, they can access this endpoint.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
-          severity: hasCredentials ? Severity.LOW : Severity.INFO,
-        };
-      }
-      break;
+      return {
+        name: "CORS Subdomain Wildcard",
+        description: `The server allows requests from subdomains of the target domain. If an attacker can control or register a subdomain, they can access this endpoint.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
+        severity: hasCredentials ? Severity.LOW : Severity.INFO,
+      };
 
     case "domain-prefix":
-      if (allowOriginHeader === origin) {
-        return {
-          name: "CORS Domain Prefix Bypass",
-          description: `The server allows origins that have the target domain as a suffix. An attacker could register a similar domain to bypass CORS.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
-          severity: hasCredentials ? Severity.LOW : Severity.INFO,
-        };
-      }
-      break;
+      return {
+        name: "CORS Domain Prefix Bypass",
+        description: `The server allows origins that have the target domain as a suffix. An attacker could register a similar domain to bypass CORS.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
+        severity: hasCredentials ? Severity.LOW : Severity.INFO,
+      };
 
     case "null-origin":
-      if (allowOriginHeader === "null") {
-        return {
-          name: "CORS Null Origin Allowed",
-          description: `The server allows the 'null' origin, which can be triggered by sandboxed iframes, data URLs, and file URLs. Attackers can exploit this to bypass CORS protections.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
-          severity: hasCredentials ? Severity.LOW : Severity.INFO,
-        };
-      }
-      break;
+      return {
+        name: "CORS Null Origin Allowed",
+        description: `The server allows the 'null' origin, which can be triggered by sandboxed iframes, data URLs, and file URLs. Attackers can exploit this to bypass CORS protections.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
+        severity: hasCredentials ? Severity.LOW : Severity.INFO,
+      };
 
     case "underscore-bypass":
-      if (allowOriginHeader === origin) {
-        return {
-          name: "CORS Underscore Bypass",
-          description: `The server accepts origins with underscore characters that may not be properly validated. This could allow subdomain takeover attacks.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
-          severity: hasCredentials ? Severity.LOW : Severity.INFO,
-        };
-      }
-      break;
+      return {
+        name: "CORS Underscore Bypass",
+        description: `The server accepts origins with underscore characters that may not be properly validated. This could allow subdomain takeover attacks.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
+        severity: hasCredentials ? Severity.LOW : Severity.INFO,
+      };
 
     case "regex-bypass":
-      if (allowOriginHeader === origin) {
-        return {
-          name: "CORS Regex Bypass",
-          description: `The server uses unescaped dots in regex patterns for origin validation. The dot character matches any character in regex, allowing bypass of origin restrictions.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
-          severity: hasCredentials ? Severity.LOW : Severity.INFO,
-        };
-      }
-      break;
-  }
+      return {
+        name: "CORS Regex Bypass",
+        description: `The server uses unescaped dots in regex patterns for origin validation. The dot character matches any character in regex, allowing bypass of origin restrictions.\n\n**Tested Origin:** \`${origin}\`\n**Server Response:** \`Access-Control-Allow-Origin: ${allowOriginHeader}\`${hasCredentials ? "\n**Credentials Allowed:** Yes (HIGH RISK)" : "\n**Credentials Allowed:** No"}`,
+        severity: hasCredentials ? Severity.LOW : Severity.INFO,
+      };
 
-  return undefined;
+    default:
+      return undefined;
+  }
 };
 
-export default defineCheck<CorsState>(({ step }) => {
+export default defineCheck<{
+  originTests: Array<{ name: string; origin: string; description: string }>;
+  requestHost: string;
+  requestScheme: string;
+}>(({ step }) => {
   step("passiveCheck", (state, context) => {
     const { request, response } = context.target;
 
@@ -157,38 +123,48 @@ export default defineCheck<CorsState>(({ step }) => {
       "access-control-allow-credentials",
     )?.[0];
 
-    const findings = [];
-
     if (
       allowOriginHeader === "*" &&
       allowCredentialsHeader?.toLowerCase() === "true"
     ) {
-      findings.push({
-        name: "CORS Wildcard with Credentials",
-        description: `The server responds with 'Access-Control-Allow-Origin: *' AND 'Access-Control-Allow-Credentials: true'. This configuration is forbidden by browsers and indicates a serious misconfiguration.\n\n**Access-Control-Allow-Origin:** \`${allowOriginHeader}\`\n**Access-Control-Allow-Credentials:** \`${allowCredentialsHeader}\`\n\nNote: Browsers will reject this combination, but it shows the server is misconfigured.`,
-        severity: Severity.LOW,
-        correlation: {
-          requestID: request.getId(),
-          locations: [],
-        },
+      return done({
+        findings: [
+          {
+            name: "CORS Wildcard with Credentials",
+            description: `The server responds with 'Access-Control-Allow-Origin: *' AND 'Access-Control-Allow-Credentials: true'. This configuration is forbidden by browsers and indicates a serious misconfiguration.\n\n**Access-Control-Allow-Origin:** \`${allowOriginHeader}\`\n**Access-Control-Allow-Credentials:** \`${allowCredentialsHeader}\`\n\nNote: Browsers will reject this combination, but it shows the server is misconfigured.`,
+            severity: Severity.LOW,
+            correlation: {
+              requestID: request.getId(),
+              locations: [],
+            },
+          },
+        ],
+        state,
       });
-    }
-
-    if (findings.length > 0) {
-      return done({ findings, state });
     }
 
     if (allowOriginHeader !== undefined) {
       const url = new URL(request.getUrl());
+      const originTests = createOriginTests(
+        url.hostname,
+        url.protocol.slice(0, -1),
+      );
+
+      let maxTests: number;
+      if (context.config.aggressivity === ScanAggressivity.LOW) {
+        maxTests = 3;
+      } else if (context.config.aggressivity === ScanAggressivity.MEDIUM) {
+        maxTests = 5;
+      } else {
+        maxTests = originTests.length;
+      }
 
       return continueWith({
-        nextStep: "activeTest",
+        nextStep: "testOrigin",
         state: {
-          currentTestIndex: 0,
-          testResults: [],
+          originTests: originTests.slice(0, maxTests),
           requestHost: url.hostname,
           requestScheme: url.protocol.slice(0, -1),
-          originalUrl: request.getUrl(),
         },
       });
     }
@@ -196,46 +172,13 @@ export default defineCheck<CorsState>(({ step }) => {
     return done({ state });
   });
 
-  step("activeTest", async (state, context) => {
-    if (state === undefined) {
+  step("testOrigin", async (state, context) => {
+    if (state.originTests.length === 0) {
       return done({ state });
     }
 
-    const originTests = createOriginTests(
-      state.requestHost,
-      state.requestScheme,
-    );
-
-    if (state.currentTestIndex >= originTests.length) {
-      const findings = state.testResults
-        .map((result) => result.finding)
-        .filter((finding) => finding !== undefined)
-        .map((finding) => ({
-          ...finding,
-          correlation: {
-            requestID: context.target.request.getId(),
-            locations: [],
-          },
-        }));
-
-      return done({ findings, state });
-    }
-
-    const currentTest = originTests[state.currentTestIndex];
+    const [currentTest, ...remainingTests] = state.originTests;
     if (currentTest === undefined) {
-      return done({ state });
-    }
-
-    let maxTests: number;
-    if (context.config.aggressivity === ScanAggressivity.LOW) {
-      maxTests = 3;
-    } else if (context.config.aggressivity === ScanAggressivity.MEDIUM) {
-      maxTests = 5;
-    } else {
-      maxTests = originTests.length;
-    }
-
-    if (state.currentTestIndex >= maxTests) {
       return done({ state });
     }
 
@@ -243,7 +186,7 @@ export default defineCheck<CorsState>(({ step }) => {
       const spec = context.target.request.toSpec();
       spec.setHeader("Origin", currentTest.origin);
 
-      const { response } = await context.sdk.requests.send(spec);
+      const { request, response } = await context.sdk.requests.send(spec);
 
       const allowOriginHeader = response?.getHeader(
         "access-control-allow-origin",
@@ -252,37 +195,50 @@ export default defineCheck<CorsState>(({ step }) => {
         "access-control-allow-credentials",
       )?.[0];
 
-      const finding = analyzeResult(
-        currentTest.name,
-        currentTest.origin,
-        allowOriginHeader,
-        allowCredentialsHeader,
-      );
+      if (allowOriginHeader !== undefined) {
+        let isVulnerable = false;
 
-      const testResult: CorsTestResult = {
-        testType: currentTest.name,
-        allowOriginHeader,
-        allowCredentialsHeader,
-        finding,
-      };
+        if (currentTest.name === "null-origin") {
+          isVulnerable = allowOriginHeader === "null";
+        } else {
+          isVulnerable = allowOriginHeader === currentTest.origin;
+        }
 
-      return continueWith({
-        nextStep: "activeTest",
-        state: {
-          ...state,
-          currentTestIndex: state.currentTestIndex + 1,
-          testResults: [...state.testResults, testResult],
-        },
-      });
+        if (isVulnerable) {
+          const finding = createFinding(
+            currentTest.name,
+            currentTest.origin,
+            allowOriginHeader,
+            allowCredentialsHeader,
+          );
+
+          if (finding) {
+            return done({
+              findings: [
+                {
+                  ...finding,
+                  correlation: {
+                    requestID: request.getId(),
+                    locations: [],
+                  },
+                },
+              ],
+              state: { ...state, originTests: remainingTests },
+            });
+          }
+        }
+      }
     } catch {
-      return continueWith({
-        nextStep: "activeTest",
-        state: {
-          ...state,
-          currentTestIndex: state.currentTestIndex + 1,
-        },
-      });
+      // Continue with next test on error
     }
+
+    return continueWith({
+      nextStep: "testOrigin",
+      state: {
+        ...state,
+        originTests: remainingTests,
+      },
+    });
   });
 
   return {
@@ -295,17 +251,15 @@ export default defineCheck<CorsState>(({ step }) => {
       tags: ["cors"],
       severities: [Severity.INFO, Severity.LOW],
       aggressivity: {
-        minRequests: 1,
+        minRequests: 0,
         maxRequests: 6,
       },
     },
 
     initState: () => ({
-      currentTestIndex: 0,
-      testResults: [],
+      originTests: [],
       requestHost: "",
       requestScheme: "",
-      originalUrl: "",
     }),
 
     dedupeKey: (context) => {

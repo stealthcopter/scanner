@@ -1,10 +1,10 @@
 import { continueWith, defineCheck, done, Severity } from "engine";
 
 import {
-  type Parameter,
   createRequestWithParameter,
   extractParameters,
   hasParameters,
+  type Parameter,
 } from "../../../utils";
 
 type State = {
@@ -79,7 +79,11 @@ export default defineCheck<State>(({ step }) => {
     }
 
     const testValue = currentParam.value + currentPayload;
-    const testRequestSpec = createRequestWithParameter(context, currentParam, testValue);
+    const testRequestSpec = createRequestWithParameter(
+      context,
+      currentParam,
+      testValue,
+    );
     const { request: testRequest, response: testResponse } =
       await context.sdk.requests.send(testRequestSpec);
 
@@ -91,7 +95,10 @@ export default defineCheck<State>(({ step }) => {
             return done({
               findings: [
                 {
-                  name: "MySQL Error-Based SQL Injection in parameter '" + currentParam.name + "'",
+                  name:
+                    "MySQL Error-Based SQL Injection in parameter '" +
+                    currentParam.name +
+                    "'",
                   description: `Parameter \`${currentParam.name}\` in ${currentParam.source} is vulnerable to MySQL error-based SQL injection. The application returned a MySQL error message, indicating that user input is not properly sanitized.\n\n**Payload used:**\n\`\`\`\n${testValue}\n\`\`\`\n\n**Error signature detected:**\n\`\`\`\n${signature}\n\`\`\``,
                   severity: Severity.CRITICAL,
                   correlation: {

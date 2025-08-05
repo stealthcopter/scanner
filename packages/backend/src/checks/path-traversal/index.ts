@@ -2,14 +2,15 @@ import {
   continueWith,
   defineCheck,
   done,
-  Severity,
   ScanAggressivity,
+  Severity,
 } from "engine";
+
 import {
-  type Parameter,
   createRequestWithParameter,
   extractParameters,
   hasParameters,
+  type Parameter,
 } from "../../utils";
 
 type PayloadList = {
@@ -102,17 +103,23 @@ export default defineCheck<{
 
     for (const payloadSet of payloads) {
       for (const payload of payloadSet.payloads) {
-        const requestSpec = createRequestWithParameter(context, currentParam, payload);
-        const { request, response } = await context.sdk.requests.send(requestSpec);
+        const requestSpec = createRequestWithParameter(
+          context,
+          currentParam,
+          payload,
+        );
+        const { request, response } =
+          await context.sdk.requests.send(requestSpec);
 
-        const responseBody = response.getBody()?.toText() || "";
+        const responseBody = response.getBody()?.toText() ?? "";
 
         for (const pattern of payloadSet.patterns) {
           if (pattern.test(responseBody)) {
             return done({
               findings: [
                 {
-                  name: "Path Traversal in parameter '" + currentParam.name + "'",
+                  name:
+                    "Path Traversal in parameter '" + currentParam.name + "'",
                   description: `Parameter \`${currentParam.name}\` in ${currentParam.source} allows path traversal access to system files.\n\n**Payload used:**\n\`\`\`\n${payload}\n\`\`\`\n\nThe response contained sensitive file content matching the expected pattern.`,
                   severity: Severity.CRITICAL,
                   correlation: {
