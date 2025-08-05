@@ -137,7 +137,7 @@ export default defineCheck<State>(({ step }) => {
       description:
         "Detects MySQL-specific time-based SQL injection vulnerabilities using sleep() function",
       type: "active",
-      tags: ["sqli", "mysql", "time-based"],
+      tags: ["sqli"],
       severities: [Severity.CRITICAL],
       aggressivity: {
         minRequests: 2,

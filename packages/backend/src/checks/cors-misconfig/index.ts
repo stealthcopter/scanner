@@ -292,7 +292,7 @@ export default defineCheck<CorsState>(({ step }) => {
       description:
         "Detects CORS misconfigurations including origin reflection, wildcard bypasses, null origins, and validation bypasses",
       type: "active",
-      tags: ["cors", "origin", "access-control"],
+      tags: ["cors"],
       severities: [Severity.INFO, Severity.LOW],
       aggressivity: {
         minRequests: 1,

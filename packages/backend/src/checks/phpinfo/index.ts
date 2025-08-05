@@ -120,7 +120,7 @@ export default defineCheck<{
       description:
         "Detects publicly accessible PHPinfo pages that may contain sensitive PHP environment information",
       type: "active",
-      tags: ["information-disclosure", "php"],
+      tags: ["information-disclosure"],
       severities: [Severity.LOW],
       aggressivity: {
         minRequests: 1,

@@ -123,7 +123,7 @@ export default defineCheck<State>(({ step }) => {
       description:
         "Detects MySQL-specific error-based SQL injection vulnerabilities by triggering database errors",
       type: "active",
-      tags: ["sqli", "mysql", "error-based"],
+      tags: ["sqli"],
       severities: [Severity.CRITICAL],
       aggressivity: {
         minRequests: 1,
