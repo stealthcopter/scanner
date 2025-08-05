@@ -64,6 +64,7 @@ export type TestRequestsSDK = {
 export type TestSDK = {
   requests: TestRequestsSDK;
   console: Console;
+  scope: unknown;
   findings: unknown;
   replay: unknown;
   projects: unknown;

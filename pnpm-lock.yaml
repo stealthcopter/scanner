@@ -14,6 +14,9 @@ importers:
       '@caido/eslint-config':
         specifier: ^0.6.0
         version: 0.6.0(@typescript-eslint/parser@8.26.1(eslint@9.31.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.31.0(jiti@2.4.2))(prettier@3.5.3)(typescript@5.8.3)
+      '@caido/sdk-backend':
+        specifier: ^0.50.2
+        version: 0.50.2
       '@caido/tailwindcss':
         specifier: 0.0.1
         version: 0.0.1
@@ -149,6 +152,10 @@ importers:
       engine:
         specifier: workspace:*
         version: link:../engine
+    devDependencies:
+      '@caido/sdk-backend':
+        specifier: ^0.50.2
+        version: 0.50.2
 
 packages:
 
@@ -210,6 +217,9 @@ packages:
 
   '@caido/sdk-backend@0.50.0':
     resolution: {integrity: sha512-tfa4znHBEdtK9cX7qZLl+9TISI82RkBMIVq/m15b33rBZezRj5o+a5juM7ikyeseJWXugIrEmoG/ZnCJBV+SRA==, tarball: https://registry.npmjs.org/@caido/sdk-backend/-/sdk-backend-0.50.0.tgz}
+
+  '@caido/sdk-backend@0.50.2':
+    resolution: {integrity: sha512-1RIplV6gvPvdFMO9jP83LdWhFJsRxhy4WEFzHyQbG3WJlrigDvpIBEB/zc7GE9YrGq/8gRus1hB+zb9fsjG5TA==, tarball: https://registry.npmjs.org/@caido/sdk-backend/-/sdk-backend-0.50.2.tgz}
 
   '@caido/sdk-frontend@0.50.0':
     resolution: {integrity: sha512-2OjcqT81QRlNEilHDqSmlLE7Bv8gToz5m0TxlIe98JUdYVajsHd/UvpaDoHY278lcovNGB8I7ogtWNr9rrLWGw==, tarball: https://registry.npmjs.org/@caido/sdk-frontend/-/sdk-frontend-0.50.0.tgz}
@@ -3593,6 +3603,11 @@ snapshots:
       '@caido/sdk-shared': 0.1.1
 
   '@caido/sdk-backend@0.50.0':
+    dependencies:
+      '@caido/quickjs-types': 0.19.3
+      '@caido/sdk-shared': 0.1.1
+
+  '@caido/sdk-backend@0.50.2':
     dependencies:
       '@caido/quickjs-types': 0.19.3
       '@caido/sdk-shared': 0.1.1

@@ -85,12 +85,12 @@ onMounted(() => {
 
       <template #item="{ item }">
         <Button
-          size="small"
           :severity="item.isActive() ? 'secondary' : 'contrast'"
           :outlined="item.isActive()"
+          size="small"
           :text="!item.isActive()"
-          :label="item.label"
-          @mousedown="item.command"
+          @mousedown="item.onClick()"
+          :label="item.label as string"
         />
       </template>
     </MenuBar>

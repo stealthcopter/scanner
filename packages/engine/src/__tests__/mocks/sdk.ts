@@ -134,5 +134,6 @@ export const createTestSdk = (config: TestSdkConfig = {}): TestSDK => {
   return {
     console,
     requests: requests.create(config),
+    scope: {},
   } as unknown as TestSDK;
 };

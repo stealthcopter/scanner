@@ -22,6 +22,10 @@ export class MockBody implements Body {
     }
   }
 
+  get length(): number {
+    return new TextEncoder().encode(this.data).length;
+  }
+
   toText(): string {
     return this.data;
   }

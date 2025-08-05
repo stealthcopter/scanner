@@ -176,7 +176,7 @@ const {
           :min="1"
           placeholder="600"
           class="w-full"
-          @input="form.config.scanTimeout = $event.value"
+          @input="form.config.scanTimeout = Number($event.value)"
         />
       </div>
 

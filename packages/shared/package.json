@@ -9,5 +9,8 @@
   },
   "dependencies": {
     "engine": "workspace:*"
+  },
+  "devDependencies": {
+    "@caido/sdk-backend": "^0.50.2"
   }
 }

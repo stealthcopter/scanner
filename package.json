@@ -15,6 +15,7 @@
   "devDependencies": {
     "@caido-community/dev": "^0.1.6",
     "@caido/eslint-config": "^0.6.0",
+    "@caido/sdk-backend": "^0.50.2",
     "@caido/tailwindcss": "0.0.1",
     "@types/node": "^24.1.0",
     "@vitejs/plugin-vue": "6.0.0",
