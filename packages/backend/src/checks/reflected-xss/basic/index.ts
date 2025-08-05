@@ -34,12 +34,31 @@ function isExploitable(target: ScanTarget): boolean {
 type State = {
   testParams: Parameter[];
   currentPayloadIndex: number;
+  wafEvadedParams: Parameter[];
+  possibleWafBlocked: boolean;
 };
 
 const REFLECTION_PAYLOADS = [
-  '"><img src=x onerror=alert(1)>',
-  '"><script>alert(1)</script>',
-  '"><svg onload=alert(1)>',
+  {
+    payload: '"><z xxx=a()>',
+    type: 'waf-evasion',
+    description: 'Dummy tag with fictive event to avoid WAF detection'
+  },
+  {
+    payload: '"><img src=x onerror=alert(1)>',
+    type: 'standard',
+    description: 'Standard image tag with onerror event'
+  },
+  {
+    payload: '"><script>alert(1)</script>',
+    type: 'standard',
+    description: 'Script tag injection'
+  },
+  {
+    payload: '"><svg onload=alert(1)>',
+    type: 'standard',
+    description: 'SVG tag with onload event'
+  },
 ];
 
 export default defineCheck<State>(({ step }) => {
@@ -68,11 +87,12 @@ export default defineCheck<State>(({ step }) => {
       return done({ state });
     }
 
-    const currentPayload = REFLECTION_PAYLOADS[state.currentPayloadIndex];
-    if (currentPayload === undefined) {
+    const currentPayloadConfig = REFLECTION_PAYLOADS[state.currentPayloadIndex];
+    if (currentPayloadConfig === undefined) {
       return done({ state });
     }
 
+    const currentPayload = currentPayloadConfig.payload;
     const originalResponse = context.target.response;
     const originalResponseBody = originalResponse?.getBody()?.toText();
 
@@ -95,19 +115,55 @@ export default defineCheck<State>(({ step }) => {
             responseBody.split(currentPayload).length - 1;
 
           if (newReflectionCount > originalReflectionCount) {
+            if (currentPayloadConfig.type === 'waf-evasion') {
+              const newWafEvadedParams = [...state.wafEvadedParams, param];
+              return continueWith({
+                nextStep: "testPayloads",
+                state: {
+                  ...state,
+                  currentPayloadIndex: state.currentPayloadIndex + 1,
+                  wafEvadedParams: newWafEvadedParams,
+                },
+              });
+            } else {
+              return done({
+                findings: [
+                  {
+                    name: "Basic Reflected XSS in " + param.name,
+                    description: `Parameter \`${param.name}\` in ${param.source} reflects XSS payload without proper encoding.\n\n**Payload used:**\n\`\`\`\n${currentPayload}\n\`\`\``,
+                    severity: Severity.HIGH,
+                    correlation: {
+                      requestID: request.getId(),
+                      locations: [],
+                    },
+                  },
+                ],
+                state,
+              });
+            }
+          }
+        } else if (currentPayloadConfig.type === 'standard') {
+          const isWafEvaded = state.wafEvadedParams.some(p =>
+            p.name === param.name && p.source === param.source
+          );
+
+          if (isWafEvaded) {
             return done({
               findings: [
                 {
-                  name: "Basic Reflected XSS",
-                  description: `Parameter \`${param.name}\` in ${param.source} reflects XSS payload without proper encoding.\n\n**Payload used:**\n\`\`\`\n${currentPayload}\n\`\`\``,
-                  severity: Severity.HIGH,
+                  name: "Potential XSS with WAF Protection in " + param.name,
+                  description: `Parameter \`${param.name}\` in ${param.source} reflects harmless payloads but blocks XSS attempts, indicating potential WAF or input validation.`,
+                  severity: Severity.MEDIUM,
                   correlation: {
                     requestID: request.getId(),
                     locations: [],
                   },
                 },
               ],
-              state,
+              state: {
+                ...state,
+                possibleWafBlocked: true,
+              },
             });
           }
         }
@@ -142,10 +198,10 @@ export default defineCheck<State>(({ step }) => {
         "Detects basic reflected Cross-Site Scripting vulnerabilities",
       type: "active",
       tags: ["xss"],
-      severities: [Severity.HIGH],
+      severities: [Severity.HIGH, Severity.MEDIUM],
       aggressivity: {
-        minRequests: 1,
-        maxRequests: REFLECTION_PAYLOADS.length,
+        minRequests: 0,
+        maxRequests: "Infinity",
       },
     },
     dedupeKey: (context) => {
@@ -166,6 +222,8 @@ export default defineCheck<State>(({ step }) => {
     initState: () => ({
       testParams: [],
       currentPayloadIndex: 0,
+      wafEvadedParams: [],
+      possibleWafBlocked: false,
     }),
     when: (target) => {
       return isExploitable(target);
