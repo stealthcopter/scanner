@@ -1,14 +1,14 @@
 import { continueWith, defineCheck, done, Severity } from "engine";
 
 import {
-  buildTestRequest,
+  type Parameter,
+  createRequestWithParameter,
   extractParameters,
-  isTargetEligible,
-  type TestParam,
-} from "../utils";
+  hasParameters,
+} from "../../../utils";
 
 type State = {
-  testParams: TestParam[];
+  testParams: Parameter[];
   currentPayloadIndex: number;
   currentParamIndex: number;
 };
@@ -78,8 +78,8 @@ export default defineCheck<State>(({ step }) => {
       return done({ state });
     }
 
-    const testValue = currentParam.originalValue + currentPayload;
-    const testRequestSpec = buildTestRequest(context, currentParam, testValue);
+    const testValue = currentParam.value + currentPayload;
+    const testRequestSpec = createRequestWithParameter(context, currentParam, testValue);
     const { request: testRequest, response: testResponse } =
       await context.sdk.requests.send(testRequestSpec);
 
@@ -151,7 +151,7 @@ export default defineCheck<State>(({ step }) => {
       currentParamIndex: 0,
     }),
     when: (target) => {
-      return isTargetEligible(target);
+      return hasParameters(target);
     },
   };
 });

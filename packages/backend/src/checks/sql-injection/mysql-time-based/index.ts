@@ -1,14 +1,14 @@
 import { continueWith, defineCheck, done, Severity } from "engine";
 
 import {
-  buildTestRequest,
+  type Parameter,
+  createRequestWithParameter,
   extractParameters,
-  isTargetEligible,
-  type TestParam,
-} from "../utils";
+  hasParameters,
+} from "../../../utils";
 
 type State = {
-  testParams: TestParam[];
+  testParams: Parameter[];
   currentPayloadIndex: number;
   currentParamIndex: number;
   baselineTime: number;
@@ -92,7 +92,7 @@ export default defineCheck<State>(({ step }) => {
       return done({ state });
     }
 
-    const testRequestSpec = buildTestRequest(
+    const testRequestSpec = createRequestWithParameter(
       context,
       currentParam,
       currentPayload,
@@ -166,7 +166,7 @@ export default defineCheck<State>(({ step }) => {
       baselineTime: 0,
     }),
     when: (target) => {
-      return isTargetEligible(target);
+      return hasParameters(target);
     },
   };
 });

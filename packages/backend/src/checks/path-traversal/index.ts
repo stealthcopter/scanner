@@ -6,11 +6,11 @@ import {
   ScanAggressivity,
 } from "engine";
 import {
-  buildTestRequest,
+  type Parameter,
+  createRequestWithParameter,
   extractParameters,
-  isTargetEligible,
-  type TestParam,
-} from "./utils";
+  hasParameters,
+} from "../../utils";
 
 type PayloadList = {
   payloads: string[];
@@ -60,7 +60,7 @@ const PAYLOADS: PayloadList[] = [
 ];
 
 export default defineCheck<{
-  parameters: TestParam[];
+  parameters: Parameter[];
 }>(({ step }) => {
   step("findParameters", (state, context) => {
     const parameters = extractParameters(context);
@@ -102,7 +102,7 @@ export default defineCheck<{
 
     for (const payloadSet of payloads) {
       for (const payload of payloadSet.payloads) {
-        const requestSpec = buildTestRequest(context, currentParam, payload);
+        const requestSpec = createRequestWithParameter(context, currentParam, payload);
         const { request, response } = await context.sdk.requests.send(requestSpec);
 
         const responseBody = response.getBody()?.toText() || "";
@@ -175,6 +175,6 @@ export default defineCheck<{
     initState: () => ({
       parameters: [],
     }),
-    when: (target) => isTargetEligible(target),
+    when: (target) => hasParameters(target),
   };
 });

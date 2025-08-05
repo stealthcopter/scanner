@@ -1,25 +1,26 @@
 import { type RuntimeContext, type ScanTarget } from "engine";
 
-export type ParamSource = "query" | "body" | "header";
-export type TestParam = {
+export type ParameterSource = "query" | "body" | "header";
+
+export type Parameter = {
   name: string;
-  originalValue: string;
-  source: ParamSource;
+  value: string;
+  source: ParameterSource;
 };
 
-export function buildTestRequest(
+export function createRequestWithParameter(
   context: RuntimeContext,
-  param: TestParam,
-  value: string,
+  parameter: Parameter,
+  newValue: string,
 ) {
   const requestSpec = context.target.request.toSpec();
 
-  if (param.source === "query") {
+  if (parameter.source === "query") {
     const queryString = requestSpec.getQuery();
     const urlParams = new URLSearchParams(queryString);
-    urlParams.set(param.name, value);
+    urlParams.set(parameter.name, newValue);
     requestSpec.setQuery(urlParams.toString());
-  } else if (param.source === "body") {
+  } else if (parameter.source === "body") {
     const body = requestSpec.getBody()?.toText();
     if (body !== undefined) {
       const contentType = requestSpec
@@ -32,37 +33,36 @@ export function buildTestRequest(
       ) {
         try {
           const bodyParams = JSON.parse(body) as Record<string, string>;
-          bodyParams[param.name] = value;
+          bodyParams[parameter.name] = newValue;
           requestSpec.setBody(JSON.stringify(bodyParams));
         } catch (error) {
           // ignore
         }
       } else {
         const bodyParams = new URLSearchParams(body);
-        bodyParams.set(param.name, value);
+        bodyParams.set(parameter.name, newValue);
         requestSpec.setBody(bodyParams.toString());
       }
     }
+  } else if (parameter.source === "header") {
+    requestSpec.setHeader(parameter.name, newValue);
   }
 
   return requestSpec;
 }
 
-export function extractReflectedParameters(
-  context: RuntimeContext,
-): TestParam[] {
-  let params: TestParam[] = [];
-
-  const { request, response } = context.target;
+export function extractParameters(context: RuntimeContext): Parameter[] {
+  const parameters: Parameter[] = [];
+  const { request } = context.target;
 
   const queryString = request.getQuery();
-  if (queryString !== undefined) {
+  if (queryString !== undefined && queryString !== "") {
     const urlParams = new URLSearchParams(queryString);
     for (const [name, value] of urlParams.entries()) {
       if (name && value) {
-        params.push({
+        parameters.push({
           name,
-          originalValue: value,
+          value,
           source: "query",
         });
       }
@@ -83,9 +83,9 @@ export function extractReflectedParameters(
         const bodyParams = new URLSearchParams(body);
         for (const [name, value] of bodyParams.entries()) {
           if (name && value) {
-            params.push({
+            parameters.push({
               name,
-              originalValue: value,
+              value,
               source: "body",
             });
           }
@@ -100,9 +100,9 @@ export function extractReflectedParameters(
           const bodyParams = JSON.parse(body) as Record<string, string>;
           for (const [name, value] of Object.entries(bodyParams)) {
             if (name && value) {
-              params.push({
+              parameters.push({
                 name,
-                originalValue: value,
+                value,
                 source: "body",
               });
             }
@@ -114,40 +114,34 @@ export function extractReflectedParameters(
     }
   }
 
+  return parameters;
+}
+
+export function extractReflectedParameters(
+  context: RuntimeContext,
+): Parameter[] {
+  let parameters = extractParameters(context);
+  const { response } = context.target;
+
   if (response !== undefined) {
     const body = response.getBody()?.toText();
 
     if (body !== undefined) {
-      params = params.filter((param) => {
-        return body.includes(param.originalValue);
+      parameters = parameters.filter((parameter) => {
+        return body.includes(parameter.value);
       });
     }
   }
 
-  return params;
+  return parameters;
 }
 
-export function isExploitable(target: ScanTarget): boolean {
-  const { request, response } = target;
+export function hasParameters(target: ScanTarget): boolean {
+  const { request } = target;
 
-  if (response === undefined) {
-    return false;
-  }
+  const queryString = request.getQuery();
+  const hasQueryParams = queryString !== undefined && queryString.length > 0;
+  const hasBody = request.getBody() !== undefined;
 
-  const contentType = response.getHeader("Content-Type")?.[0]?.toLowerCase();
-  if (contentType !== undefined && !contentType.includes("text/html")) {
-    return false;
-  }
-
-  const method = request.getMethod().toUpperCase();
-  if (!["GET", "POST"].includes(method)) {
-    return false;
-  }
-
-  const responseBody = response.getBody()?.toText();
-  if (responseBody === undefined || responseBody.length === 0) {
-    return false;
-  }
-
-  return true;
+  return hasQueryParams || hasBody;
 }

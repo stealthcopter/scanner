@@ -1,21 +1,39 @@
-import { continueWith, defineCheck, done, Severity } from "engine";
+import { continueWith, defineCheck, done, Severity, type ScanTarget } from "engine";
 
 import {
-  buildTestRequest,
+  type Parameter,
+  createRequestWithParameter,
   extractReflectedParameters,
-  isExploitable,
-} from "../utils";
+} from "../../../utils";
+
+function isExploitable(target: ScanTarget): boolean {
+  const { request, response } = target;
+
+  if (response === undefined) {
+    return false;
+  }
+
+  const contentType = response.getHeader("Content-Type")?.[0]?.toLowerCase();
+  if (contentType !== undefined && !contentType.includes("text/html")) {
+    return false;
+  }
+
+  const method = request.getMethod().toUpperCase();
+  if (!["GET", "POST"].includes(method)) {
+    return false;
+  }
+
+  const responseBody = response.getBody()?.toText();
+  if (responseBody === undefined || responseBody.length === 0) {
+    return false;
+  }
+
+  return true;
+}
 
 type State = {
-  testParams: TestParam[];
+  testParams: Parameter[];
   currentPayloadIndex: number;
-};
-
-type ParamSource = "query" | "body" | "header";
-type TestParam = {
-  name: string;
-  originalValue: string;
-  source: ParamSource;
 };
 
 const REFLECTION_PAYLOADS = [
@@ -59,7 +77,7 @@ export default defineCheck<State>(({ step }) => {
     const originalResponseBody = originalResponse?.getBody()?.toText();
 
     for (const param of state.testParams) {
-      const requestSpec = buildTestRequest(context, param, currentPayload);
+      const requestSpec = createRequestWithParameter(context, param, currentPayload);
       const { request, response } =
         await context.sdk.requests.send(requestSpec);
 
