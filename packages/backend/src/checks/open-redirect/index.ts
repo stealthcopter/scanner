@@ -143,7 +143,7 @@ export default defineCheck<{
             return done({
               findings: [
                 {
-                  name: "Open Redirect",
+                  name: "Open Redirect in " + currentParam,
                   description: `Parameter \`${currentParam}\` allows ${redirectInfo.type} redirect via the \`${payloadRecipe.technique}\` technique.\n\n**Payload used:**\n\`\`\`\n${instance.value}\n\`\`\`\n\n${payloadRecipe.description}`,
                   severity: Severity.MEDIUM,
                   correlation: {

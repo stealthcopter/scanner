@@ -144,7 +144,7 @@ describe("path-traversal check", () => {
             findings: [
               {
                 name: "Path Traversal",
-                severity: "high",
+                severity: "critical",
                 correlation: {
                   requestID: "2",
                 },
@@ -213,7 +213,7 @@ describe("path-traversal check", () => {
             findings: [
               {
                 name: "Path Traversal",
-                severity: "high",
+                severity: "critical",
                 correlation: {
                   requestID: "2",
                 },
@@ -284,7 +284,7 @@ describe("path-traversal check", () => {
             findings: [
               {
                 name: "Path Traversal",
-                severity: "high",
+                severity: "critical",
                 correlation: {
                   requestID: "2",
                 },

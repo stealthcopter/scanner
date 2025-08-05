@@ -112,7 +112,7 @@ export default defineCheck<{
             return done({
               findings: [
                 {
-                  name: "Path Traversal",
+                  name: "Path Traversal in " + currentParam.name,
                   description: `Parameter \`${currentParam.name}\` in ${currentParam.source} allows path traversal access to system files.\n\n**Payload used:**\n\`\`\`\n${payload}\n\`\`\`\n\nThe response contained sensitive file content matching the expected pattern.`,
                   severity: Severity.CRITICAL,
                   correlation: {
