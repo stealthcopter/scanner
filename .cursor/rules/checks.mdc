@@ -75,6 +75,56 @@ export default defineCheck<{
 });
 ```
 
+### Check Metadata
+
+The `CheckMetadata` type is a crucial part of defining a check, as it contains all the static information about the check. Here's a breakdown of its components:
+
+- **id**: A unique identifier for the check. This is required and ensures that each check can be distinctly referenced.
+- **name**: A human-readable name for the check, which is displayed in the UI.
+- **description**: A detailed explanation of what the check does and the vulnerabilities it detects. This helps users understand the check's functionality and scope.
+- **tags**: An array of tags used for categorization and filtering. Tags help in organizing checks and making them easily searchable.
+- **aggressivity**: This defines the request limits for the check. It uses the `CheckAggressivity` type, which specifies `minRequests` and `maxRequests`. If the request count is dynamic, use `Infinity` for `maxRequests`.
+- **type**: Indicates whether the check is `passive` or `active`. This helps in determining how the check interacts with the target. Use `passive` if the scan is silent enough to run in the background without causing noise, and `active` if the scan requires more noticeable interaction with the target.
+- **severities**: An array of possible severity levels that the check can report. This is used for filtering, and the engine will throw an error if a finding is returned with a severity not included in this array.
+- **dependsOn** (optional): An array of check IDs that must run before this check. This ensures that dependencies are resolved before execution.
+- **minAggressivity** (optional): The minimum scan aggressivity level required for this check to run. This allows checks to be gated by the scan's aggressivity level.
+- **skipIfFoundBy** (optional): An array of check IDs. If any of these checks have found findings during the scan, this check will be skipped.
+
+```ts
+export type CheckAggressivity = {
+  minRequests: number;
+  maxRequests: number | "Infinity";
+};
+
+export type CheckType = "passive" | "active";
+export type CheckMetadata = {
+  /** Unique identifier for the check */
+  id: string;
+  /** Human-readable name displayed in the UI */
+  name: string;
+  /** Detailed description of what the check does and what vulnerabilities it detects */
+  description: string;
+  /** Array of tags used for categorization and filtering */
+  tags: string[];
+  /** Defines the request limits for this check. Please use Infinity if it's dynamic. */
+  aggressivity: CheckAggressivity;
+  /** Whether this is a passive or active check */
+  type: CheckType;
+  /**
+   * Array of possible severity levels this check can report.
+   * This is used for filtering.
+   * Engine will throw an error if you return a finding with a severity that is not in this array.
+   **/
+  severities: Severity[];
+  /** Optional: Array of check IDs that must run before this check */
+  dependsOn?: string[];
+  /** Optional: Minimum scan aggressivity level required for this check to run */
+  minAggressivity?: ScanAggressivity;
+  /** Optional: array of check IDs - if any of these check IDs have found any findings during the scan, skip this check */
+  skipIfFoundBy?: string[];
+};
+```
+
 ### Steps and Looping
 
 Keep ticks short. If you need to iterate (e.g., parameters, paths), reuse the same step and shrink the remaining work in state.
