@@ -61,6 +61,8 @@ Feel free to contribute! If you'd like to request a feature or report a bug, ple
 To define your own check, use the `defineCheck` function as shown below. The check metadata contains static information about the check, some fields, such as `id`, are always required, while others are used for filtering.
 
 ```ts
+import { defineCheck, Severity } from "engine";
+
 export const exampleCheck = defineCheck(({ step }) => {
   return {
     metadata: {
