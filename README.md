@@ -52,11 +52,9 @@ Scanner's modular architecture makes it easy to add new vulnerability checks:
 
 Join our [Discord](https://links.caido.io/www-discord) community and connect with other Caido users! Share your ideas, ask questions, and get involved in discussions around Caido and security testing.
 
-## 🤝 Contributing
+## 🧑‍💻 Developer Documentation
 
-Feel free to contribute! If you'd like to request a feature or report a bug, please create a [GitHub Issue](https://github.com/caido-community/scanner/issues/new).
-
-## Check Definition
+### Check Definition
 
 To define your own check, use the `defineCheck` function as shown below. The check metadata contains static information about the check, some fields, such as `id`, are always required, while others are used for filtering.
 
@@ -95,7 +93,27 @@ export const exampleCheck = defineCheck(({ step }) => {
 });
 ```
 
-## Steps
+### Check Metadata
+
+
+### Check Metadata
+
+The `CheckMetadata` type is a crucial part of defining a check, as it contains all the static information about the check. Here's a breakdown of its components:
+
+- **id**: A unique identifier for the check. This is required and ensures that each check can be distinctly referenced.
+- **name**: A human-readable name for the check, which is displayed in the UI.
+- **description**: A detailed explanation of what the check does and the vulnerabilities it detects. This helps users understand the check's functionality and scope.
+- **tags**: An array of tags used for categorization and filtering. Tags help in organizing checks and making them easily searchable.
+- **aggressivity**: This defines the request limits for the check. It uses the `CheckAggressivity` type, which specifies `minRequests` and `maxRequests`. If the request count is dynamic, use `Infinity` for `maxRequests`.
+- **type**: Indicates whether the check is `passive` or `active`. This helps in determining how the check interacts with the target. Use `passive` if the scan is silent enough to run in the background without causing noise, and `active` if the scan requires more noticeable interaction with the target.
+- **severities**: An array of possible severity levels that the check can report. This is used for filtering, and the engine will throw an error if a finding is returned with a severity not included in this array.
+- **dependsOn** (optional): An array of check IDs that must run before this check. This ensures that dependencies are resolved before execution.
+- **minAggressivity** (optional): The minimum scan aggressivity level required for this check to run. This allows checks to be gated by the scan's aggressivity level.
+- **skipIfFoundBy** (optional): An array of check IDs. If any of these checks have found findings during the scan, this check will be skipped.
+
+
+
+### Steps
 
 Steps let you break your check into smaller parts. Each step should be simple and quick. End a step with `done(...)` or go to the next step with `continueWith({ state, nextStep: '...' })`.
 
@@ -162,11 +180,11 @@ export default defineCheck<{
 
 State allows you to pass data from one step to another within your check. When you define a state for your check, you must also provide an `initState` function in your return statement that sets the initial value for your state. Context gives you access to the Caido Backend SDK, the scanner engine runtime SDK (which will be explained later), as well as the target request and response.
 
-# Checks Engine
+### Checks Engine
 
 The checks engine is built around a step-based execution model that allows responsive and interruptible scans. Each check is composed of sequential steps that can pass data through state, send requests, and produce findings.
 
-## Steps
+### Steps
 
 Steps are the fundamental building blocks of a check in the engine. Steps are executed sequentially, and each execution of a step is called a "tick".
 
@@ -177,7 +195,7 @@ When you need to perform multiple actions (such as sending several requests), st
 A common pattern in checks is to create loops by reusing the same step in `nextStep`. This allows you to perform iterative operations like testing multiple paths or parameters. Once your loop condition is met, you can either return `done()` to complete the check or `continue()` to proceed to subsequent steps.
 
 
-## Context
+### Context
 
 Context provides access to:
 - The Caido Backend SDK via the `sdk` field
@@ -301,12 +319,12 @@ export const helloWorldConsumer = defineCheck(({ step }) => {
 });
 ```
 
-### Notes:
+#### Notes:
 
 - Outputs are stored per check ID and made available to later checks.
 - Outputs must be JSON‑serializable. Keep them small and focused.
 
-# Utilities
+## Utilities
 
 
 The engine provides helper utilities you can use inside checks. Two commonly used ones are redirection detection and URL bypass payload generation.
@@ -315,7 +333,7 @@ The engine provides helper utilities you can use inside checks. Two commonly use
 import { createUrlBypassGenerator, findRedirection } from "engine";
 ```
 
-## Redirection detection
+### Redirection detection
 
 Detects whether a response leads to a redirect and extracts its destination. It covers HTTP 3xx with Location header, Refresh header, HTML meta refresh/location, base tag, and JavaScript-based redirects.
 
@@ -340,7 +358,7 @@ export type RedirectionInfo =
   | { hasRedirection: true; type: RedirectionType; location: string };
 ```
 
-## URL bypass payload generator
+### URL bypass payload generator
 
 Generates a sequence of URL payload recipes that attempt to bypass naive allowlists. Each recipe can produce a payload string value and validate that a resulting redirect points to the attacker host. You can filter techniques or limit the number of generated recipes.
 
@@ -362,7 +380,7 @@ const generator = createUrlBypassGenerator({
 }).only("UserInfoBypass", "SchemeRelative");
 ```
 
-### Example: iterate payloads and validate a redirect
+#### Example: iterate payloads and validate a redirect
 
 ```ts
 import { defineCheck, done, Severity, createUrlBypassGenerator, findRedirection } from "engine";
@@ -436,23 +454,22 @@ export default defineCheck(({ step }) => {
 });
 ```
 
-# Contributing
+## 🤝 Contributing
 
-We appreciate any contributions to help make Scanner better and more comprehensive!
+Feel free to contribute! If you'd like to request a feature or report a bug, please create a [GitHub Issue](https://github.com/caido-community/scanner/issues/new).
 
-
-## Ways to Contribute
+### Ways to Contribute
 
 - Report bugs and request features via GitHub Issues.
 - Improve docs and examples.
 - Add new vulnerability checks.
 
-## Add a New Check
+### Add a New Check
 
 > [!NOTE]
 > All checks live in `packages/backend/src/checks`. Each check uses a folder with two files: `index.ts` and `index.spec.ts`. As the logic gets more complicated, you can spread it into multiple files within the same folder.
 
-### 1) Scaffold
+#### 1) Scaffold
 
 Create a new folder and add your implementation and tests:
 
@@ -465,7 +482,7 @@ packages/backend/src/checks/
 
 Follow the check patterns in the existing checks. Implement your check with the engine step model and add unit tests in `index.spec.ts`.
 
-### 2) Register the Check
+#### 2) Register the Check
 
 Open `packages/backend/src/checks/index.ts` and:
 
@@ -487,7 +504,7 @@ export const checks = [
 ] as const;
 ```
 
-### 3) Add to Presets
+#### 3) Add to Presets
 
 Open `packages/backend/src/stores/config.ts` and include your check in default presets. Always add it to the Heavy preset as enabled. Depending on aggressivity and type, you may also add it to Light or Balanced.
 
@@ -506,7 +523,7 @@ Decide whether your check belongs to `active` or `passive` based on `metadata.ty
 }
 ```
 
-### 4) Validate Locally
+#### 4) Validate Locally
 
 Run formatting, types, tests, and a build from the repo root:
 
