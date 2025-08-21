@@ -95,9 +95,6 @@ export const exampleCheck = defineCheck(({ step }) => {
 
 ### Check Metadata
 
-
-### Check Metadata
-
 The `CheckMetadata` type is a crucial part of defining a check, as it contains all the static information about the check. Here's a breakdown of its components:
 
 - **id**: A unique identifier for the check. This is required and ensures that each check can be distinctly referenced.
@@ -110,6 +107,41 @@ The `CheckMetadata` type is a crucial part of defining a check, as it contains a
 - **dependsOn** (optional): An array of check IDs that must run before this check. This ensures that dependencies are resolved before execution.
 - **minAggressivity** (optional): The minimum scan aggressivity level required for this check to run. This allows checks to be gated by the scan's aggressivity level.
 - **skipIfFoundBy** (optional): An array of check IDs. If any of these checks have found findings during the scan, this check will be skipped.
+
+```ts
+export type CheckAggressivity = {
+  minRequests: number;
+  maxRequests: number | "Infinity";
+};
+
+export type CheckType = "passive" | "active";
+export type CheckMetadata = {
+  /** Unique identifier for the check */
+  id: string;
+  /** Human-readable name displayed in the UI */
+  name: string;
+  /** Detailed description of what the check does and what vulnerabilities it detects */
+  description: string;
+  /** Array of tags used for categorization and filtering */
+  tags: string[];
+  /** Defines the request limits for this check. Please use Infinity if it's dynamic. */
+  aggressivity: CheckAggressivity;
+  /** Whether this is a passive or active check */
+  type: CheckType;
+  /**
+   * Array of possible severity levels this check can report.
+   * This is used for filtering.
+   * Engine will throw an error if you return a finding with a severity that is not in this array.
+   **/
+  severities: Severity[];
+  /** Optional: Array of check IDs that must run before this check */
+  dependsOn?: string[];
+  /** Optional: Minimum scan aggressivity level required for this check to run */
+  minAggressivity?: ScanAggressivity;
+  /** Optional: array of check IDs - if any of these check IDs have found any findings during the scan, skip this check */
+  skipIfFoundBy?: string[];
+};
+```
 
 
 
