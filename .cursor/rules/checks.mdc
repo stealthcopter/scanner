@@ -1,0 +1,244 @@
+---
+description: Guidelines for implementing checks using the Engine step model
+globs: **/checks/**/*.ts
+alwaysApply: false
+---
+## Checks Writing Guidelines
+
+Before implementing a new check, always review existing checks in the codebase to understand established patterns and solutions. Study how similar vulnerability types are detected, what utilities are available, and how state management is handled across steps.
+
+### Research First
+
+1. Browse `packages/backend/src/checks/` to find checks that target similar vulnerabilities
+2. Examine how existing checks use the engine step model
+3. Look for reusable utilities and helper functions that can be leveraged
+4. Study the test patterns in `*.spec.ts` files to understand testing approaches
+5. Review how findings are structured and what correlation data is included
+
+### Follow Established Patterns
+
+- Use existing utilities for common tasks (payload generation, response redirection analysis, etc.)
+- Match the naming conventions and structure of similar checks
+- Reuse proven techniques for state transitions and error handling
+- Follow the same approach for metadata definition and aggressivity settings
+
+## Checks Structure
+
+Design checks around short, sequential steps. Each step should either finish with `done(...)` or continue to another step with `continueWith({ state, nextStep: '...' })`.
+
+### Define a Check
+
+Use `defineCheck` to declare metadata, lifecycle hooks, and initial state. Keep `dedupeKey` small and deterministic, and make `when` fast.
+
+```ts
+import { continueWith, defineCheck, done, Severity } from "engine";
+
+export default defineCheck<{
+  exampleState?: string;
+}>(({ step }) => {
+  step("exampleStep", async (state, context) => {
+    if (context.target.response !== undefined && context.target.response.getCode() === 200) {
+      const body = context.target.response.getBody()?.toText();
+      return continueWith({ state: { exampleState: body }, nextStep: "report" });
+    }
+    return done({ state });
+  });
+
+  step("report", async (state, context) => {
+    const finding = {
+      name: "HTTP 200 OK",
+      description: `Target responded with 200 OK. Response body: ${state.exampleState}`,
+      severity: Severity.INFO,
+      correlation: {
+        requestID: context.target.request.getId(),
+        locations: [],
+      },
+    };
+    return done({ state, findings: [finding] });
+  });
+
+  return {
+    metadata: {
+      id: "example-check",
+      name: "Example Check",
+      description: "This is an example check",
+      type: "passive",
+      tags: ["example"],
+      severities: [Severity.INFO],
+      aggressivity: { minRequests: 0, maxRequests: 0 },
+    },
+    initState: () => ({ exampleState: undefined }),
+    dedupeKey: (context) =>
+      context.request.getHost() + context.request.getPort() + context.request.getPath(),
+    when: (context) => context.response !== undefined,
+  };
+});
+```
+
+### Steps and Looping
+
+Keep ticks short. If you need to iterate (e.g., parameters, paths), reuse the same step and shrink the remaining work in state.
+
+```ts
+step("testParam", async (state, context) => {
+  const [currentParam, ...remainingParams] = state.urlParams;
+  if (currentParam === undefined) return done({ state });
+
+  return continueWith({
+    nextStep: "testParam",
+    state: { ...state, urlParams: remainingParams },
+  });
+});
+```
+
+### State and Context
+
+- **State**: Pass data between steps. Always provide `initState`.
+- **Context**: Access `sdk`, `target` (`request`/`response`), `runtime`, and `config`.
+
+### Runtime SDK
+
+Utilities available during a scan:
+
+```ts
+context.runtime.html.parse(requestID);
+context.runtime.dependencies.get("<check-id>");
+```
+
+### Outputs and Dependencies
+
+If needed, produce JSON-serializable outputs and consume them from dependent checks. The engine orders checks so dependencies complete first.
+
+```ts
+export const helloWorldProvider = defineCheck(({ step }) => {
+  return {
+    metadata: {
+      id: "example-output",
+      name: "Example Output Provider",
+      description: "Produces a simple string output",
+      type: "passive",
+      tags: ["example"],
+      severities: [Severity.INFO],
+      aggressivity: { minRequests: 0, maxRequests: 0 },
+    },
+    output: ({ state, context }) => {
+      return "Hello world!";
+    },
+    initState: () => ({}),
+    dedupeKey: (context) =>
+      context.request.getHost() + context.request.getPort() + context.request.getPath(),
+    when: (context) => context.response !== undefined && context.response.getCode() === 200,
+  };
+});
+
+export const helloWorldConsumer = defineCheck(({ step }) => {
+  step("example-step", async (state, context) => {
+    const dependency = context.runtime.dependencies.get("example-output") as string;
+    return done({ state });
+  });
+
+  return {
+    metadata: {
+      id: "example-consumer",
+      name: "Example Consumer",
+      description: "Consumes output from example-output",
+      type: "passive",
+      tags: ["example"],
+      severities: [Severity.INFO],
+      aggressivity: { minRequests: 0, maxRequests: 0 },
+      dependsOn: ["example-output"],
+    },
+    initState: () => ({}),
+    dedupeKey: (context) =>
+      context.request.getHost() + context.request.getPort() + context.request.getPath(),
+    when: (context) => context.response !== undefined && context.response.getCode() === 200,
+  };
+});
+```
+
+### Utilities
+
+The engine exposes helpers:
+
+- **Redirection detection**: `findRedirection(requestID, context)`
+- **URL bypass payloads**: `createUrlBypassGenerator({ expectedHost, attackerHost, protocol })`
+
+Example open-redirect probing within a single step:
+
+```ts
+step("testOpenRedirect", async (state, context) => {
+  const currentParam = "redirect";
+  const generator = createUrlBypassGenerator({
+    expectedHost: context.target.request.getHost(),
+    attackerHost: "attacker.com",
+    protocol: "https:",
+  });
+
+  for (const payloadRecipe of generator) {
+    const payload = payloadRecipe.generate();
+
+    const params = new URLSearchParams(context.target.request.getQuery());
+    params.set(currentParam, payload.value);
+
+    const spec = context.target.request.toSpec();
+    spec.setQuery(params.toString());
+
+    const { request } = await context.sdk.requests.send(spec);
+    const redirectInfo = await findRedirection(request.getId(), context);
+
+    if (redirectInfo.hasRedirection) {
+      const redirectUrl = new URL(redirectInfo.location, context.target.request.getUrl());
+      if (payload.validatesWith(redirectUrl)) {
+        return done({
+          state,
+          findings: [
+            {
+              name: `Open Redirect in parameter '${currentParam}'`,
+              description: "Target redirected to an external domain.",
+              severity: Severity.MEDIUM,
+              correlation: { requestID: request.getId(), locations: [] },
+            },
+          ],
+        });
+      }
+    }
+  }
+
+  return done({ state });
+});
+```
+
+### Register the Check
+
+- Add the check in `packages/backend/src/checks/index.ts` (import, `Checks` entry, append to `checks` array).
+
+### Add to Presets
+
+- Update `packages/backend/src/stores/config.ts` to include the check in default presets.
+- Always include in the Heavy preset as enabled. For other presets, decide based on `metadata.type` and aggressivity.
+
+### Severity Assignment
+
+Assign severity based on real-world impact. Avoid inflating low-risk issues.
+
+```ts
+export const Severity = {
+  INFO: "info",
+  LOW: "low",
+  MEDIUM: "medium",
+  HIGH: "high",
+  CRITICAL: "critical",
+} as const;
+```
+
+### Testing
+
+- Write unit tests in `index.spec.ts` next to the check.
+- Validate locally from the repo root:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```

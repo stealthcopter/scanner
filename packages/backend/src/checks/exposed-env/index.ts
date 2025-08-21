@@ -65,7 +65,8 @@ const isValidEnvContent = (bodyText: string, contentType: string): boolean => {
 
   const commentPattern = /^#\s{0,10}\w+/m;
   const keyValuePattern = /^\w+=\w+/m;
-  const envKeyPattern = /^[a-z_]*(KEY|TOKEN|PASS|SECRET|DB_URL|DATABASE_URL|MAILER_URL|APP_|DB_)[a-z_]*=/mi;
+  const envKeyPattern =
+    /^[a-z_]*(KEY|TOKEN|PASS|SECRET|DB_URL|DATABASE_URL|MAILER_URL|APP_|DB_)[a-z_]*=/im;
 
   const hasComments = commentPattern.test(trimmedBody);
   const hasKeyValue = keyValuePattern.test(trimmedBody);

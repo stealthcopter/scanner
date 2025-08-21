@@ -1,0 +1,25 @@
+---
+description: Conventions to be applied to all files
+globs:
+alwaysApply: true
+---
+# Miscellaneous Conventions
+
+1. Use TypeScript for all files.
+1. Only use types, not interfaces.
+1. Do not use `any` type.
+1. Use `undefined` over `null`.
+1. Do not add any comments to the code that you generate.
+1. Follow consistent naming conventions:
+    - Folders: camelCase (`intercept`, `replay`, `httpHistory`).
+    - Component folders: PascalCase (`PassiveFormCreate`, `PassiveTable`).
+    - All other files: camelCase (`useForm.ts`, `assistant.graphql`).
+1. Declare variables close to their usage:
+    - Avoid declaring all variables at the top of functions/files.
+    - Place variable declarations as close as possible to where they are first used.
+    - Group related variables together (e.g., event bus declarations next to their corresponding listeners).
+1. When refactoring, avoid creating alias types like this:
+```
+export type Options = ScanConfig;
+```
+Instead, actually rename the type and fix all occurences if needed.

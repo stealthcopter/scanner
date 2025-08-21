@@ -1,10 +1,10 @@
-import type { CheckDefinition, CheckMetadata } from "engine";
+import type { Check, CheckMetadata } from "engine";
 import type { SelectOptions } from "shared";
 
 export class ChecksStore {
   private static _store?: ChecksStore;
 
-  private checks: CheckDefinition[];
+  private checks: Check[];
 
   private constructor() {
     this.checks = [];
@@ -30,16 +30,14 @@ export class ChecksStore {
    */
   public select(
     options?: SelectOptions & { returnMetadata?: false | undefined },
-  ): CheckDefinition[];
+  ): Check[];
 
   /**
    * Selects a list of checks based on the provided filtering criteria.
    * Returns either an array of CheckDefinition or CheckMetadata objects based on the options.
    */
-  public select(
-    options: SelectOptions = {},
-  ): CheckDefinition[] | CheckMetadata[] {
-    let selectedChecks: CheckDefinition[];
+  public select(options: SelectOptions = {}): Check[] | CheckMetadata[] {
+    let selectedChecks: Check[];
 
     if (options.include) {
       const includeSet = new Set(options.include);
@@ -90,14 +88,14 @@ export class ChecksStore {
   /**
    * Registers a list of checks.
    */
-  public register(...checks: CheckDefinition[]) {
+  public register(...checks: Check[]) {
     this.checks.push(...checks);
   }
 
   /**
    * Gets all registered checks without applying any filters.
    */
-  public getDefinitions(): CheckDefinition[] {
+  public getDefinitions(): Check[] {
     return [...this.checks];
   }
 }

@@ -14,8 +14,8 @@ export type UrlBypassTechnique =
 export type UrlBypassGeneratorConfig = {
   expectedHost: string;
   attackerHost: string;
-  originalValue: string;
   protocol: string;
+  originalValue?: string;
 };
 
 export type PayloadInstance = {
@@ -149,13 +149,18 @@ const STRATEGIES: Readonly<Record<UrlBypassTechnique, BypassStrategy>> = {
       value: `${protocol}//${attackerHost}/?${originalValue}`,
       validatesWith: (url) => url.hostname.includes(attackerHost),
     }),
+    when: () => originalValue !== undefined,
   }),
 };
 
 export function createUrlBypassGenerator(input: {
+  /** The host of the application we are testing */
   expectedHost: string;
+  /** The host that the bypass should redirect to. This is the attacker host. */
   attackerHost: string;
-  originalValue: string;
+  /** Optional: The original value of the parameter being tested. This is the value that is being tested for a bypass. */
+  originalValue?: string;
+  /** Optional: The protocol to use, must end with a colon. Defaults to "https:" if not provided. */
   protocol?: string;
 }): UrlBypassGenerator {
   const config: UrlBypassGeneratorConfig = {
@@ -165,11 +170,15 @@ export function createUrlBypassGenerator(input: {
 
   // Basic validation to prevent bugs in the future
   if (config.expectedHost.includes("/") || config.attackerHost.includes("/")) {
-    throw new Error("Expected a valid hostname, not a URL");
+    throw new Error(
+      "[createUrlBypassGenerator] Expected a valid hostname, not a URL",
+    );
   }
 
   if (!config.protocol.endsWith(":")) {
-    throw new Error("Protocol must end with a colon");
+    throw new Error(
+      "[createUrlBypassGenerator] Protocol must end with a colon",
+    );
   }
 
   const ALL_TECHNIQUES = Object.keys(STRATEGIES) as UrlBypassTechnique[];

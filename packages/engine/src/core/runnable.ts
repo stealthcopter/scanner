@@ -15,7 +15,7 @@ import {
   ScanRunnableInterruptedError,
   ScanRuntimeError,
 } from "../core/errors";
-import { type CheckDefinition, type CheckOutput } from "../types/check";
+import { type Check, type CheckOutput } from "../types/check";
 import { type Finding } from "../types/finding";
 import {
   type CheckExecutionRecord,
@@ -42,7 +42,7 @@ export const createRunnable = ({
   config,
 }: {
   sdk: SDK;
-  checks: CheckDefinition[];
+  checks: Check[];
   config: ScanConfig;
 }): ScanRunnable => {
   const { on, emit } = mitt<ScanEvents>();
@@ -102,7 +102,7 @@ export const createRunnable = ({
   };
 
   const isCheckApplicable = (
-    check: CheckDefinition,
+    check: Check,
     context: RuntimeContext,
     targetDedupeKeys: Map<string, Set<string>> = dedupeKeys,
   ): boolean => {
@@ -236,7 +236,7 @@ export const createRunnable = ({
   };
 
   const processBatch = async (
-    batch: CheckDefinition[],
+    batch: Check[],
     context: RuntimeContext,
   ): Promise<void> => {
     const tasks = batch
@@ -503,7 +503,7 @@ export const createRunnable = ({
   };
 };
 
-const getCheckBatches = (checks: CheckDefinition[]): CheckDefinition[][] => {
+const getCheckBatches = (checks: Check[]): Check[][] => {
   const checkMap = new Map(checks.map((check) => [check.metadata.id, check]));
   const dag: Record<string, string[]> = {};
 

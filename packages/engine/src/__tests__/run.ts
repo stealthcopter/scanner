@@ -2,7 +2,7 @@ import { type SDK } from "caido:plugin";
 import { type Request, type Response } from "caido:utils";
 
 import { createRegistry } from "../core/registry";
-import { type CheckDefinition } from "../types/check";
+import { type Check } from "../types/check";
 import {
   type ExecutionHistory,
   ScanAggressivity,
@@ -13,7 +13,7 @@ import { createTestSdk } from "./mocks/sdk";
 import { type MockRequestResponsePair, type SendHandler } from "./mocks/types";
 
 export const runCheck = async (
-  checkDefinition: CheckDefinition,
+  checkDefinition: Check,
   requestResponsePairs: { request: Request; response?: Response }[],
   options?: {
     config?: Partial<ScanConfig>;

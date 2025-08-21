@@ -109,8 +109,8 @@ export default defineCheck<{
     let generator = createUrlBypassGenerator({
       expectedHost,
       attackerHost,
-      protocol,
       originalValue: paramValue,
+      protocol,
     });
 
     if (context.config.aggressivity === ScanAggressivity.LOW) {

@@ -1,6 +1,6 @@
 import { type SDK } from "caido:plugin";
 
-import { type CheckDefinition } from "../types/check";
+import { type Check } from "../types/check";
 import {
   type ScanConfig,
   type ScanRegistry,
@@ -11,9 +11,9 @@ import { ScanRegistryError, ScanRegistryErrorCode } from "./errors";
 import { createRunnable } from "./runnable";
 
 export const createRegistry = (): ScanRegistry => {
-  const checks: CheckDefinition[] = [];
+  const checks: Check[] = [];
 
-  const register = (check: CheckDefinition) => {
+  const register = (check: Check) => {
     checks.push(check);
   };
 

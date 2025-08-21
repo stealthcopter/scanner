@@ -1,0 +1,147 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Store
+
+We use pinia for our data stores.
+
+Pinia stores should:
+- Use the setup API
+- Have a store ID that follows the format `stores.[feature-name]` (e.g. `stores.http-history`)
+- Use the definePrivateStore utility in the stores/utils folder for private state
+- Use the defineStore utility in the stores/utils folder for public stores
+
+Example store:
+```ts
+export const useHTTPHistoryStore = defineStore("stores.http-history", () => {
+    return {
+        ...useX(),
+        ...useY(),
+    }
+});
+```
+
+## File Structure
+
+Each store must ONLY have the following files.
+Any file that isn't listed below should be moved to a file that is listed below.
+
+1. `index.ts`:
+   - Main store that exposes the public interface
+   - Combines composables and exposes necessary functionality
+
+2. `useState.ts`:
+   - Private store that exposes internal state
+   - Not exported from index.ts
+   - Contains the State type definition (no separate types.ts file)
+
+3. `use[Feature].ts`:
+   - Contains the composable with business logic
+   - Uses the private store
+
+4. `use[Feature].spec.ts`:
+   - Tests for the composable
+
+## useState.ts
+
+The private store (`useState.ts`) should follow these guidelines:
+
+1. File Structure:
+   - Define the State type in the same file (no separate types.ts)
+   - Export a single useState function using definePrivateStore
+
+2. State Type Definition:
+   - Define all fields that need reactivity using `ref()` or `shallowRef()`
+   - Use `shallowRef()` for complex objects that don't need deep reactivity (e.g., DataStore instances)
+   - Use `ref()` for primitive values and objects that need deep reactivity
+
+3. State Access:
+   - Inside the store, use `.value` to access ref/shallowRef values
+   - Outside the store (composables, components), do NOT use `.value` - Pinia unwraps automatically
+
+## index.ts
+
+The main store should follow these guidelines:
+
+1. Never expose private store functions directly. Always use a wrapper function.
+```typescript
+// ❌ Don't expose private store functions directly
+return {
+  reset: state.reset,
+};
+
+// ✅ Create wrapper functions
+const reset = () => {
+  state.reset();
+};
+return {
+  reset,
+};
+```
+
+2. Combine `use[Feature].ts` files in the main store:
+```typescript
+export const useFeatureStore = defineStore("stores.feature", () => {
+  return {
+    ...useX(),
+    ...useY(),
+  };
+});
+```
+
+3. Always create a `reset` function that calls the private store `reset()` function.
+
+```typescript
+export const useFeatureStore = defineStore("stores.feature", () => {
+  const state = useState();
+
+  const reset = () => state.reset();
+
+  return {
+    reset,
+    ...useX(),
+    ...useY(),
+  };
+});
+```
+
+## use[Feature].ts
+
+The feature composable (`use[Feature].ts`) should follow these guidelines:
+
+1. Structure:
+   - Create a composable for each logical group of functionality
+   - Get state from the private store
+   - Handle all state transitions and business logic
+   - Return only the necessary public interface
+
+2. State Access:
+   - Never return computed/ref fields directly
+   - Instead, return getters/setters for state access
+   - This ensures users can't accidentally modify state directly
+
+Example:
+```typescript
+// useX.ts
+const useX = () => {
+  const state = useState();
+
+  const getX = () => state.x;
+  const setX = (value) => state.x = value;
+
+  return {
+    getX,
+    setX
+  }
+}
+
+// index.ts
+import { useX } from "./useX";
+export const useHTTPHistoryStore = defineStore("stores.http-history", () => {
+    return {
+        ...useX(),
+    }
+});
+```

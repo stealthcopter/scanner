@@ -4,7 +4,7 @@ import { type Request, type Response } from "caido:utils";
 import { type ScanRunnableErrorCode } from "../core/errors";
 import { type ParsedHtml } from "../utils/html/types";
 
-import { type CheckDefinition, type CheckOutput } from "./check";
+import { type Check, type CheckOutput } from "./check";
 import { type Finding, type Severity } from "./finding";
 import { type JSONSerializable } from "./utils";
 
@@ -18,7 +18,7 @@ export type ScanAggressivity =
   (typeof ScanAggressivity)[keyof typeof ScanAggressivity];
 
 export type ScanRegistry = {
-  register: (check: CheckDefinition) => void;
+  register: (check: Check) => void;
   create: (sdk: SDK, config: ScanConfig) => ScanRunnable;
 };
 
@@ -104,16 +104,24 @@ export type ScanTarget = {
 };
 
 export type RuntimeContext = {
+  /** The target of the scan. This includes request and response. */
   target: ScanTarget;
+  /** Access toCaido Backend SDK. */
   sdk: SDK;
+  /** Runtime SDK for accessing utilities scoped to the current scan. */
   runtime: {
+    /** Utilities for parsing HTML. */
     html: {
+      /** Parse the HTML of a request. This returns a ParsedHtml which has DOM-like methods for querying the HTML. */
       parse: (requestID: string) => Promise<ParsedHtml>;
     };
+    /** Access to the dependencies of the check. */
     dependencies: {
+      /** Get a dependency by key. */
       get: (key: string) => JSONSerializable | undefined;
     };
   };
+  /** The configuration of the scan. */
   config: ScanConfig;
 };
 

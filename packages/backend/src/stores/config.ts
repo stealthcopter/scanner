@@ -146,10 +146,6 @@ export class ConfigStore {
               enabled: true,
             },
             {
-              checkID: Checks.MYSQL_TIME_BASED_SQLI,
-              enabled: true,
-            },
-            {
               checkID: Checks.MYSQL_ERROR_BASED_SQLI,
               enabled: true,
             },
@@ -185,10 +181,6 @@ export class ConfigStore {
             },
             {
               checkID: Checks.BASIC_REFLECTED_XSS,
-              enabled: true,
-            },
-            {
-              checkID: Checks.MYSQL_TIME_BASED_SQLI,
               enabled: true,
             },
             {

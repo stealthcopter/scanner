@@ -1,0 +1,40 @@
+---
+globs: **/**.vue
+alwaysApply: false
+---
+## UI Style Guidelines
+
+### PrimeVue
+
+* Prefer to use PrimeVue compontents if possible and can make our life easier
+* A Caido custom PrimeVue is already set up. It has dark mode as a default and handles most colors related styles for us.
+
+### General Theme
+
+* **Dark Mode** is default — all UI elements follow a dark, low-contrast background with light text for high readability.
+* For tailwind colors, prefer to use `...-surface-...` f.e. `border-surface-700`.
+* Caido uses `bg-surface-800` as the main app background, `bg-surface-700` is the background for cards.
+* UI colors are subtle and minimalistic. We try to avoid too much colors if possible.
+
+### Layout & Components
+* We often use **split panes** (vertical or horizontal)
+* Keep in mind that we are building a plugin that's inside a Caido web app, we can modify frontend by adding sidebar pages using Caido Frontend SDK.
+* Prefer to use `Card` PrimeVue components a lot, if needed add `h-full` to them via `pt` params.
+
+### Data Representation
+
+* Prefer **data tables** for displaying structured data:
+  * Sticky headers with sorting options.
+  * Actions column at the end (e.g. “Install” buttons).
+* Empty states use friendly, minimal messages with soft icons.
+
+### Hackers-Focused Design
+
+* Prioritize fast access to tools: tabs, filters, and search bars are always visible and contextual.
+* UI feedback is subtle — no popups; changes reflect instantly in-line.
+
+
+### Other, Important
+
+* Prefer to use :class="{ ... }" Vue syntax for conditional styling classes instead of separating function unless the logic is so complex that it's the cleaner way.
+* Keep logic inline for simple cases; extract to computed or helper for reuse or clarity.

@@ -6,7 +6,7 @@ import openRedirectScan from "./open-redirect";
 import pathTraversalScan from "./path-traversal";
 import phpinfoScan from "./phpinfo";
 import { basicReflectedXSSScan } from "./reflected-xss";
-import { mysqlErrorBased, mysqlTimeBased } from "./sql-injection";
+import { mysqlErrorBased } from "./sql-injection";
 
 export type CheckID = (typeof Checks)[keyof typeof Checks];
 export const Checks = {
@@ -19,7 +19,7 @@ export const Checks = {
   PHPINFO: "phpinfo",
   BASIC_REFLECTED_XSS: "basic-reflected-xss",
   MYSQL_ERROR_BASED_SQLI: "mysql-error-based-sqli",
-  MYSQL_TIME_BASED_SQLI: "mysql-time-based-sqli",
+  // MYSQL_TIME_BASED_SQLI: "mysql-time-based-sqli" - TODO: fix false positives
 } as const;
 
 export const checks = [
@@ -32,5 +32,5 @@ export const checks = [
   phpinfoScan,
   basicReflectedXSSScan,
   mysqlErrorBased,
-  mysqlTimeBased,
+  // mysqlTimeBased,
 ] as const;
