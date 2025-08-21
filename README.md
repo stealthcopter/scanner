@@ -37,22 +37,15 @@ Scanner is a vulnerability detection plugin that brings automated security testi
 3. Done! 🎉
 
 
-## 🔧 Adding Custom Checks
-
-> [!NOTE]
-> We plan to release documentation on building checks in the future. For now, you can explore the existing checks in the repository to understand how they are implemented.
-
-Scanner's modular architecture makes it easy to add new vulnerability checks:
-
-1. Create a new check in [packages/backend/src/checks/](https://github.com/caido-community/scanner/tree/main/packages/backend/src/checks)
-2. Register the check in the main checks [index file](https://github.com/caido-community/scanner/blob/main/packages/backend/src/checks/index.ts)
-
-
 ## 💚 Community
 
 Join our [Discord](https://links.caido.io/www-discord) community and connect with other Caido users! Share your ideas, ask questions, and get involved in discussions around Caido and security testing.
 
 ## 🧑‍💻 Developer Documentation
+
+### Scanner Structure
+
+The project is organized into distinct packages: `backend`, `frontend`, `engine`, and `shared`. The `engine` package is responsible for all the logic related to executing checks. All checks are located within the `packages/backend/src/checks/` directory.
 
 ### Check Definition
 
