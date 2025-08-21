@@ -365,7 +365,7 @@ const generator = createUrlBypassGenerator({
 ### Example: iterate payloads and validate a redirect
 
 ```ts
-import { defineCheck, done, Severity } from "engine";
+import { defineCheck, done, Severity, createUrlBypassGenerator, findRedirection } from "engine";
 
 export default defineCheck(({ step }) => {
   step("testOpenRedirect", async (state, context) => {
