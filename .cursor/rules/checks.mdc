@@ -284,6 +284,134 @@ export const Severity = {
 ### Testing
 
 - Write unit tests in `index.spec.ts` next to the check.
+- Use `runCheck` from the engine to test checks:
+
+```ts
+import { createMockRequest, createMockResponse, runCheck } from "engine";
+import { describe, expect, it } from "vitest";
+
+import myCheck from "./index";
+
+describe("My Check", () => {
+  it("should detect vulnerability when check runs", async () => {
+    const request = createMockRequest({
+      id: "1",
+      host: "example.com",
+      method: "GET",
+      path: "/test",
+    });
+
+    const response = createMockResponse({
+      id: "1",
+      code: 200,
+      headers: { "content-type": ["text/html"] },
+      body: "Response body",
+    });
+
+    const executionHistory = await runCheck(myCheck, [
+      { request, response },
+    ]);
+
+    expect(executionHistory).toMatchObject([
+      {
+        checkId: "my-check",
+        targetRequestId: "1",
+        status: "completed",
+        steps: [
+          {
+            stepName: "myStep",
+            findings: [
+              {
+                name: "Expected Finding",
+                severity: "low",
+              },
+            ],
+            result: "done",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("should not run when conditions are not met", async () => {
+    const request = createMockRequest({
+      id: "2",
+      host: "example.com",
+      method: "GET",
+      path: "/test",
+    });
+
+    const response = createMockResponse({
+      id: "2",
+      code: 404, // This might not meet the check's 'when' condition
+      headers: {},
+      body: "Not found",
+    });
+
+    const executionHistory = await runCheck(myCheck, [
+      { request, response },
+    ]);
+
+    // When check doesn't run, execution history is empty
+    expect(executionHistory).toMatchObject([]);
+  });
+
+  it("should find no issues when no vulnerability exists", async () => {
+    const request = createMockRequest({
+      id: "3",
+      host: "example.com",
+      method: "GET",
+      path: "/test",
+    });
+
+    const response = createMockResponse({
+      id: "3",
+      code: 200, // Meets the check's 'when' condition
+      headers: { "content-type": ["text/html"] },
+      body: "Safe response body",
+    });
+
+    const executionHistory = await runCheck(myCheck, [
+      { request, response },
+    ]);
+
+    // When check runs but finds no issues, execution history is non-empty with empty findings
+    expect(executionHistory).toMatchObject([
+      {
+        checkId: "my-check",
+        targetRequestId: "3",
+        status: "completed",
+        steps: [
+          {
+            stepName: "myStep",
+            findings: [], // Empty findings array
+            result: "done",
+          },
+        ],
+      },
+    ]);
+  });
+});
+```
+
+**Important**: `runCheck` returns an `ExecutionHistory` which is an array of `CheckExecutionRecord` objects. Each record contains:
+
+- `checkId`: The check ID
+- `targetRequestId`: The request ID
+- `status`: "completed" or "failed"
+- `steps`: Array of step execution records with findings
+- `finalOutput`: The check output (if completed)
+
+**Critical**: There are two distinct scenarios when a check doesn't produce findings:
+
+1. **Check doesn't run at all** (when `when` condition returns false) → Execution history is **empty** (`[]`)
+2. **Check runs but finds no issues** (when `when` condition returns true but no findings) → Execution history is **non-empty** with empty findings array
+
+Use descriptive test names to distinguish these scenarios:
+
+- `"should not run on X"` for scenario 1
+- `"should find no issues on X"` for scenario 2
+
 - Validate locally from the repo root:
 
 ```bash
