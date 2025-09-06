@@ -12,7 +12,7 @@ const ERROR_PATTERNS = [
   /Warning: mysql_/i,
   /valid MySQL result/i,
   /MySqlClient\./i,
-  
+
   // Stack traces
   /at \w+\.\w+\(/i,
   /\.java:\d+/i,
@@ -20,7 +20,7 @@ const ERROR_PATTERNS = [
   /\.py:\d+/i,
   /\.rb:\d+/i,
   /Traceback \(most recent call last\)/i,
-  
+
   // Framework errors
   /Fatal error:/i,
   /Parse error:/i,
@@ -28,17 +28,17 @@ const ERROR_PATTERNS = [
   /Notice:/i,
   /Strict Standards:/i,
   /Deprecated:/i,
-  
+
   // ASP.NET errors
   /Server Error in '\/' Application/i,
   /System\.Web\.HttpException/i,
   /System\.Data\.SqlClient\.SqlException/i,
-  
+
   // Java errors
   /java\.lang\./i,
   /Exception in thread/i,
   /Caused by:/i,
-  
+
   // Generic error indicators
   /error on line \d+/i,
   /syntax error/i,
@@ -50,7 +50,7 @@ const ERROR_PATTERNS = [
 export default defineCheck<{}>(({ step }) => {
   step("checkApplicationErrors", async (state, context) => {
     const { response } = context.target;
-    
+
     if (!response) {
       return done({ state });
     }
@@ -68,7 +68,6 @@ export default defineCheck<{}>(({ step }) => {
     // Check for error patterns
     for (const pattern of ERROR_PATTERNS) {
       if (pattern.test(body)) {
-        
         const finding = {
           name: "Application Error Information Disclosure",
           description: `The application returned an error message that may contain sensitive information. This can help attackers understand the application's internal structure and identify potential vulnerabilities.`,
@@ -90,7 +89,8 @@ export default defineCheck<{}>(({ step }) => {
     metadata: {
       id: "application-errors",
       name: "Application Error Information Disclosure",
-      description: "Detects application error messages that may leak sensitive information about the application's internal structure",
+      description:
+        "Detects application error messages that may leak sensitive information about the application's internal structure",
       type: "passive",
       tags: ["information-disclosure", "error-handling"],
       severities: [Severity.MEDIUM],
@@ -98,7 +98,10 @@ export default defineCheck<{}>(({ step }) => {
     },
     initState: () => ({}),
     dedupeKey: (context) =>
-      context.request.getHost() + context.request.getPort() + context.request.getPath(),
-    when: (context) => context.response !== undefined && context.response.getCode() >= 400,
+      context.request.getHost() +
+      context.request.getPort() +
+      context.request.getPath(),
+    when: (context) =>
+      context.response !== undefined && context.response.getCode() >= 400,
   };
 });

@@ -158,7 +158,7 @@ describe("Application Errors Check", () => {
       id: "5",
       code: 500,
       headers: { "content-type": ["text/html"] },
-      body: "Exception in thread \"main\" java.lang.NullPointerException at com.example.Test.main(Test.java:10)",
+      body: 'Exception in thread "main" java.lang.NullPointerException at com.example.Test.main(Test.java:10)',
     });
 
     const executionHistory = await runCheck(applicationErrorsCheck, [
@@ -238,7 +238,7 @@ describe("Application Errors Check", () => {
       id: "7",
       code: 500,
       headers: { "content-type": ["text/html"] },
-      body: "Traceback (most recent call last):\n  File \"app.py\", line 10, in <module>\n    undefined_variable",
+      body: 'Traceback (most recent call last):\n  File "app.py", line 10, in <module>\n    undefined_variable',
     });
 
     const executionHistory = await runCheck(applicationErrorsCheck, [
