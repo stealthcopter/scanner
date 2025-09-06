@@ -95,7 +95,7 @@ export default defineCheck<State>(({ step }) => {
       description:
         "Detects redirect responses that are larger than expected or contain multiple href links, which could indicate information leakage or improper redirect implementation.",
       type: "passive",
-      tags: ["redirect", "information-disclosure", "owasp-a04", "owasp-a03"],
+      tags: ["redirect", "information-disclosure"],
       severities: [Severity.LOW],
       aggressivity: {
         minRequests: 0,
