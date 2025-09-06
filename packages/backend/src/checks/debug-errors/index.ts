@@ -10,31 +10,31 @@ const DEBUG_ERROR_PATTERNS = [
   /PHP Parse error/i,
   /PHP Strict Standards/i,
   /PHP Deprecated/i,
-  
+
   // ASP.NET debug errors
   /Debug Information/i,
   /Stack Trace/i,
   /Source Error/i,
   /Exception Details/i,
   /Request Details/i,
-  
+
   // Java debug errors
   /Exception in thread/i,
   /Caused by:/i,
   /at \w+\.\w+\(/i,
   /\.java:\d+/i,
-  
+
   // Python debug errors
   /Traceback \(most recent call last\)/i,
   /File ".*", line \d+/i,
   /\.py:\d+/i,
-  
+
   // Ruby debug errors
   /\.rb:\d+/i,
   /NoMethodError/i,
   /NameError/i,
   /ArgumentError/i,
-  
+
   // Generic debug indicators
   /DEBUG:/i,
   /TRACE:/i,
@@ -43,14 +43,14 @@ const DEBUG_ERROR_PATTERNS = [
   /Debug mode/i,
   /Test environment/i,
   /Staging environment/i,
-  
+
   // Database debug errors
   /Query failed:/i,
   /SQL Error:/i,
   /Database connection failed/i,
   /Table.*doesn't exist/i,
   /Column.*doesn't exist/i,
-  
+
   // Configuration debug errors
   /Configuration error/i,
   /Environment variable/i,
@@ -61,7 +61,7 @@ const DEBUG_ERROR_PATTERNS = [
 export default defineCheck<{}>(({ step }) => {
   step("checkDebugErrors", async (state, context) => {
     const { response } = context.target;
-    
+
     if (!response) {
       return done({ state });
     }
@@ -74,7 +74,6 @@ export default defineCheck<{}>(({ step }) => {
     // Check for debug error patterns
     for (const pattern of DEBUG_ERROR_PATTERNS) {
       if (pattern.test(body)) {
-        
         const finding = {
           name: "Debug Error Information Disclosure",
           description: `The application returned debug error information that may contain sensitive details about the application's internal structure, configuration, or development environment. This information can be valuable for attackers during reconnaissance.`,
@@ -96,7 +95,8 @@ export default defineCheck<{}>(({ step }) => {
     metadata: {
       id: "debug-errors",
       name: "Debug Error Information Disclosure",
-      description: "Detects debug error messages that may leak sensitive information about the application's development environment or internal structure",
+      description:
+        "Detects debug error messages that may leak sensitive information about the application's development environment or internal structure",
       type: "passive",
       tags: ["information-disclosure", "debug", "error-handling"],
       severities: [Severity.LOW],
@@ -104,7 +104,9 @@ export default defineCheck<{}>(({ step }) => {
     },
     initState: () => ({}),
     dedupeKey: (context) =>
-      context.request.getHost() + context.request.getPort() + context.request.getPath(),
+      context.request.getHost() +
+      context.request.getPort() +
+      context.request.getPath(),
     when: (context) => context.response !== undefined,
   };
 });
