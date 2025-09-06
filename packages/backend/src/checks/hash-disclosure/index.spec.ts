@@ -33,8 +33,8 @@ describe("Hash Disclosure Check", () => {
             stepName: "checkHashDisclosure",
             findings: [
               {
-                name: "MD5 Hash Disclosure",
-                severity: "medium",
+                name: "MD4 / MD5 Hash Disclosure",
+                severity: "low",
               },
             ],
             result: "done",
@@ -73,12 +73,8 @@ describe("Hash Disclosure Check", () => {
             stepName: "checkHashDisclosure",
             findings: [
               {
-                name: "MD5 Hash Disclosure",
-                severity: "medium",
-              },
-              {
                 name: "SHA-1 Hash Disclosure",
-                severity: "medium",
+                severity: "low",
               },
             ],
             result: "done",
@@ -117,20 +113,8 @@ describe("Hash Disclosure Check", () => {
             stepName: "checkHashDisclosure",
             findings: [
               {
-                name: "MD5 Hash Disclosure",
-                severity: "medium",
-              },
-              {
-                name: "MD5 Hash Disclosure",
-                severity: "medium",
-              },
-              {
-                name: "SHA-1 Hash Disclosure",
-                severity: "medium",
-              },
-              {
                 name: "SHA-256 Hash Disclosure",
-                severity: "medium",
+                severity: "low",
               },
             ],
             result: "done",
@@ -168,6 +152,10 @@ describe("Hash Disclosure Check", () => {
           {
             stepName: "checkHashDisclosure",
             findings: [
+              {
+                name: "BCrypt Hash Disclosure",
+                severity: "high",
+              },
               {
                 name: "bcrypt Hash Disclosure",
                 severity: "high",
@@ -249,12 +237,12 @@ describe("Hash Disclosure Check", () => {
             stepName: "checkHashDisclosure",
             findings: [
               {
-                name: "MD5 Hash Disclosure",
-                severity: "medium",
-              },
-              {
                 name: "NTLM Hash Disclosure",
                 severity: "high",
+              },
+              {
+                name: "MD4 / MD5 Hash Disclosure",
+                severity: "low",
               },
             ],
             result: "done",
@@ -293,16 +281,12 @@ describe("Hash Disclosure Check", () => {
             stepName: "checkHashDisclosure",
             findings: [
               {
-                name: "MD5 Hash Disclosure",
-                severity: "medium",
-              },
-              {
-                name: "MD5 Hash Disclosure",
-                severity: "medium",
-              },
-              {
                 name: "SHA-1 Hash Disclosure",
-                severity: "medium",
+                severity: "low",
+              },
+              {
+                name: "MD4 / MD5 Hash Disclosure",
+                severity: "low",
               },
             ],
             result: "done",
@@ -405,6 +389,369 @@ describe("Hash Disclosure Check", () => {
       {
         checkId: "hash-disclosure",
         targetRequestId: "10",
+        status: "completed",
+        steps: [
+          {
+            stepName: "checkHashDisclosure",
+            findings: [],
+            result: "done",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("should detect MD5 Crypt hash", async () => {
+    const request = createMockRequest({
+      id: "11",
+      host: "example.com",
+      method: "GET",
+      path: "/test",
+    });
+
+    const response = createMockResponse({
+      id: "11",
+      code: 200,
+      headers: { "content-type": ["text/html"] },
+      body: "Password: $1$O3JMY.Tw$AdLnLjQ/5jXF9.MTp3gHv/",
+    });
+
+    const executionHistory = await runCheck(hashDisclosureCheck, [
+      { request, response },
+    ]);
+
+    expect(executionHistory).toMatchObject([
+      {
+        checkId: "hash-disclosure",
+        targetRequestId: "11",
+        status: "completed",
+        steps: [
+          {
+            stepName: "checkHashDisclosure",
+            findings: [
+              {
+                name: "MD5 Crypt Hash Disclosure",
+                severity: "high",
+              },
+            ],
+            result: "done",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("should detect SHA-256 Crypt hash", async () => {
+    const request = createMockRequest({
+      id: "12",
+      host: "example.com",
+      method: "GET",
+      path: "/test",
+    });
+
+    const response = createMockResponse({
+      id: "12",
+      code: 200,
+      headers: { "content-type": ["text/html"] },
+      body: "Hash: $5$MnfsQ4iN$ZMTppKN16y/tIsUYs/obHlhdP.Os80yXhTurpBMUbA5",
+    });
+
+    const executionHistory = await runCheck(hashDisclosureCheck, [
+      { request, response },
+    ]);
+
+    expect(executionHistory).toMatchObject([
+      {
+        checkId: "hash-disclosure",
+        targetRequestId: "12",
+        status: "completed",
+        steps: [
+          {
+            stepName: "checkHashDisclosure",
+            findings: [
+              {
+                name: "SHA-256 Crypt Hash Disclosure",
+                severity: "high",
+              },
+            ],
+            result: "done",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("should detect SHA-512 Crypt hash", async () => {
+    const request = createMockRequest({
+      id: "13",
+      host: "example.com",
+      method: "GET",
+      path: "/test",
+    });
+
+    const response = createMockResponse({
+      id: "13",
+      code: 200,
+      headers: { "content-type": ["text/html"] },
+      body: "Hash: $6$zWwwXKNj$gLAOoZCjcr8p/.VgV/FkGC3NX7BsXys3KHYePfuIGMNjY83dVxugPYlxVg/evpcVEJLT/rSwZcDMlVVf/bhf.1",
+    });
+
+    const executionHistory = await runCheck(hashDisclosureCheck, [
+      { request, response },
+    ]);
+
+    expect(executionHistory).toMatchObject([
+      {
+        checkId: "hash-disclosure",
+        targetRequestId: "13",
+        status: "completed",
+        steps: [
+          {
+            stepName: "checkHashDisclosure",
+            findings: [
+              {
+                name: "SHA-512 Crypt Hash Disclosure",
+                severity: "high",
+              },
+            ],
+            result: "done",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("should detect LanMan hash", async () => {
+    const request = createMockRequest({
+      id: "14",
+      host: "example.com",
+      method: "GET",
+      path: "/test",
+    });
+
+    const response = createMockResponse({
+      id: "14",
+      code: 200,
+      headers: { "content-type": ["text/html"] },
+      body: "LanMan: $LM$aad3b435b51404ee",
+    });
+
+    const executionHistory = await runCheck(hashDisclosureCheck, [
+      { request, response },
+    ]);
+
+    expect(executionHistory).toMatchObject([
+      {
+        checkId: "hash-disclosure",
+        targetRequestId: "14",
+        status: "completed",
+        steps: [
+          {
+            stepName: "checkHashDisclosure",
+            findings: [
+              {
+                name: "LanMan / DES Hash Disclosure",
+                severity: "high",
+              },
+            ],
+            result: "done",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("should detect OpenBSD Blowfish hash", async () => {
+    const request = createMockRequest({
+      id: "15",
+      host: "example.com",
+      method: "GET",
+      path: "/test",
+    });
+
+    const response = createMockResponse({
+      id: "15",
+      code: 200,
+      headers: { "content-type": ["text/html"] },
+      body: "Password: $2a$05$bvIG6Nmid91Mu9RcmmWZfO5HJIMCT8riNW0hEp8f6/FuA2/mHZFpe",
+    });
+
+    const executionHistory = await runCheck(hashDisclosureCheck, [
+      { request, response },
+    ]);
+
+    expect(executionHistory).toMatchObject([
+      {
+        checkId: "hash-disclosure",
+        targetRequestId: "15",
+        status: "completed",
+        steps: [
+          {
+            stepName: "checkHashDisclosure",
+            findings: [
+              {
+                name: "OpenBSD Blowfish Hash Disclosure",
+                severity: "high",
+              },
+              {
+                name: "BCrypt Hash Disclosure",
+                severity: "high",
+              },
+              {
+                name: "bcrypt Hash Disclosure",
+                severity: "high",
+              },
+            ],
+            result: "done",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("should detect salted SHA-1 hash", async () => {
+    const request = createMockRequest({
+      id: "16",
+      host: "example.com",
+      method: "GET",
+      path: "/test",
+    });
+
+    const response = createMockResponse({
+      id: "16",
+      code: 200,
+      headers: { "content-type": ["text/html"] },
+      body: "Hash: 0E6A48F765D0FFFFF6247FA80D748E615F91DD0C7431E4D9",
+    });
+
+    const executionHistory = await runCheck(hashDisclosureCheck, [
+      { request, response },
+    ]);
+
+    expect(executionHistory).toMatchObject([
+      {
+        checkId: "hash-disclosure",
+        targetRequestId: "16",
+        status: "completed",
+        steps: [
+          {
+            stepName: "checkHashDisclosure",
+            findings: [
+              {
+                name: "Salted SHA-1 Hash Disclosure",
+                severity: "low",
+              },
+            ],
+            result: "done",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("should detect SHA-224 hash", async () => {
+    const request = createMockRequest({
+      id: "17",
+      host: "example.com",
+      method: "GET",
+      path: "/test",
+    });
+
+    const response = createMockResponse({
+      id: "17",
+      code: 200,
+      headers: { "content-type": ["text/html"] },
+      body: "Hash: d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f",
+    });
+
+    const executionHistory = await runCheck(hashDisclosureCheck, [
+      { request, response },
+    ]);
+
+    expect(executionHistory).toMatchObject([
+      {
+        checkId: "hash-disclosure",
+        targetRequestId: "17",
+        status: "completed",
+        steps: [
+          {
+            stepName: "checkHashDisclosure",
+            findings: [
+              {
+                name: "SHA-224 Hash Disclosure",
+                severity: "low",
+              },
+            ],
+            result: "done",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("should detect SHA-384 hash", async () => {
+    const request = createMockRequest({
+      id: "18",
+      host: "example.com",
+      method: "GET",
+      path: "/test",
+    });
+
+    const response = createMockResponse({
+      id: "18",
+      code: 200,
+      headers: { "content-type": ["text/html"] },
+      body: "Hash: 38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b",
+    });
+
+    const executionHistory = await runCheck(hashDisclosureCheck, [
+      { request, response },
+    ]);
+
+    expect(executionHistory).toMatchObject([
+      {
+        checkId: "hash-disclosure",
+        targetRequestId: "18",
+        status: "completed",
+        steps: [
+          {
+            stepName: "checkHashDisclosure",
+            findings: [
+              {
+                name: "SHA-384 Hash Disclosure",
+                severity: "low",
+              },
+            ],
+            result: "done",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("should not detect JSESSIONID as MD5 hash", async () => {
+    const request = createMockRequest({
+      id: "19",
+      host: "example.com",
+      method: "GET",
+      path: "/test",
+    });
+
+    const response = createMockResponse({
+      id: "19",
+      code: 200,
+      headers: { "content-type": ["text/html"] },
+      body: "jsessionid=5d41402abc4b2a76b9719d911017c592",
+    });
+
+    const executionHistory = await runCheck(hashDisclosureCheck, [
+      { request, response },
+    ]);
+
+    expect(executionHistory).toMatchObject([
+      {
+        checkId: "hash-disclosure",
+        targetRequestId: "19",
         status: "completed",
         steps: [
           {
