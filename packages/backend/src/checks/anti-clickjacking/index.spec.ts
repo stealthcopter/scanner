@@ -25,7 +25,7 @@ describe("Anti-Clickjacking Check", () => {
 
     expect(executionHistory).toMatchObject([
       {
-        checkId: 'anti-clickjacking',
+        checkId: "anti-clickjacking",
         targetRequestId: "1",
         status: "completed",
         steps: [
