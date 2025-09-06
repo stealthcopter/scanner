@@ -3,7 +3,7 @@ import { defineCheck, done, Severity } from "engine";
 export default defineCheck<{}>(({ step }) => {
   step("checkAntiClickjacking", async (state, context) => {
     const { response } = context.target;
-    
+
     if (!response) {
       return done({ state });
     }
@@ -20,7 +20,7 @@ export default defineCheck<{}>(({ step }) => {
     // Check if CSP has frame-ancestors directive
     let hasCspFrameAncestors = false;
     if (cspHeader && cspHeader.length > 0) {
-      const cspValue = cspHeader[0].toLowerCase();
+      const cspValue = cspHeader[0]?.toLowerCase() ?? "";
       hasCspFrameAncestors = cspValue.includes("frame-ancestors");
     }
 
@@ -60,7 +60,7 @@ export default defineCheck<{}>(({ step }) => {
     }
 
     // Check for malformed X-Frame-Options values
-    const xFrameValue = xFrameOptions[0].toLowerCase();
+    const xFrameValue = xFrameOptions[0]?.toLowerCase() ?? "";
     if (!xFrameValue.includes("deny") && !xFrameValue.includes("sameorigin")) {
       const finding = {
         name: "Malformed X-Frame-Options Header",
@@ -82,7 +82,8 @@ export default defineCheck<{}>(({ step }) => {
     metadata: {
       id: "anti-clickjacking",
       name: "Anti-Clickjacking Protection",
-      description: "Checks for proper X-Frame-Options header implementation to prevent clickjacking attacks",
+      description:
+        "Checks for proper X-Frame-Options header implementation to prevent clickjacking attacks",
       type: "passive",
       tags: ["clickjacking", "security-headers", "x-frame-options"],
       severities: [Severity.MEDIUM, Severity.LOW],
@@ -90,7 +91,9 @@ export default defineCheck<{}>(({ step }) => {
     },
     initState: () => ({}),
     dedupeKey: (context) =>
-      context.request.getHost() + context.request.getPort() + context.request.getPath(),
+      context.request.getHost() +
+      context.request.getPort() +
+      context.request.getPath(),
     when: (context) => context.response !== undefined,
   };
 });

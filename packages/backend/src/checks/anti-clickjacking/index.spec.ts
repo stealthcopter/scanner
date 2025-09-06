@@ -25,7 +25,7 @@ describe("Anti-Clickjacking Check", () => {
 
     expect(executionHistory).toMatchObject([
       {
-        checkId: "anti-clickjacking",
+        checkId: 'anti-clickjacking',
         targetRequestId: "1",
         status: "completed",
         steps: [
@@ -55,9 +55,9 @@ describe("Anti-Clickjacking Check", () => {
     const response = createMockResponse({
       id: "2",
       code: 200,
-      headers: { 
+      headers: {
         "content-type": ["text/html"],
-        "x-frame-options": ["DENY"]
+        "x-frame-options": ["DENY"],
       },
       body: "<html><body>Test</body></html>",
     });
@@ -93,9 +93,9 @@ describe("Anti-Clickjacking Check", () => {
     const response = createMockResponse({
       id: "3",
       code: 200,
-      headers: { 
+      headers: {
         "content-type": ["text/html"],
-        "x-frame-options": ["SAMEORIGIN"]
+        "x-frame-options": ["SAMEORIGIN"],
       },
       body: "<html><body>Test</body></html>",
     });
@@ -131,9 +131,9 @@ describe("Anti-Clickjacking Check", () => {
     const response = createMockResponse({
       id: "4",
       code: 200,
-      headers: { 
+      headers: {
         "content-type": ["text/html"],
-        "x-frame-options": ["DENY", "SAMEORIGIN"]
+        "x-frame-options": ["DENY", "SAMEORIGIN"],
       },
       body: "<html><body>Test</body></html>",
     });
@@ -174,9 +174,9 @@ describe("Anti-Clickjacking Check", () => {
     const response = createMockResponse({
       id: "5",
       code: 200,
-      headers: { 
+      headers: {
         "content-type": ["text/html"],
-        "x-frame-options": ["INVALID_VALUE"]
+        "x-frame-options": ["INVALID_VALUE"],
       },
       body: "<html><body>Test</body></html>",
     });
@@ -217,9 +217,11 @@ describe("Anti-Clickjacking Check", () => {
     const response = createMockResponse({
       id: "6",
       code: 200,
-      headers: { 
+      headers: {
         "content-type": ["text/html"],
-        "content-security-policy": ["default-src 'self'; frame-ancestors 'none'"]
+        "content-security-policy": [
+          "default-src 'self'; frame-ancestors 'none'",
+        ],
       },
       body: "<html><body>Test</body></html>",
     });
