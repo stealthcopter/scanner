@@ -42,6 +42,10 @@ export class ConfigStore {
           ],
           passive: [
             {
+              checkID: Checks.BIG_REDIRECTS,
+              enabled: true,
+            },
+            {
               checkID: Checks.EXPOSED_ENV,
               enabled: false,
             },
@@ -88,6 +92,10 @@ export class ConfigStore {
             },
           ],
           passive: [
+            {
+              checkID: Checks.BIG_REDIRECTS,
+              enabled: true,
+            },
             {
               checkID: Checks.EXPOSED_ENV,
               enabled: true,
@@ -155,6 +163,10 @@ export class ConfigStore {
             },
           ],
           passive: [
+            {
+              checkID: Checks.BIG_REDIRECTS,
+              enabled: true,
+            },
             {
               checkID: Checks.EXPOSED_ENV,
               enabled: true,

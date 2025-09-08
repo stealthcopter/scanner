@@ -10,7 +10,8 @@
     "build": "caido-dev build",
     "watch": "caido-dev watch",
     "lint": "eslint --fix packages/*/src",
-    "test": "vitest run"
+    "test": "vitest run",
+    "validate": "pnpm run typecheck && pnpm run lint && pnpm run test"
   },
   "devDependencies": {
     "@caido-community/dev": "^0.1.6",

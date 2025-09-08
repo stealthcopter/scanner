@@ -1,3 +1,4 @@
+import bigRedirectsScan from "./big-redirects";
 import corsMisconfigScan from "./cors-misconfig";
 import exposedEnvScan from "./exposed-env";
 import gitConfigScan from "./git-config";
@@ -10,6 +11,7 @@ import { mysqlErrorBased } from "./sql-injection";
 
 export type CheckID = (typeof Checks)[keyof typeof Checks];
 export const Checks = {
+  BIG_REDIRECTS: "big-redirects",
   CORS_MISCONFIG: "cors-misconfig",
   EXPOSED_ENV: "exposed-env",
   GIT_CONFIG: "git-config",
@@ -23,6 +25,7 @@ export const Checks = {
 } as const;
 
 export const checks = [
+  bigRedirectsScan,
   corsMisconfigScan,
   exposedEnvScan,
   gitConfigScan,
