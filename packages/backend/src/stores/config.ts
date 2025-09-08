@@ -90,6 +90,10 @@ export class ConfigStore {
               checkID: Checks.MYSQL_ERROR_BASED_SQLI,
               enabled: true,
             },
+            {
+              checkID: Checks.SSTI,
+              enabled: true,
+            },
           ],
           passive: [
             {
@@ -119,6 +123,10 @@ export class ConfigStore {
             {
               checkID: Checks.PHPINFO,
               enabled: true,
+            },
+            {
+              checkID: Checks.SSTI,
+              enabled: false,
             },
           ],
         },
@@ -202,6 +210,10 @@ export class ConfigStore {
             {
               checkID: Checks.PATH_TRAVERSAL,
               enabled: true,
+            },
+            {
+              checkID: Checks.SSTI,
+              enabled: false,
             },
           ],
         },
