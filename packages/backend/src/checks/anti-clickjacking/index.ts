@@ -1,6 +1,6 @@
 import { defineCheck, done, Severity } from "engine";
 
-export default defineCheck<{}>(({ step }) => {
+export default defineCheck<unknown>(({ step }) => {
   step("checkAntiClickjacking", (state, context) => {
     const { response } = context.target;
 

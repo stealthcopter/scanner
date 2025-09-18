@@ -103,6 +103,6 @@ export default defineCheck<Record<never, never>>(({ step }) => {
       context.request.getPort() +
       context.request.getPath(),
     when: (context) =>
-      context.response !== undefined && context.response.getCode() >= 400
+      context.response !== undefined && context.response.getCode() >= 400,
   };
 });

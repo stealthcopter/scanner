@@ -47,7 +47,7 @@ const DEBUG_ERROR_PATTERNS = [
   /Missing configuration/i,
 ];
 
-export default defineCheck<{}>(({ step }) => {
+export default defineCheck<unknown>(({ step }) => {
   step("checkDebugErrors", (state, context) => {
     const { response } = context.target;
 
@@ -96,6 +96,8 @@ export default defineCheck<{}>(({ step }) => {
       context.request.getHost() +
       context.request.getPort() +
       context.request.getPath(),
-    when: (context) => context.response !== undefined && !context.request.getPath().endsWith(".js"),
+    when: (context) =>
+      context.response !== undefined &&
+      !context.request.getPath().endsWith(".js"),
   };
 });
