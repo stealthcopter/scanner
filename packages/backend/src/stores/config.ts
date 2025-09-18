@@ -99,7 +99,7 @@ export class ConfigStore {
               enabled: true,
             },
             {
-              checkID: Checks.ANTI_CLICKJACKING,
+              checkID: Checks.SSTI,
               enabled: true,
             },
           ],
@@ -133,7 +133,7 @@ export class ConfigStore {
               enabled: true,
             },
             {
-              checkID: Checks.ANTI_CLICKJACKING,
+              checkID: Checks.SSTI,
               enabled: false,
             },
           ],
@@ -224,8 +224,8 @@ export class ConfigStore {
               enabled: true,
             },
             {
-              checkID: Checks.ANTI_CLICKJACKING,
-              enabled: true,
+              checkID: Checks.SSTI,
+              enabled: false,
             },
           ],
         },
