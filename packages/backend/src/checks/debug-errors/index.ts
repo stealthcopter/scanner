@@ -20,7 +20,6 @@ const DEBUG_ERROR_PATTERNS = [
 
   // Java debug errors
   /Exception in thread/i,
-  /Caused by:/i,
   /at \w+\.\w+\(/i,
   /\.java:\d+/i,
 
@@ -32,17 +31,7 @@ const DEBUG_ERROR_PATTERNS = [
   // Ruby debug errors
   /\.rb:\d+/i,
   /NoMethodError/i,
-  /NameError/i,
   /ArgumentError/i,
-
-  // Generic debug indicators
-  /DEBUG:/i,
-  /TRACE:/i,
-  /VERBOSE:/i,
-  /Development mode/i,
-  /Debug mode/i,
-  /Test environment/i,
-  /Staging environment/i,
 
   // Database debug errors
   /Query failed:/i,
@@ -59,24 +48,24 @@ const DEBUG_ERROR_PATTERNS = [
 ];
 
 export default defineCheck<{}>(({ step }) => {
-  step("checkDebugErrors", async (state, context) => {
+  step("checkDebugErrors", (state, context) => {
     const { response } = context.target;
 
-    if (!response) {
+    if (response === undefined) {
       return done({ state });
     }
 
     const body = response.getBody()?.toText();
-    if (!body) {
+    if (body === undefined) {
       return done({ state });
     }
-
     // Check for debug error patterns
     for (const pattern of DEBUG_ERROR_PATTERNS) {
-      if (pattern.test(body)) {
+      const match = body.match(pattern);
+      if (match) {
         const finding = {
           name: "Debug Error Information Disclosure",
-          description: `The application returned debug error information that may contain sensitive details about the application's internal structure, configuration, or development environment. This information can be valuable for attackers during reconnaissance.`,
+          description: `The application returned debug error information that may contain sensitive details about the application's internal structure, configuration, or development environment. This information can be valuable for attackers during reconnaissance.\n\nDiscovered error: \`\`\`\n${match[0]}\n\`\`\``,
           severity: Severity.LOW,
           correlation: {
             requestID: context.target.request.getId(),
@@ -107,6 +96,6 @@ export default defineCheck<{}>(({ step }) => {
       context.request.getHost() +
       context.request.getPort() +
       context.request.getPath(),
-    when: (context) => context.response !== undefined,
+    when: (context) => context.response !== undefined && !context.request.getPath().endsWith(".js"),
   };
 });

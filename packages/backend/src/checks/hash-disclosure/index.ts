@@ -16,12 +16,12 @@ const HASH_PATTERNS = [
 
   // OpenBSD Blowfish
   {
-    pattern: /\$2a\$05\$[a-z0-9\+\-_./=]{53}/gi,
+    pattern: /\$2a\$05\$[a-z0-9+\-_./=]{53}/gi,
     name: "OpenBSD Blowfish",
     severity: Severity.HIGH,
   },
   {
-    pattern: /\$2y\$05\$[a-z0-9\+\-_./=]{53}/gi,
+    pattern: /\$2y\$05\$[a-z0-9+\-_./=]{53}/gi,
     name: "OpenBSD Blowfish",
     severity: Severity.HIGH,
   },
@@ -99,28 +99,28 @@ const HASH_PATTERNS = [
     name: "SHA-384",
     severity: Severity.LOW,
   },
-  {
-    pattern: /\b[0-9a-f]{64}\b/gi,
-    name: "SHA-256",
-    severity: Severity.LOW,
-  },
+  // { Temporary disabled
+  //   pattern: /\b[0-9a-f]{64}\b/gi,
+  //   name: "SHA-256",
+  //   severity: Severity.LOW,
+  // },
   {
     pattern: /\b[0-9a-f]{56}\b/gi,
     name: "SHA-224",
     severity: Severity.LOW,
   },
-  {
-    pattern: /\b[0-9a-f]{40}\b/gi,
-    name: "SHA-1",
-    severity: Severity.LOW,
-  },
+  // {
+  //   pattern: /\b[0-9a-f]{40}\b/gi,
+  //   name: "SHA-1",
+  //   severity: Severity.LOW,
+  // },
 
-  // MD4/MD5
-  {
-    pattern: /\b[0-9a-f]{32}\b/gi,
-    name: "MD4 / MD5",
-    severity: Severity.LOW,
-  },
+  // MD4/MD5 Temporary disabled
+  // {
+  //   pattern: /\b[0-9a-f]{32}\b/gi,
+  //   name: "MD4 / MD5",
+  //   severity: Severity.LOW,
+  // },
 
   // Modern hash types (keeping existing ones)
   {
@@ -168,16 +168,16 @@ const FALSE_POSITIVE_PATTERNS = [
   /^[0-9a-f]{24}$/i, // 24-char hex strings (likely not hashes)
 ];
 
-export default defineCheck<{}>(({ step }) => {
-  step("checkHashDisclosure", async (state, context) => {
+export default defineCheck<Record<never, never>>(({ step }) => {
+  step("checkHashDisclosure", (state, context) => {
     const { response } = context.target;
 
-    if (!response) {
+    if (response === undefined) {
       return done({ state });
     }
 
     const body = response.getBody()?.toText();
-    if (!body) {
+    if (body === undefined) {
       return done({ state });
     }
 
@@ -199,7 +199,7 @@ export default defineCheck<{}>(({ step }) => {
 
           const finding = {
             name: `${hashType.name} Hash Disclosure`,
-            description: `A ${hashType.name} hash was found in the response. This may indicate that password hashes or other sensitive cryptographic data is being exposed. If these are password hashes, they could be cracked offline to obtain the original passwords.`,
+            description: `A ${hashType.name} hash was found in the response. This may indicate that password hashes or other sensitive cryptographic data is being exposed. If these are password hashes, they could be cracked offline to obtain the original passwords.\n\nDiscovered hash: \`\`\`\n${match}\n\`\`\``,
             severity: hashType.severity,
             correlation: {
               requestID: context.target.request.getId(),

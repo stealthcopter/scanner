@@ -39,6 +39,10 @@ export class ConfigStore {
               checkID: Checks.OPEN_REDIRECT,
               enabled: false,
             },
+            {
+              checkID: Checks.ANTI_CLICKJACKING,
+              enabled: true,
+            },
           ],
           passive: [
             {
@@ -55,6 +59,10 @@ export class ConfigStore {
             },
             {
               checkID: Checks.OPEN_REDIRECT,
+              enabled: false,
+            },
+            {
+              checkID: Checks.ANTI_CLICKJACKING,
               enabled: false,
             },
           ],
@@ -90,6 +98,10 @@ export class ConfigStore {
               checkID: Checks.MYSQL_ERROR_BASED_SQLI,
               enabled: true,
             },
+            {
+              checkID: Checks.ANTI_CLICKJACKING,
+              enabled: true,
+            },
           ],
           passive: [
             {
@@ -119,6 +131,10 @@ export class ConfigStore {
             {
               checkID: Checks.PHPINFO,
               enabled: true,
+            },
+            {
+              checkID: Checks.ANTI_CLICKJACKING,
+              enabled: false,
             },
           ],
         },
@@ -161,6 +177,10 @@ export class ConfigStore {
               checkID: Checks.PATH_TRAVERSAL,
               enabled: true,
             },
+            {
+              checkID: Checks.ANTI_CLICKJACKING,
+              enabled: true,
+            },
           ],
           passive: [
             {
@@ -201,6 +221,10 @@ export class ConfigStore {
             },
             {
               checkID: Checks.PATH_TRAVERSAL,
+              enabled: true,
+            },
+            {
+              checkID: Checks.ANTI_CLICKJACKING,
               enabled: true,
             },
           ],

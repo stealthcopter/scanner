@@ -1,16 +1,16 @@
 import { defineCheck, done, Severity } from "engine";
 
 export default defineCheck<{}>(({ step }) => {
-  step("checkAntiClickjacking", async (state, context) => {
+  step("checkAntiClickjacking", (state, context) => {
     const { response } = context.target;
 
-    if (!response) {
+    if (response === undefined) {
       return done({ state });
     }
 
     // Only check HTML responses
-    const contentType = response.getHeader("content-type")?.[0] || "";
-    if (!contentType.includes("text/html")) {
+    const contentType = response.getHeader("content-type")?.[0] ?? "";
+    if (contentType === undefined || !contentType.includes("text/html")) {
       return done({ state });
     }
 

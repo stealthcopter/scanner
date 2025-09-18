@@ -46,12 +46,11 @@ const ERROR_PATTERNS = [
   /internal server error/i,
   /application error/i,
 ];
-
-export default defineCheck<{}>(({ step }) => {
-  step("checkApplicationErrors", async (state, context) => {
+export default defineCheck<Record<never, never>>(({ step }) => {
+  step("checkApplicationErrors", (state, context) => {
     const { response } = context.target;
 
-    if (!response) {
+    if (response === undefined) {
       return done({ state });
     }
 
@@ -61,16 +60,18 @@ export default defineCheck<{}>(({ step }) => {
     }
 
     const body = response.getBody()?.toText();
-    if (!body) {
+    if (body === undefined) {
       return done({ state });
     }
 
     // Check for error patterns
     for (const pattern of ERROR_PATTERNS) {
-      if (pattern.test(body)) {
+      const match = pattern.exec(body);
+      if (match) {
+        const errorMessage = match[0];
         const finding = {
           name: "Application Error Information Disclosure",
-          description: `The application returned an error message that may contain sensitive information. This can help attackers understand the application's internal structure and identify potential vulnerabilities.`,
+          description: `The application returned an error message that may contain sensitive information. This can help attackers understand the application's internal structure and identify potential vulnerabilities. Discovered error: "${errorMessage}"`,
           severity: Severity.MEDIUM,
           correlation: {
             requestID: context.target.request.getId(),
@@ -102,6 +103,6 @@ export default defineCheck<{}>(({ step }) => {
       context.request.getPort() +
       context.request.getPath(),
     when: (context) =>
-      context.response !== undefined && context.response.getCode() >= 400,
+      context.response !== undefined && context.response.getCode() >= 400
   };
 });
