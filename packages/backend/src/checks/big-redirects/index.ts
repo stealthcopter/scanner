@@ -7,10 +7,6 @@ import {
   type StepAction,
 } from "engine";
 
-type State = {
-  hasAnalyzed: boolean;
-};
-
 const isRedirectResponse = (statusCode: number): boolean => {
   return statusCode >= 300 && statusCode < 400 && statusCode !== 304;
 };
@@ -25,12 +21,8 @@ const countHrefOccurrences = (body: string): number => {
   return matches ? matches.length : 0;
 };
 
-export default defineCheck<State>(({ step }) => {
-  step("analyzeRedirect", ((state: State, context: RuntimeContext) => {
-    if (state.hasAnalyzed) {
-      return done({ state });
-    }
-
+export default defineCheck<Record<never, never>>(({ step }) => {
+  step("analyzeRedirect", ((state, context: RuntimeContext) => {
     const response = context.target.response;
     if (!response) {
       return done({ state });
@@ -59,7 +51,9 @@ export default defineCheck<State>(({ step }) => {
     if (responseBodyLength > predictedSize) {
       findings.push({
         name: "Big Redirects - Oversized Response",
-        description: `The redirect response is larger than expected. The Location header URI length is ${locationUriLength} characters, which should result in a response body of approximately ${predictedSize} bytes. However, the actual response body is ${responseBodyLength} bytes, which is ${responseBodyLength - predictedSize} bytes larger than expected. This could indicate that sensitive information is being leaked in the redirect response.`,
+        description: `The redirect response is larger than expected. The Location header URI length is ${locationUriLength} characters, which should result in a response body of approximately ${predictedSize} bytes. However, the actual response body is ${responseBodyLength} bytes, which is ${
+          responseBodyLength - predictedSize
+        } bytes larger than expected. This could indicate that sensitive information is being leaked in the redirect response.`,
         severity: Severity.LOW,
         correlation: {
           requestID: context.target.request.getId(),
@@ -83,10 +77,10 @@ export default defineCheck<State>(({ step }) => {
     }
 
     return done({
-      state: { hasAnalyzed: true },
+      state,
       findings,
     });
-  }) as StepAction<State>);
+  }) as StepAction<Record<never, never>>);
 
   return {
     metadata: {
@@ -102,9 +96,7 @@ export default defineCheck<State>(({ step }) => {
         maxRequests: 0,
       },
     },
-    initState: (): State => ({
-      hasAnalyzed: false,
-    }),
+    initState: () => ({}),
     dedupeKey: (target: ScanTarget) => {
       return (
         target.request.getMethod() +
