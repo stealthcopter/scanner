@@ -1,6 +1,7 @@
 import antiClickjackingScan from "./anti-clickjacking";
 import applicationErrorsScan from "./application-errors";
 import bigRedirectsScan from "./big-redirects";
+import commandInjectionScan from "./command-injection";
 import corsMisconfigScan from "./cors-misconfig";
 import debugErrorsScan from "./debug-errors";
 import exposedEnvScan from "./exposed-env";
@@ -19,6 +20,7 @@ export const Checks = {
   ANTI_CLICKJACKING: "anti-clickjacking",
   APPLICATION_ERRORS: "application-errors",
   BIG_REDIRECTS: "big-redirects",
+  COMMAND_INJECTION: "command-injection",
   CORS_MISCONFIG: "cors-misconfig",
   DEBUG_ERRORS: "debug-errors",
   EXPOSED_ENV: "exposed-env",
@@ -38,6 +40,7 @@ export const checks = [
   antiClickjackingScan,
   applicationErrorsScan,
   bigRedirectsScan,
+  commandInjectionScan,
   corsMisconfigScan,
   debugErrorsScan,
   exposedEnvScan,
