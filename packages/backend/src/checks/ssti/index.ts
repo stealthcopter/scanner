@@ -110,7 +110,7 @@ const TEMPLATE_ERROR_SIGNATURES = [
 ];
 
 function getMathPayloadsForAggressivity(
-  aggressivity: ScanAggressivity
+  aggressivity: ScanAggressivity,
 ): PayloadConfig[] {
   switch (aggressivity) {
     case ScanAggressivity.LOW:
@@ -125,7 +125,7 @@ function getMathPayloadsForAggressivity(
 }
 
 function getErrorPayloadsForAggressivity(
-  aggressivity: ScanAggressivity
+  aggressivity: ScanAggressivity,
 ): ErrorPayloadConfig[] {
   switch (aggressivity) {
     case ScanAggressivity.LOW:
@@ -191,7 +191,7 @@ export default defineCheck<State>(({ step }) => {
 
   step("testMathematicalPayloads", async (state, context) => {
     const mathPayloads = getMathPayloadsForAggressivity(
-      context.config.aggressivity
+      context.config.aggressivity,
     );
 
     if (
@@ -220,12 +220,11 @@ export default defineCheck<State>(({ step }) => {
       const requestSpec = createRequestWithParameter(
         context,
         currentParam,
-        testValue
+        testValue,
       );
 
-      const { request, response } = await context.sdk.requests.send(
-        requestSpec
-      );
+      const { request, response } =
+        await context.sdk.requests.send(requestSpec);
 
       if (response !== undefined) {
         const responseBody = response.getBody()?.toText();
@@ -281,7 +280,7 @@ export default defineCheck<State>(({ step }) => {
 
   step("testErrorPayloads", async (state, context) => {
     const errorPayloads = getErrorPayloadsForAggressivity(
-      context.config.aggressivity
+      context.config.aggressivity,
     );
 
     if (
@@ -309,12 +308,11 @@ export default defineCheck<State>(({ step }) => {
       const requestSpec = createRequestWithParameter(
         context,
         currentParam,
-        testValue
+        testValue,
       );
 
-      const { request, response } = await context.sdk.requests.send(
-        requestSpec
-      );
+      const { request, response } =
+        await context.sdk.requests.send(requestSpec);
 
       if (response !== undefined) {
         const responseBody = response.getBody()?.toText();

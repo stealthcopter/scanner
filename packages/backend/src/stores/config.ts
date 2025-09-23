@@ -99,6 +99,10 @@ export class ConfigStore {
               enabled: true,
             },
             {
+              checkID: Checks.COMMAND_INJECTION,
+              enabled: true,
+            },
+            {
               checkID: Checks.SSTI,
               enabled: true,
             },
@@ -171,6 +175,10 @@ export class ConfigStore {
             },
             {
               checkID: Checks.MYSQL_ERROR_BASED_SQLI,
+              enabled: true,
+            },
+            {
+              checkID: Checks.COMMAND_INJECTION,
               enabled: true,
             },
             {
