@@ -4,6 +4,7 @@ import {
   done,
   Severity,
 } from "engine";
+import { RequestSpec } from "caido:utils";
 import { keyStrategy } from "../../utils/key";
 import { bodyMatchesAny } from "../../utils/body";
 
@@ -23,37 +24,35 @@ const ROBOTS_TXT_PATTERNS = [
 ];
 
 export default defineCheck<{
-  robotsPaths: string[];
+  remainingPaths: string[];
 }>(({ step }) => {
   step("setupScan", (_, context) => {
-    const robotsPaths = ROBOTS_TXT_PATHS;
-
     return continueWith({
       nextStep: "testRobotsPath",
-      state: { robotsPaths },
+      state: { remainingPaths: ROBOTS_TXT_PATHS },
     });
   });
 
   step("testRobotsPath", async (state, context) => {
-    if (state.robotsPaths.length === 0) {
+    if (state.remainingPaths.length === 0) {
       return done({
         state,
       });
     }
 
-    const [currentPath, ...remainingPaths] = state.robotsPaths;
+
+    const [currentPath, ...remainingPaths] = state.remainingPaths;
     if (currentPath === undefined) {
       return done({
         state,
       });
     }
 
-    const request = context.target.request.toSpec();
+    const requestSpec = new RequestSpec(context.target.request.getUrl());
+    requestSpec.setPath(currentPath);
+    requestSpec.setQuery("");
 
-    request.setPath(currentPath);
-    request.setMethod("GET");
-
-    const result = await context.sdk.requests.send(request);
+    const result = await context.sdk.requests.send(requestSpec);
 
     if (result.response.getCode() === 200) {
       // Check if it's a valid robots.txt file
@@ -78,8 +77,7 @@ export default defineCheck<{
     return continueWith({
       nextStep: "testRobotsPath",
       state: {
-        ...state,
-        robotsPaths: remainingPaths,
+        remainingPaths,
       },
     });
   });
@@ -99,7 +97,7 @@ export default defineCheck<{
       },
     },
 
-    initState: () => ({ robotsPaths: [], basePath: "" }),
+    initState: () => ({ remainingPaths: [], basePath: "" }),
     dedupeKey: keyStrategy().withHost().withPort().build(),
   };
 });

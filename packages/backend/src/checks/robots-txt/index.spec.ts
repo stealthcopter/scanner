@@ -1,9 +1,14 @@
-import { createMockRequest, createMockResponse, runCheck, ScanAggressivity } from "engine";
-import { describe, expect, it } from "vitest";
+import { createMockRequest, createMockRequestSpec, createMockResponse, runCheck, ScanAggressivity, SendHandler } from "engine";
+import { describe, expect, it, vi } from "vitest";
 
 import robotsTxtCheck from "./index";
 
+vi.mock("caido:utils", () => ({
+  RequestSpec: vi.fn(createMockRequestSpec),
+}));
+
 describe("Robots.txt Check", () => {
+
   it("should detect valid robots.txt file", async () => {
     const request = createMockRequest({
       id: "1",
