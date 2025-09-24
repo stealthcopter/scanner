@@ -5,6 +5,7 @@ import {
   Severity,
 } from "engine";
 import { keyStrategy } from "../../utils/key";
+import { bodyMatchesAny } from "../../utils/body";
 
 const ROBOTS_TXT_PATHS = [
   "/robots.txt",
@@ -13,28 +14,13 @@ const ROBOTS_TXT_PATHS = [
   "/Robots.txt",
 ];
 
-const isValidRobotsTxtContent = (bodyText: string): boolean => {
-  const trimmedBody = bodyText.trim();
-  if (!trimmedBody) {
-    return false;
-  }
-
-  // Check for common robots.txt patterns
-  const userAgentPattern = /User-Agent:\s*\*/i;
-  const disallowPattern = /Disallow:\s*/i;
-  const allowPattern = /Allow:\s*/i;
-  const sitemapPattern = /Sitemap:\s*/i;
-  const crawlDelayPattern = /Crawl-Delay:\s*/i;
-
-  // A valid robots.txt should contain at least one of these patterns
-  return (
-    userAgentPattern.test(trimmedBody) ||
-    disallowPattern.test(trimmedBody) ||
-    allowPattern.test(trimmedBody) ||
-    sitemapPattern.test(trimmedBody) ||
-    crawlDelayPattern.test(trimmedBody)
-  );
-};
+const ROBOTS_TXT_PATTERNS = [
+  /User-Agent:\s*\*/i,
+  /Disallow:\s*/i,
+  /Allow:\s*/i,
+  /Sitemap:\s*/i,
+  /Crawl-Delay:\s*/i,
+];
 
 export default defineCheck<{
   robotsPaths: string[];
@@ -70,27 +56,22 @@ export default defineCheck<{
     const result = await context.sdk.requests.send(request);
 
     if (result.response.getCode() === 200) {
-      const body = result.response.getBody();
-      if (body) {
-        const bodyText = body.toText();
-
-        // Check if it's a valid robots.txt file
-        if (isValidRobotsTxtContent(bodyText)) {
-          return done({
-            findings: [
-              {
-                name: "Robots.txt File Exposed",
-                description: `Robots.txt file is publicly accessible at \`${currentPath}\`. This file may reveal directory structure, hidden paths, and crawling policies that could be useful for reconnaissance.`,
-                severity: Severity.INFO,
-                correlation: {
-                  requestID: result.request.getId(),
-                  locations: [],
-                },
+      // Check if it's a valid robots.txt file
+      if (bodyMatchesAny(result.response, ROBOTS_TXT_PATTERNS)) {
+        return done({
+          findings: [
+            {
+              name: "Robots.txt File Exposed",
+              description: `Robots.txt file is publicly accessible at \`${currentPath}\`. This file may reveal directory structure, hidden paths, and crawling policies that could be useful for reconnaissance.`,
+              severity: Severity.INFO,
+              correlation: {
+                requestID: result.request.getId(),
+                locations: [],
               },
-            ],
-            state,
-          });
-        }
+            },
+          ],
+          state,
+        });
       }
     }
 

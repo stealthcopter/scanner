@@ -8,3 +8,4 @@ export {
   hasParameters,
 } from "./parameters";
 export { keyStrategy } from "./key";
+export { bodyMatchesAny } from "./body";
