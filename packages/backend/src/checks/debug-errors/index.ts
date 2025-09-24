@@ -1,5 +1,6 @@
 import { defineCheck, done, Severity } from "engine";
 
+import { bodyMatchesAny } from "../../utils";
 import { keyStrategy } from "../../utils/key";
 
 // Debug error patterns that indicate development/debugging information
@@ -57,26 +58,18 @@ export default defineCheck<unknown>(({ step }) => {
       return done({ state });
     }
 
-    const body = response.getBody()?.toText();
-    if (body === undefined) {
-      return done({ state });
-    }
-    // Check for debug error patterns
-    for (const pattern of DEBUG_ERROR_PATTERNS) {
-      const match = body.match(pattern);
-      if (match) {
-        const finding = {
-          name: "Debug Error Information Disclosure",
-          description: `The application returned debug error information that may contain sensitive details about the application's internal structure, configuration, or development environment. This information can be valuable for attackers during reconnaissance.\n\nDiscovered error: \`\`\`\n${match[0]}\n\`\`\``,
-          severity: Severity.LOW,
-          correlation: {
-            requestID: context.target.request.getId(),
-            locations: [],
-          },
-        };
-
-        return done({ state, findings: [finding] });
-      }
+    if (bodyMatchesAny(response, DEBUG_ERROR_PATTERNS)) {
+      const finding = {
+        name: "Debug Error Information Disclosure",
+        description:
+          "The application returned debug error information that may contain sensitive details about the application's internal structure, configuration, or development environment. This information can be valuable for attackers during reconnaissance.",
+        severity: Severity.LOW,
+        correlation: {
+          requestID: context.target.request.getId(),
+          locations: [],
+        },
+      };
+      return done({ state, findings: [finding] });
     }
 
     return done({ state });
