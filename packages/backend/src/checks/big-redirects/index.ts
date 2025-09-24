@@ -7,6 +7,8 @@ import {
   type StepAction,
 } from "engine";
 
+import { keyStrategy } from "../../utils/key";
+
 const isRedirectResponse = (statusCode: number): boolean => {
   return statusCode >= 300 && statusCode < 400 && statusCode !== 304;
 };
@@ -97,15 +99,13 @@ export default defineCheck<Record<never, never>>(({ step }) => {
       },
     },
     initState: () => ({}),
-    dedupeKey: (target: ScanTarget) => {
-      return (
-        target.request.getMethod() +
-        target.request.getHost() +
-        target.request.getPort() +
-        target.request.getPath() +
-        target.request.getQuery()
-      );
-    },
+    dedupeKey: keyStrategy()
+      .withMethod()
+      .withHost()
+      .withPort()
+      .withPath()
+      .withQuery()
+      .build(),
     when: (target: ScanTarget) => {
       return (
         target.response !== undefined &&

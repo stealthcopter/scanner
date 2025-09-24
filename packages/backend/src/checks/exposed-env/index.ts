@@ -6,6 +6,8 @@ import {
   Severity,
 } from "engine";
 
+import { keyStrategy } from "../../utils/key";
+
 const ENV_FILES = [
   ".env",
   ".env.local",
@@ -172,9 +174,6 @@ export default defineCheck<{
     },
 
     initState: () => ({ envFiles: [], basePath: "" }),
-    dedupeKey: (context) => {
-      const basePath = getBasePath(context.request.getPath());
-      return context.request.getHost() + context.request.getPort() + basePath;
-    },
+    dedupeKey: keyStrategy().withHost().withPort().withBasePath().build(),
   };
 });

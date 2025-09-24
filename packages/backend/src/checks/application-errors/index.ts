@@ -1,5 +1,7 @@
 import { defineCheck, done, Severity } from "engine";
 
+import { keyStrategy } from "../../utils/key";
+
 // Common application error patterns that indicate sensitive information disclosure
 const ERROR_PATTERNS = [
   // Database errors
@@ -98,10 +100,7 @@ export default defineCheck<Record<never, never>>(({ step }) => {
       aggressivity: { minRequests: 0, maxRequests: 0 },
     },
     initState: () => ({}),
-    dedupeKey: (context) =>
-      context.request.getHost() +
-      context.request.getPort() +
-      context.request.getPath(),
+    dedupeKey: keyStrategy().withHost().withPort().withPath().build(),
     when: (context) =>
       context.response !== undefined && context.response.getCode() >= 400,
   };

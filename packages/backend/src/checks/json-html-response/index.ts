@@ -1,5 +1,7 @@
 import { defineCheck, done, Severity } from "engine";
 
+import { keyStrategy } from "../../utils/key";
+
 export default defineCheck(({ step }) => {
   step("checkJsonHtmlResponse", (state, context) => {
     const response = context.target.response;
@@ -76,13 +78,7 @@ export default defineCheck(({ step }) => {
     },
 
     initState: () => ({}),
-    dedupeKey: (context) => {
-      return (
-        context.request.getHost() +
-        context.request.getPort() +
-        context.request.getPath()
-      );
-    },
+    dedupeKey: keyStrategy().withHost().withPort().withPath().build(),
     when: (context) => {
       return (
         context.response !== undefined && context.response.getCode() === 200

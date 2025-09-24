@@ -11,6 +11,7 @@ import {
   extractReflectedParameters,
   type Parameter,
 } from "../../utils";
+import { keyStrategy } from "../../utils/key";
 
 const MARKER = "__ssti_probe__";
 
@@ -383,21 +384,13 @@ export default defineCheck<State>(({ step }) => {
       currentPayloadIndex: 0,
     }),
 
-    dedupeKey: (context) => {
-      const query = context.request.getQuery();
-      const paramKeys =
-        query !== ""
-          ? Array.from(new URLSearchParams(query).keys()).sort().join(",")
-          : "";
-
-      return (
-        context.request.getMethod() +
-        context.request.getHost() +
-        context.request.getPort() +
-        context.request.getPath() +
-        paramKeys
-      );
-    },
+    dedupeKey: keyStrategy()
+      .withMethod()
+      .withHost()
+      .withPort()
+      .withPath()
+      .withQueryKeys()
+      .build(),
 
     when: (target) => {
       const { request } = target;

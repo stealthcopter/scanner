@@ -12,6 +12,7 @@ import openRedirectScan from "./open-redirect";
 import pathTraversalScan from "./path-traversal";
 import phpinfoScan from "./phpinfo";
 import { basicReflectedXSSScan } from "./reflected-xss";
+import robotsTxtScan from "./robots-txt";
 import { mysqlErrorBased } from "./sql-injection";
 import sstiScan from "./ssti";
 
@@ -30,6 +31,7 @@ export const Checks = {
   OPEN_REDIRECT: "open-redirect",
   PATH_TRAVERSAL: "path-traversal",
   PHPINFO: "phpinfo",
+  ROBOTS_TXT: "robots-txt",
   BASIC_REFLECTED_XSS: "basic-reflected-xss",
   MYSQL_ERROR_BASED_SQLI: "mysql-error-based-sqli",
   SSTI: "ssti",
@@ -50,6 +52,7 @@ export const checks = [
   openRedirectScan,
   pathTraversalScan,
   phpinfoScan,
+  robotsTxtScan,
   basicReflectedXSSScan,
   mysqlErrorBased,
   sstiScan,

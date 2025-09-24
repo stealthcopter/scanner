@@ -36,7 +36,6 @@ Scanner is a vulnerability detection plugin that brings automated security testi
 2. In your Caido instance, navigate to the `Plugins` page, click `Install` and select the downloaded `plugin_package.zip` file
 3. Done! 🎉
 
-
 ## 💚 Community
 
 Join our [Discord](https://links.caido.io/www-discord) community and connect with other Caido users! Share your ideas, ask questions, and get involved in discussions around Caido and security testing.
@@ -53,6 +52,8 @@ To define your own check, use the `defineCheck` function as shown below. The che
 
 ```ts
 import { defineCheck, Severity } from "engine";
+import { keyStrategy } from "../../utils/key";
+
 
 export const exampleCheck = defineCheck(({ step }) => {
   return {
@@ -70,13 +71,7 @@ export const exampleCheck = defineCheck(({ step }) => {
       },
     },
     initState: () => ({}),
-    dedupeKey: (context) => {
-      return (
-        context.request.getHost() +
-        context.request.getPort() +
-        context.request.getPath()
-      );
-    },
+    dedupeKey: keyStrategy().withHost().withPort().withPath().build(),
     when: (context) => {
       return (
         context.response !== undefined && context.response.getCode() === 200
@@ -135,8 +130,6 @@ export type CheckMetadata = {
   skipIfFoundBy?: string[];
 };
 ```
-
-
 
 ### Steps
 
@@ -219,10 +212,10 @@ When you need to perform multiple actions (such as sending several requests), st
 
 A common pattern in checks is to create loops by reusing the same step in `nextStep`. This allows you to perform iterative operations like testing multiple paths or parameters. Once your loop condition is met, you can either return `done()` to complete the check or `continue()` to proceed to subsequent steps.
 
-
 ### Context
 
 Context provides access to:
+
 - The Caido Backend SDK via the `sdk` field
 - The request and response of the scan target via the `target` field
 - The Runtime SDK via the `runtime` field
@@ -231,7 +224,6 @@ Context provides access to:
 ### Runtime SDK
 
 The runtime SDK is a set of utilities specifically scoped to the current scan.
-
 
 ```ts
 /** Runtime SDK for accessing utilities scoped to the current scan. */
@@ -344,13 +336,12 @@ export const helloWorldConsumer = defineCheck(({ step }) => {
 });
 ```
 
-#### Notes:
+#### Notes
 
 - Outputs are stored per check ID and made available to later checks.
 - Outputs must be JSON‑serializable. Keep them small and focused.
 
 ## Utilities
-
 
 The engine provides helper utilities you can use inside checks. Two commonly used ones are redirection detection and URL bypass payload generation.
 

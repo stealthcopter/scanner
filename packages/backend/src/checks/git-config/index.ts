@@ -7,6 +7,8 @@ import {
   type Severity as SeverityType,
 } from "engine";
 
+import { keyStrategy } from "../../utils/key";
+
 const GIT_FILES = [
   ".git/config",
   ".git/logs/HEAD",
@@ -215,9 +217,6 @@ export default defineCheck<{
     },
 
     initState: () => ({ gitFiles: [], basePath: "" }),
-    dedupeKey: (context) => {
-      const basePath = getBasePath(context.request.getPath());
-      return context.request.getHost() + context.request.getPort() + basePath;
-    },
+    dedupeKey: keyStrategy().withHost().withPort().withBasePath().build(),
   };
 });

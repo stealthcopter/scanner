@@ -6,6 +6,7 @@ import {
   hasParameters,
   type Parameter,
 } from "../../../utils";
+import { keyStrategy } from "../../../utils/key";
 
 type State = {
   testParams: Parameter[];
@@ -137,21 +138,12 @@ export default defineCheck<State>(({ step }) => {
         maxRequests: MYSQL_ERROR_PAYLOADS.length,
       },
     },
-    dedupeKey: (context) => {
-      const query = context.request.getQuery();
-      const paramKeys =
-        query !== undefined
-          ? Array.from(new URLSearchParams(query).keys()).sort().join(",")
-          : "";
-
-      return (
-        context.request.getMethod() +
-        context.request.getHost() +
-        context.request.getPort() +
-        context.request.getPath() +
-        paramKeys
-      );
-    },
+    dedupeKey: keyStrategy()
+      .withMethod()
+      .withHost()
+      .withPort()
+      .withPath()
+      .build(),
     initState: () => ({
       testParams: [],
       currentPayloadIndex: 0,

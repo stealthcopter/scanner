@@ -1,5 +1,7 @@
 import { defineCheck, done, Severity } from "engine";
 
+import { keyStrategy } from "../../utils/key";
+
 export default defineCheck<unknown>(({ step }) => {
   step("checkAntiClickjacking", (state, context) => {
     const { response } = context.target;
@@ -90,10 +92,7 @@ export default defineCheck<unknown>(({ step }) => {
       aggressivity: { minRequests: 0, maxRequests: 0 },
     },
     initState: () => ({}),
-    dedupeKey: (context) =>
-      context.request.getHost() +
-      context.request.getPort() +
-      context.request.getPath(),
+    dedupeKey: keyStrategy().withHost().withPort().withPath().build(),
     when: (context) => context.response !== undefined,
   };
 });

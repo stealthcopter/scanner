@@ -1,0 +1,26 @@
+---
+alwaysApply: true
+---
+
+# Development Tools
+
+## Testing
+
+Use `pnpm vitest run [filename]` to run specific test files.
+
+Example:
+
+```bash
+pnpm vitest run packages/backend/src/checks/robots-txt/index.spec.ts
+```
+
+This command runs the vitest test runner on a specific file, which is useful for:
+
+- Testing individual check implementations
+- Debugging test failures
+- Validating check behavior before integration
+
+## Other Commands
+
+- `pnpm lint` - Run ESLint on the codebase
+- `pnpm typecheck` - Run TypeScript type checking

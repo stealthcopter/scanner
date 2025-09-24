@@ -12,6 +12,7 @@ import {
   hasParameters,
   type Parameter,
 } from "../../utils";
+import { keyStrategy } from "../../utils/key";
 
 type PayloadConfig = {
   payload: string;
@@ -318,21 +319,13 @@ export default defineCheck<State>(({ step }) => {
         maxRequests: "Infinity",
       },
     },
-    dedupeKey: (context) => {
-      const query = context.request.getQuery();
-      const paramKeys =
-        query !== undefined
-          ? Array.from(new URLSearchParams(query).keys()).sort().join(",")
-          : "";
-
-      return (
-        context.request.getMethod() +
-        context.request.getHost() +
-        context.request.getPort() +
-        context.request.getPath() +
-        paramKeys
-      );
-    },
+    dedupeKey: keyStrategy()
+      .withMethod()
+      .withHost()
+      .withPort()
+      .withPath()
+      .withQueryKeys()
+      .build(),
     initState: () => ({
       testParams: [],
       currentPayloadIndex: 0,
