@@ -43,6 +43,10 @@ export class ConfigStore {
               checkID: Checks.ANTI_CLICKJACKING,
               enabled: true,
             },
+            {
+              checkID: Checks.ROBOTS_TXT,
+              enabled: false,
+            },
           ],
           passive: [
             {
@@ -104,6 +108,10 @@ export class ConfigStore {
             },
             {
               checkID: Checks.SSTI,
+              enabled: true,
+            },
+            {
+              checkID: Checks.ROBOTS_TXT,
               enabled: true,
             },
           ],
@@ -187,6 +195,10 @@ export class ConfigStore {
             },
             {
               checkID: Checks.ANTI_CLICKJACKING,
+              enabled: true,
+            },
+            {
+              checkID: Checks.ROBOTS_TXT,
               enabled: true,
             },
           ],
