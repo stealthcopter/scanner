@@ -1,4 +1,5 @@
 import { defineCheck, done, Severity } from "engine";
+
 import { keyStrategy } from "../../utils/key";
 
 // Common application error patterns that indicate sensitive information disclosure

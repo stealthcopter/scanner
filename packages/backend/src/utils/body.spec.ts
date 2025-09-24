@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { bodyMatchesAny } from "./body";
 import { createMockRequest, createMockResponse } from "engine";
+import { describe, expect, it } from "vitest";
+
+import { bodyMatchesAny } from "./body";
 
 describe("matchesBody", () => {
   it("should return true when any pattern matches", () => {
@@ -12,7 +13,7 @@ describe("matchesBody", () => {
       path: "/",
       body: "This is an error message",
     });
-    
+
     expect(bodyMatchesAny(request, patterns)).toBe(true);
   });
 
@@ -25,7 +26,7 @@ describe("matchesBody", () => {
       path: "/",
       body: "This is a normal message",
     });
-    
+
     expect(bodyMatchesAny(request, patterns)).toBe(false);
   });
 
@@ -37,7 +38,7 @@ describe("matchesBody", () => {
       headers: { "content-type": ["text/html"] },
       body: "This is a warning message",
     });
-    
+
     expect(bodyMatchesAny(response, patterns)).toBe(true);
   });
 
@@ -50,7 +51,7 @@ describe("matchesBody", () => {
       path: "/",
       body: undefined,
     });
-    
+
     expect(bodyMatchesAny(request, patterns)).toBe(false);
   });
 
@@ -63,7 +64,7 @@ describe("matchesBody", () => {
       path: "/",
       body: "This is a message",
     });
-    
+
     expect(bodyMatchesAny(request, patterns)).toBe(false);
   });
 
@@ -76,7 +77,7 @@ describe("matchesBody", () => {
       path: "/",
       body: "This is an error message",
     });
-    
+
     expect(bodyMatchesAny(request, patterns)).toBe(true);
   });
 });

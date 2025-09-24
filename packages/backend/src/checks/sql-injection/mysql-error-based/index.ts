@@ -1,5 +1,4 @@
 import { continueWith, defineCheck, done, Severity } from "engine";
-import { keyStrategy } from "../../../utils/key";
 
 import {
   createRequestWithParameter,
@@ -7,6 +6,7 @@ import {
   hasParameters,
   type Parameter,
 } from "../../../utils";
+import { keyStrategy } from "../../../utils/key";
 
 type State = {
   testParams: Parameter[];
@@ -138,7 +138,12 @@ export default defineCheck<State>(({ step }) => {
         maxRequests: MYSQL_ERROR_PAYLOADS.length,
       },
     },
-    dedupeKey: keyStrategy().withMethod().withHost().withPort().withPath().build(),
+    dedupeKey: keyStrategy()
+      .withMethod()
+      .withHost()
+      .withPort()
+      .withPath()
+      .build(),
     initState: () => ({
       testParams: [],
       currentPayloadIndex: 0,

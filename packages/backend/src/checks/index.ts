@@ -11,8 +11,8 @@ import jsonHtmlResponseScan from "./json-html-response";
 import openRedirectScan from "./open-redirect";
 import pathTraversalScan from "./path-traversal";
 import phpinfoScan from "./phpinfo";
-import robotsTxtScan from "./robots-txt";
 import { basicReflectedXSSScan } from "./reflected-xss";
+import robotsTxtScan from "./robots-txt";
 import { mysqlErrorBased } from "./sql-injection";
 import sstiScan from "./ssti";
 

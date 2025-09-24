@@ -1,10 +1,10 @@
-import { createMockRequest } from "engine";
+import { createMockRequest, type MockRequestData } from "engine";
 import { describe, expect, it } from "vitest";
 
 import { keyStrategy } from "./key";
 
 describe("keyStrategy", () => {
-  const createMockScanTarget = (requestData: any) => ({
+  const createMockScanTarget = (requestData: MockRequestData) => ({
     request: createMockRequest(requestData),
   });
 
@@ -107,7 +107,12 @@ describe("keyStrategy", () => {
   });
 
   it("should generate key with all parts", () => {
-    const keyFn = keyStrategy().withHost().withPort().withPath().withMethod().build();
+    const keyFn = keyStrategy()
+      .withHost()
+      .withPort()
+      .withPath()
+      .withMethod()
+      .build();
     const target = createMockScanTarget({
       id: "1",
       host: "EXAMPLE.COM",
@@ -121,7 +126,12 @@ describe("keyStrategy", () => {
   });
 
   it("should handle different order of method chaining", () => {
-    const keyFn = keyStrategy().withMethod().withHost().withPath().withPort().build();
+    const keyFn = keyStrategy()
+      .withMethod()
+      .withHost()
+      .withPath()
+      .withPort()
+      .build();
     const target = createMockScanTarget({
       id: "1",
       host: "test.com",
@@ -163,9 +173,19 @@ describe("keyStrategy", () => {
   });
 
   it("should handle different HTTP methods case variations", () => {
-    const methods = ["get", "GET", "Get", "post", "POST", "Post", "put", "PUT", "Put"];
-    
-    methods.forEach(method => {
+    const methods = [
+      "get",
+      "GET",
+      "Get",
+      "post",
+      "POST",
+      "Post",
+      "put",
+      "PUT",
+      "Put",
+    ];
+
+    methods.forEach((method) => {
       const keyFn = keyStrategy().withMethod().build();
       const target = createMockScanTarget({
         id: "1",
@@ -182,8 +202,8 @@ describe("keyStrategy", () => {
 
   it("should handle different host case variations", () => {
     const hosts = ["Example.COM", "EXAMPLE.com", "example.Com", "EXAMPLE.COM"];
-    
-    hosts.forEach(host => {
+
+    hosts.forEach((host) => {
       const keyFn = keyStrategy().withHost().build();
       const target = createMockScanTarget({
         id: "1",
@@ -200,8 +220,8 @@ describe("keyStrategy", () => {
 
   it("should handle different port numbers", () => {
     const ports = [80, 443, 8080, 3000, 9000];
-    
-    ports.forEach(port => {
+
+    ports.forEach((port) => {
       const keyFn = keyStrategy().withPort().build();
       const target = createMockScanTarget({
         id: "1",
@@ -217,7 +237,12 @@ describe("keyStrategy", () => {
   });
 
   it("should generate consistent keys for same input", () => {
-    const keyFn = keyStrategy().withHost().withPort().withPath().withMethod().build();
+    const keyFn = keyStrategy()
+      .withHost()
+      .withPort()
+      .withPath()
+      .withMethod()
+      .build();
     const target = createMockScanTarget({
       id: "1",
       host: "example.com",
@@ -234,7 +259,7 @@ describe("keyStrategy", () => {
 
   it("should generate different keys for different inputs", () => {
     const keyFn = keyStrategy().withHost().withPort().withPath().build();
-    
+
     const target1 = createMockScanTarget({
       id: "1",
       host: "example.com",
@@ -253,7 +278,7 @@ describe("keyStrategy", () => {
 
     const key1 = keyFn(target1);
     const key2 = keyFn(target2);
-    
+
     expect(key1).toBe("example.com::443::/api/users");
     expect(key2).toBe("example.com::8080::/api/users");
     expect(key1).not.toBe(key2);

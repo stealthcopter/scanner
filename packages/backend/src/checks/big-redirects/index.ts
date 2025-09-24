@@ -6,6 +6,7 @@ import {
   Severity,
   type StepAction,
 } from "engine";
+
 import { keyStrategy } from "../../utils/key";
 
 const isRedirectResponse = (statusCode: number): boolean => {
@@ -98,7 +99,13 @@ export default defineCheck<Record<never, never>>(({ step }) => {
       },
     },
     initState: () => ({}),
-    dedupeKey: keyStrategy().withMethod().withHost().withPort().withPath().withQuery().build(),
+    dedupeKey: keyStrategy()
+      .withMethod()
+      .withHost()
+      .withPort()
+      .withPath()
+      .withQuery()
+      .build(),
     when: (target: ScanTarget) => {
       return (
         target.response !== undefined &&

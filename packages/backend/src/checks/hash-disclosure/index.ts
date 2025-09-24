@@ -1,4 +1,5 @@
 import { defineCheck, done, Severity } from "engine";
+
 import { keyStrategy } from "../../utils/key";
 
 // Common hash patterns - matching ZAP Proxy coverage

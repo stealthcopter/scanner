@@ -5,6 +5,7 @@ import {
   ScanAggressivity,
   Severity,
 } from "engine";
+
 import { keyStrategy } from "../../utils/key";
 
 const PHPINFO_PATHS = [

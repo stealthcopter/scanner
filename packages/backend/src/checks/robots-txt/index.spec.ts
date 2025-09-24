@@ -1,4 +1,10 @@
-import { createMockRequest, createMockRequestSpec, createMockResponse, runCheck, ScanAggressivity, SendHandler } from "engine";
+import {
+  createMockRequest,
+  createMockRequestSpec,
+  createMockResponse,
+  runCheck,
+  ScanAggressivity,
+} from "engine";
 import { describe, expect, it, vi } from "vitest";
 
 import robotsTxtCheck from "./index";
@@ -8,7 +14,6 @@ vi.mock("caido:utils", () => ({
 }));
 
 describe("Robots.txt Check", () => {
-
   it("should detect valid robots.txt file", async () => {
     const request = createMockRequest({
       id: "1",
@@ -59,7 +64,9 @@ describe("Robots.txt Check", () => {
             findings: [
               {
                 name: "Robots.txt File Exposed",
-                description: expect.stringContaining("Robots.txt file is publicly accessible"),
+                description: expect.stringContaining(
+                  "Robots.txt file is publicly accessible",
+                ),
                 severity: "info",
               },
             ],
@@ -175,7 +182,8 @@ describe("Robots.txt Check", () => {
     ]);
 
     // Should not have any findings in any step
-    const allFindings = executionHistory[0]?.steps.flatMap(step => step.findings) ?? [];
+    const allFindings =
+      executionHistory[0]?.steps.flatMap((step) => step.findings) ?? [];
     expect(allFindings).toEqual([]);
   });
 
@@ -224,7 +232,8 @@ describe("Robots.txt Check", () => {
     ]);
 
     // Should not have any findings in any step
-    const allFindings = executionHistory[0]?.steps.flatMap(step => step.findings) ?? [];
+    const allFindings =
+      executionHistory[0]?.steps.flatMap((step) => step.findings) ?? [];
     expect(allFindings).toEqual([]);
   });
 
@@ -273,7 +282,8 @@ describe("Robots.txt Check", () => {
     ]);
 
     // Should not have any findings in any step
-    const allFindings = executionHistory[0]?.steps.flatMap(step => step.findings) ?? [];
+    const allFindings =
+      executionHistory[0]?.steps.flatMap((step) => step.findings) ?? [];
     expect(allFindings).toEqual([]);
   });
 

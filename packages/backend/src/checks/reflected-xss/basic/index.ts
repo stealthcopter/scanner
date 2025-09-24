@@ -5,13 +5,13 @@ import {
   type ScanTarget,
   Severity,
 } from "engine";
-import { keyStrategy } from "../../../utils/key";
 
 import {
   createRequestWithParameter,
   extractReflectedParameters,
   type Parameter,
 } from "../../../utils";
+import { keyStrategy } from "../../../utils/key";
 
 function isExploitable(target: ScanTarget): boolean {
   const { request, response } = target;
@@ -219,7 +219,13 @@ export default defineCheck<State>(({ step }) => {
         maxRequests: "Infinity",
       },
     },
-    dedupeKey: keyStrategy().withMethod().withHost().withPort().withPath().withQueryKeys().build(),
+    dedupeKey: keyStrategy()
+      .withMethod()
+      .withHost()
+      .withPort()
+      .withPath()
+      .withQueryKeys()
+      .build(),
     initState: () => ({
       testParams: [],
       currentPayloadIndex: 0,

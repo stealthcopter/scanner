@@ -5,13 +5,13 @@ import {
   ScanAggressivity,
   Severity,
 } from "engine";
-import { keyStrategy } from "../../utils/key";
 
 import {
   createRequestWithParameter,
   extractReflectedParameters,
   type Parameter,
 } from "../../utils";
+import { keyStrategy } from "../../utils/key";
 
 const MARKER = "__ssti_probe__";
 
@@ -384,7 +384,13 @@ export default defineCheck<State>(({ step }) => {
       currentPayloadIndex: 0,
     }),
 
-    dedupeKey: keyStrategy().withMethod().withHost().withPort().withPath().withQueryKeys().build(),
+    dedupeKey: keyStrategy()
+      .withMethod()
+      .withHost()
+      .withPort()
+      .withPath()
+      .withQueryKeys()
+      .build(),
 
     when: (target) => {
       const { request } = target;

@@ -1,12 +1,8 @@
-import {
-  continueWith,
-  defineCheck,
-  done,
-  Severity,
-} from "engine";
 import { RequestSpec } from "caido:utils";
-import { keyStrategy } from "../../utils/key";
+import { continueWith, defineCheck, done, Severity } from "engine";
+
 import { bodyMatchesAny } from "../../utils/body";
+import { keyStrategy } from "../../utils/key";
 
 const ROBOTS_TXT_PATHS = [
   "/robots.txt",
@@ -39,7 +35,6 @@ export default defineCheck<{
         state,
       });
     }
-
 
     const [currentPath, ...remainingPaths] = state.remainingPaths;
     if (currentPath === undefined) {

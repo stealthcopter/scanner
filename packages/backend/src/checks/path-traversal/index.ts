@@ -5,7 +5,6 @@ import {
   ScanAggressivity,
   Severity,
 } from "engine";
-import { keyStrategy } from "../../utils/key";
 
 import {
   createRequestWithParameter,
@@ -13,6 +12,7 @@ import {
   hasParameters,
   type Parameter,
 } from "../../utils";
+import { keyStrategy } from "../../utils/key";
 
 type PayloadList = {
   payloads: string[];
@@ -166,7 +166,13 @@ export default defineCheck<{
         maxRequests: "Infinity",
       },
     },
-    dedupeKey: keyStrategy().withMethod().withHost().withPort().withPath().withQueryKeys().build(),
+    dedupeKey: keyStrategy()
+      .withMethod()
+      .withHost()
+      .withPort()
+      .withPath()
+      .withQueryKeys()
+      .build(),
     initState: () => ({
       parameters: [],
     }),
