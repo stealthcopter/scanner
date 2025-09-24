@@ -5,6 +5,7 @@ import {
   ScanAggressivity,
   Severity,
 } from "engine";
+import { keyStrategy } from "../../utils/key";
 
 const PHPINFO_PATHS = [
   "phpinfo.php",
@@ -129,9 +130,6 @@ export default defineCheck<{
     },
 
     initState: () => ({ phpinfoPaths: [], basePath: "" }),
-    dedupeKey: (context) => {
-      const basePath = getBasePath(context.request.getPath());
-      return context.request.getHost() + context.request.getPort() + basePath;
-    },
+    dedupeKey: keyStrategy().withHost().withPort().withBasePath().build(),
   };
 });

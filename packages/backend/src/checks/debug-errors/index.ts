@@ -1,4 +1,5 @@
 import { defineCheck, done, Severity } from "engine";
+import { keyStrategy } from "../../utils/key";
 
 // Debug error patterns that indicate development/debugging information
 const DEBUG_ERROR_PATTERNS = [
@@ -92,10 +93,7 @@ export default defineCheck<unknown>(({ step }) => {
       aggressivity: { minRequests: 0, maxRequests: 0 },
     },
     initState: () => ({}),
-    dedupeKey: (context) =>
-      context.request.getHost() +
-      context.request.getPort() +
-      context.request.getPath(),
+    dedupeKey: keyStrategy().withHost().withPort().withPath().build(),
     when: (context) =>
       context.response !== undefined &&
       !context.request.getPath().endsWith(".js"),

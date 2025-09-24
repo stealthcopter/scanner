@@ -1,4 +1,5 @@
 import { continueWith, defineCheck, done, Severity } from "engine";
+import { keyStrategy } from "../../../utils/key";
 
 import {
   createRequestWithParameter,
@@ -147,21 +148,7 @@ export default defineCheck<State>(({ step }) => {
         maxRequests: MYSQL_TIME_PAYLOADS.length * 2,
       },
     },
-    dedupeKey: (context) => {
-      const query = context.request.getQuery();
-      const paramKeys =
-        query !== ""
-          ? Array.from(new URLSearchParams(query).keys()).sort().join(",")
-          : "";
-
-      return (
-        context.request.getMethod() +
-        context.request.getHost() +
-        context.request.getPort() +
-        context.request.getPath() +
-        paramKeys
-      );
-    },
+    dedupeKey: keyStrategy().withMethod().withHost().withPort().withPath().withQueryKeys().build(),
     initState: () => ({
       testParams: [],
       currentPayloadIndex: 0,

@@ -5,6 +5,7 @@ import {
   ScanAggressivity,
   Severity,
 } from "engine";
+import { keyStrategy } from "../../utils/key";
 
 const createOriginTests = (host: string, scheme: string) => {
   const tests = [
@@ -285,12 +286,6 @@ export default defineCheck<{
       requestScheme: "",
     }),
 
-    dedupeKey: (context) => {
-      return (
-        context.request.getHost() +
-        context.request.getPort() +
-        context.request.getPath()
-      );
-    },
+    dedupeKey: keyStrategy().withHost().withPort().withPath().build(),
   };
 });

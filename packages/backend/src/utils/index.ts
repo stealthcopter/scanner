@@ -7,3 +7,4 @@ export {
   extractReflectedParameters,
   hasParameters,
 } from "./parameters";
+export { keyStrategy } from "./key";

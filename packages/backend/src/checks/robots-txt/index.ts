@@ -4,6 +4,7 @@ import {
   done,
   Severity,
 } from "engine";
+import { keyStrategy } from "../../utils/key";
 
 const ROBOTS_TXT_PATHS = [
   "/robots.txt",
@@ -35,21 +36,15 @@ const isValidRobotsTxtContent = (bodyText: string): boolean => {
   );
 };
 
-const getBasePath = (originalPath: string): string => {
-  return originalPath.split("/").slice(0, -1).join("/");
-};
-
 export default defineCheck<{
   robotsPaths: string[];
-  basePath: string;
 }>(({ step }) => {
   step("setupScan", (_, context) => {
     const robotsPaths = ROBOTS_TXT_PATHS;
-    const basePath = getBasePath(context.target.request.getPath());
 
     return continueWith({
       nextStep: "testRobotsPath",
-      state: { robotsPaths, basePath },
+      state: { robotsPaths },
     });
   });
 
@@ -67,10 +62,9 @@ export default defineCheck<{
       });
     }
 
-    const robotsPath = state.basePath + currentPath;
     const request = context.target.request.toSpec();
 
-    request.setPath(robotsPath);
+    request.setPath(currentPath);
     request.setMethod("GET");
 
     const result = await context.sdk.requests.send(request);
@@ -86,7 +80,7 @@ export default defineCheck<{
             findings: [
               {
                 name: "Robots.txt File Exposed",
-                description: `Robots.txt file is publicly accessible at \`${robotsPath}\`. This file may reveal directory structure, hidden paths, and crawling policies that could be useful for reconnaissance.`,
+                description: `Robots.txt file is publicly accessible at \`${currentPath}\`. This file may reveal directory structure, hidden paths, and crawling policies that could be useful for reconnaissance.`,
                 severity: Severity.INFO,
                 correlation: {
                   requestID: result.request.getId(),
@@ -125,9 +119,6 @@ export default defineCheck<{
     },
 
     initState: () => ({ robotsPaths: [], basePath: "" }),
-    dedupeKey: (context) => {
-      const basePath = getBasePath(context.request.getPath());
-      return context.request.getHost() + context.request.getPort() + basePath;
-    },
+    dedupeKey: keyStrategy().withHost().withPort().build(),
   };
 });

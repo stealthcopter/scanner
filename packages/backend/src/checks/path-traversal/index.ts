@@ -5,6 +5,7 @@ import {
   ScanAggressivity,
   Severity,
 } from "engine";
+import { keyStrategy } from "../../utils/key";
 
 import {
   createRequestWithParameter,
@@ -165,20 +166,7 @@ export default defineCheck<{
         maxRequests: "Infinity",
       },
     },
-    dedupeKey: (context) => {
-      const query = context.request.getQuery();
-      const paramKeys = query
-        ? Array.from(new URLSearchParams(query).keys()).sort().join(",")
-        : "";
-
-      return (
-        context.request.getMethod() +
-        context.request.getHost() +
-        context.request.getPort() +
-        context.request.getPath() +
-        paramKeys
-      );
-    },
+    dedupeKey: keyStrategy().withMethod().withHost().withPort().withPath().withQueryKeys().build(),
     initState: () => ({
       parameters: [],
     }),

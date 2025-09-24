@@ -8,6 +8,7 @@ import {
   ScanAggressivity,
   Severity,
 } from "engine";
+import { keyStrategy } from "../../utils/key";
 
 const keywords = [
   "url",
@@ -194,14 +195,7 @@ export default defineCheck<{
     },
 
     initState: () => ({ urlParams: [] }),
-    dedupeKey: (context) => {
-      return (
-        context.request.getMethod() +
-        context.request.getHost() +
-        context.request.getPort() +
-        context.request.getPath()
-      );
-    },
+    dedupeKey: keyStrategy().withMethod().withHost().withPort().withPath().build(),
     when: (context) => {
       const query = context.request.getQuery();
       if (!query) return false;
