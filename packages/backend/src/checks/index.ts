@@ -4,6 +4,7 @@ import bigRedirectsScan from "./big-redirects";
 import commandInjectionScan from "./command-injection";
 import corsMisconfigScan from "./cors-misconfig";
 import debugErrorsScan from "./debug-errors";
+import directoryListingScan from "./directory-listing";
 import exposedEnvScan from "./exposed-env";
 import gitConfigScan from "./git-config";
 import hashDisclosureScan from "./hash-disclosure";
@@ -35,6 +36,7 @@ export const Checks = {
   BASIC_REFLECTED_XSS: "basic-reflected-xss",
   MYSQL_ERROR_BASED_SQLI: "mysql-error-based-sqli",
   SSTI: "ssti",
+  DIRECTORY_LISTING: "directory-listing",
   // MYSQL_TIME_BASED_SQLI: "mysql-time-based-sqli" - TODO: fix false positives
 } as const;
 
@@ -56,5 +58,6 @@ export const checks = [
   basicReflectedXSSScan,
   mysqlErrorBased,
   sstiScan,
+  directoryListingScan,
   // mysqlTimeBased,
 ] as const;

@@ -32,6 +32,10 @@ export class ConfigStore {
               enabled: true,
             },
             {
+              checkID: Checks.DIRECTORY_LISTING,
+              enabled: true,
+            },
+            {
               checkID: Checks.JSON_HTML_RESPONSE,
               enabled: true,
             },
@@ -76,6 +80,10 @@ export class ConfigStore {
           active: [
             {
               checkID: Checks.EXPOSED_ENV,
+              enabled: true,
+            },
+            {
+              checkID: Checks.DIRECTORY_LISTING,
               enabled: true,
             },
             {
@@ -155,6 +163,10 @@ export class ConfigStore {
           active: [
             {
               checkID: Checks.EXPOSED_ENV,
+              enabled: true,
+            },
+            {
+              checkID: Checks.DIRECTORY_LISTING,
               enabled: true,
             },
             {
