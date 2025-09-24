@@ -7,6 +7,7 @@ import {
 } from "engine";
 
 import {
+  bodyMatchesAny,
   createRequestWithParameter,
   extractParameters,
   hasParameters,
@@ -235,10 +236,9 @@ export default defineCheck<State>(({ step }) => {
 
     // Check if the original response already contains the expected pattern
     const originalResponse = context.target.response;
-    const originalResponseBody = originalResponse?.getBody()?.toText();
     if (
-      originalResponseBody !== undefined &&
-      currentPayloadConfig.pattern.test(originalResponseBody)
+      originalResponse !== undefined &&
+      bodyMatchesAny(originalResponse, [currentPayloadConfig.pattern])
     ) {
       // Skip this payload as it already matches in the original response
       return continueWith({

@@ -1,5 +1,6 @@
 import { defineCheck, done, Severity } from "engine";
 
+import { bodyMatchesAny } from "../../utils";
 import { keyStrategy } from "../../utils/key";
 
 // Common application error patterns that indicate sensitive information disclosure
@@ -61,28 +62,18 @@ export default defineCheck<Record<never, never>>(({ step }) => {
       return done({ state });
     }
 
-    const body = response.getBody()?.toText();
-    if (body === undefined) {
-      return done({ state });
-    }
-
-    // Check for error patterns
-    for (const pattern of ERROR_PATTERNS) {
-      const match = pattern.exec(body);
-      if (match) {
-        const errorMessage = match[0];
-        const finding = {
-          name: "Application Error Information Disclosure",
-          description: `The application returned an error message that may contain sensitive information. This can help attackers understand the application's internal structure and identify potential vulnerabilities. Discovered error: "${errorMessage}"`,
-          severity: Severity.MEDIUM,
-          correlation: {
-            requestID: context.target.request.getId(),
-            locations: [],
-          },
-        };
-
-        return done({ state, findings: [finding] });
-      }
+    if (bodyMatchesAny(response, ERROR_PATTERNS)) {
+      const finding = {
+        name: "Application Error Information Disclosure",
+        description:
+          "The application returned an error message that may contain sensitive information. This can help attackers understand the application's internal structure and identify potential vulnerabilities.",
+        severity: Severity.MEDIUM,
+        correlation: {
+          requestID: context.target.request.getId(),
+          locations: [],
+        },
+      };
+      return done({ state, findings: [finding] });
     }
 
     return done({ state });

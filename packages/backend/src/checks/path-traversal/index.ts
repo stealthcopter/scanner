@@ -7,6 +7,7 @@ import {
 } from "engine";
 
 import {
+  bodyMatchesAny,
   createRequestWithParameter,
   extractParameters,
   hasParameters,
@@ -112,26 +113,21 @@ export default defineCheck<{
         const { request, response } =
           await context.sdk.requests.send(requestSpec);
 
-        const responseBody = response.getBody()?.toText() ?? "";
-
-        for (const pattern of payloadSet.patterns) {
-          if (pattern.test(responseBody)) {
-            return done({
-              findings: [
-                {
-                  name:
-                    "Path Traversal in parameter '" + currentParam.name + "'",
-                  description: `Parameter \`${currentParam.name}\` in ${currentParam.source} allows path traversal access to system files.\n\n**Payload used:**\n\`\`\`\n${payload}\n\`\`\`\n\nThe response contained sensitive file content matching the expected pattern.`,
-                  severity: Severity.CRITICAL,
-                  correlation: {
-                    requestID: request.getId(),
-                    locations: [],
-                  },
+        if (bodyMatchesAny(response, payloadSet.patterns)) {
+          return done({
+            findings: [
+              {
+                name: "Path Traversal in parameter '" + currentParam.name + "'",
+                description: `Parameter \`${currentParam.name}\` in ${currentParam.source} allows path traversal access to system files.\n\n**Payload used:**\n\`\`\`\n${payload}\n\`\`\`\n\nThe response contained sensitive file content matching the expected pattern.`,
+                severity: Severity.CRITICAL,
+                correlation: {
+                  requestID: request.getId(),
+                  locations: [],
                 },
-              ],
-              state: { parameters: remainingParams },
-            });
-          }
+              },
+            ],
+            state: { parameters: remainingParams },
+          });
         }
       }
     }
