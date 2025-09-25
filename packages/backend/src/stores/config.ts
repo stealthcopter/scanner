@@ -73,6 +73,10 @@ export class ConfigStore {
               checkID: Checks.ANTI_CLICKJACKING,
               enabled: false,
             },
+            {
+              checkID: Checks.COOKIE_HTTPONLY,
+              enabled: true,
+            },
           ],
         },
         {
@@ -155,6 +159,10 @@ export class ConfigStore {
             {
               checkID: Checks.SSTI,
               enabled: false,
+            },
+            {
+              checkID: Checks.COOKIE_HTTPONLY,
+              enabled: true,
             },
           ],
         },
@@ -258,6 +266,10 @@ export class ConfigStore {
             {
               checkID: Checks.SSTI,
               enabled: false,
+            },
+            {
+              checkID: Checks.COOKIE_HTTPONLY,
+              enabled: true,
             },
           ],
         },
