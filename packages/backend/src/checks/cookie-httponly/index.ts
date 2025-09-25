@@ -1,6 +1,6 @@
 import { defineCheck, done, Severity } from "engine";
 
-import { keyStrategy, getSetCookieHeaders } from "../../utils";
+import { getSetCookieHeaders, keyStrategy } from "../../utils";
 
 export default defineCheck<unknown>(({ step }) => {
   step("checkCookieHttpOnly", (state, context) => {

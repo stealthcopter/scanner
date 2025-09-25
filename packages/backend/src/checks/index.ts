@@ -3,6 +3,7 @@ import applicationErrorsScan from "./application-errors";
 import bigRedirectsScan from "./big-redirects";
 import commandInjectionScan from "./command-injection";
 import cookieHttpOnlyScan from "./cookie-httponly";
+import cookieSecureScan from "./cookie-secure";
 import corsMisconfigScan from "./cors-misconfig";
 import debugErrorsScan from "./debug-errors";
 import directoryListingScan from "./directory-listing";
@@ -25,6 +26,7 @@ export const Checks = {
   BIG_REDIRECTS: "big-redirects",
   COMMAND_INJECTION: "command-injection",
   COOKIE_HTTPONLY: "cookie-httponly",
+  COOKIE_SECURE: "cookie-secure",
   CORS_MISCONFIG: "cors-misconfig",
   DEBUG_ERRORS: "debug-errors",
   EXPOSED_ENV: "exposed-env",
@@ -48,6 +50,7 @@ export const checks = [
   bigRedirectsScan,
   commandInjectionScan,
   cookieHttpOnlyScan,
+  cookieSecureScan,
   corsMisconfigScan,
   debugErrorsScan,
   exposedEnvScan,

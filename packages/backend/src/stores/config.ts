@@ -77,6 +77,10 @@ export class ConfigStore {
               checkID: Checks.COOKIE_HTTPONLY,
               enabled: true,
             },
+            {
+              checkID: Checks.COOKIE_SECURE,
+              enabled: true,
+            },
           ],
         },
         {
@@ -162,6 +166,10 @@ export class ConfigStore {
             },
             {
               checkID: Checks.COOKIE_HTTPONLY,
+              enabled: true,
+            },
+            {
+              checkID: Checks.COOKIE_SECURE,
               enabled: true,
             },
           ],
@@ -269,6 +277,10 @@ export class ConfigStore {
             },
             {
               checkID: Checks.COOKIE_HTTPONLY,
+              enabled: true,
+            },
+            {
+              checkID: Checks.COOKIE_SECURE,
               enabled: true,
             },
           ],

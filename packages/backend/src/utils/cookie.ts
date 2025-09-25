@@ -15,7 +15,7 @@ export type SetCookieHeader = {
 
 /**
  * Extracts and parses Set-Cookie headers from a response.
- * 
+ *
  * @param response - The response object to extract Set-Cookie headers from
  * @returns Array of SetCookieHeader objects with parsed cookie information
  */
@@ -35,21 +35,21 @@ export function getSetCookieHeaders(response: Response): SetCookieHeader[] {
 
     // Parse cookie attributes
     const cookieParts = cookieHeader.split(";").map((part) => part.trim());
-    
+
     // Extract key=value from the first part
     const firstPart = cookieParts[0];
     if (firstPart === undefined) {
       continue;
     }
-    
+
     const equalIndex = firstPart.indexOf("=");
     if (equalIndex === -1) {
       continue;
     }
-    
+
     const key = firstPart.substring(0, equalIndex);
     const value = firstPart.substring(equalIndex + 1);
-    
+
     // Parse flags from remaining parts
     const flags: Record<string, unknown> = {};
     let hasHttpOnly = false;
@@ -59,15 +59,15 @@ export function getSetCookieHeaders(response: Response): SetCookieHeader[] {
     let path: string | undefined;
     let maxAge: string | undefined;
     let expires: string | undefined;
-    
+
     for (let i = 1; i < cookieParts.length; i++) {
       const part = cookieParts[i];
       if (part === undefined) {
         continue;
       }
-      
+
       const lowerPart = part.toLowerCase();
-      
+
       if (lowerPart === "httponly") {
         hasHttpOnly = true;
       } else if (lowerPart === "secure") {

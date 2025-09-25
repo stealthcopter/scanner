@@ -30,7 +30,7 @@ describe("getSetCookieHeaders", () => {
     });
 
     const result = getSetCookieHeaders(response);
-    
+
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({
       key: "sessionId",
@@ -63,7 +63,7 @@ describe("getSetCookieHeaders", () => {
     });
 
     const result = getSetCookieHeaders(response);
-    
+
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({
       key: "sessionId",
@@ -97,7 +97,7 @@ describe("getSetCookieHeaders", () => {
     });
 
     const result = getSetCookieHeaders(response);
-    
+
     expect(result).toHaveLength(3);
     expect(result[0]).toEqual({
       key: "sessionId",
@@ -138,7 +138,7 @@ describe("getSetCookieHeaders", () => {
     });
 
     const result = getSetCookieHeaders(response);
-    
+
     expect(result).toHaveLength(3);
     expect(result[0]).toEqual({
       key: "sessionId",
@@ -178,7 +178,7 @@ describe("getSetCookieHeaders", () => {
     });
 
     const result = getSetCookieHeaders(response);
-    
+
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({
       key: "sessionId",
@@ -208,7 +208,7 @@ describe("getSetCookieHeaders", () => {
     });
 
     const result = getSetCookieHeaders(response);
-    
+
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       key: "sessionId",
@@ -232,7 +232,7 @@ describe("getSetCookieHeaders", () => {
     });
 
     const result = getSetCookieHeaders(response);
-    
+
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       key: "sessionId",
@@ -259,7 +259,7 @@ describe("getSetCookieHeaders", () => {
     });
 
     const result = getSetCookieHeaders(response);
-    
+
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       key: "simpleCookie",
@@ -281,7 +281,7 @@ describe("getSetCookieHeaders", () => {
     });
 
     const result = getSetCookieHeaders(response);
-    
+
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       key: "sessionId",
