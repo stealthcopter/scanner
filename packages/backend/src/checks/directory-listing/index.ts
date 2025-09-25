@@ -41,7 +41,7 @@ const parentDirectory = (dirPath: string): string => {
 };
 
 const checkDirectoryListing = (
-  bodyText: string
+  bodyText: string,
 ): {
   isListing: boolean;
   evidence?: string;
