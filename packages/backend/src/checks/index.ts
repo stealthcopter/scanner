@@ -17,6 +17,7 @@ import phpinfoScan from "./phpinfo";
 import { basicReflectedXSSScan } from "./reflected-xss";
 import robotsTxtScan from "./robots-txt";
 import { mysqlErrorBased } from "./sql-injection";
+import sqlStatementInParams from "./sql-statement-in-params";
 import sstiScan from "./ssti";
 
 export type CheckID = (typeof Checks)[keyof typeof Checks];
@@ -41,6 +42,7 @@ export const Checks = {
   MYSQL_ERROR_BASED_SQLI: "mysql-error-based-sqli",
   SSTI: "ssti",
   DIRECTORY_LISTING: "directory-listing",
+  SQL_STATEMENT_IN_PARAMS: "sql-statement-in-params",
   // MYSQL_TIME_BASED_SQLI: "mysql-time-based-sqli" - TODO: fix false positives
 } as const;
 
@@ -65,5 +67,6 @@ export const checks = [
   mysqlErrorBased,
   sstiScan,
   directoryListingScan,
+  sqlStatementInParams,
   // mysqlTimeBased,
 ] as const;
