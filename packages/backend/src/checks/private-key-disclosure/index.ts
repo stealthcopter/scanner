@@ -34,8 +34,8 @@ const PRIVATE_KEY_PATTERNS = [
   /\b[A-Za-z0-9+/]{100,}={0,2}\b/g,
 ];
 
-export default defineCheck<{}>(({ step }) => {
-  step("scanResponse", async (state, context) => {
+export default defineCheck(({ step }) => {
+  step("scanResponse", (state, context) => {
     const response = context.target.response;
 
     if (response === undefined || response.getCode() !== 200) {

@@ -6,32 +6,32 @@ import { keyStrategy } from "../../utils/key";
 // Database connection string regex patterns
 const DB_CONNECTION_PATTERNS = [
   // MySQL connection strings
-  /mysql:\/\/[^:\s]+:[^@\s]+@[^\/\s]+\/[^\s]+/gi,
-  /mysql:\/\/[^@\s]+@[^\/\s]+\/[^\s]+/gi,
+  /mysql:\/\/[^:\s]+:[^@\s]+@[^/\s]+\/[^\s]+/gi,
+  /mysql:\/\/[^@\s]+@[^/\s]+\/[^\s]+/gi,
 
   // PostgreSQL connection strings
-  /postgresql:\/\/[^:\s]+:[^@\s]+@[^\/\s]+\/[^\s]+/gi,
-  /postgres:\/\/[^:\s]+:[^@\s]+@[^\/\s]+\/[^\s]+/gi,
-  /postgresql:\/\/[^@\s]+@[^\/\s]+\/[^\s]+/gi,
-  /postgres:\/\/[^@\s]+@[^\/\s]+\/[^\s]+/gi,
+  /postgresql:\/\/[^:\s]+:[^@\s]+@[^/\s]+\/[^\s]+/gi,
+  /postgres:\/\/[^:\s]+:[^@\s]+@[^/\s]+\/[^\s]+/gi,
+  /postgresql:\/\/[^@\s]+@[^/\s]+\/[^\s]+/gi,
+  /postgres:\/\/[^@\s]+@[^/\s]+\/[^\s]+/gi,
 
   // MongoDB connection strings
-  /mongodb:\/\/[^:\s]+:[^@\s]+@[^\/\s]+\/[^\s]+/gi,
-  /mongodb\+srv:\/\/[^:\s]+:[^@\s]+@[^\/\s]+\/[^\s]+/gi,
-  /mongodb:\/\/[^@\s]+@[^\/\s]+\/[^\s]+/gi,
-  /mongodb\+srv:\/\/[^@\s]+@[^\/\s]+\/[^\s]+/gi,
+  /mongodb:\/\/[^:\s]+:[^@\s]+@[^/\s]+\/[^\s]+/gi,
+  /mongodb\+srv:\/\/[^:\s]+:[^@\s]+@[^/\s]+\/[^\s]+/gi,
+  /mongodb:\/\/[^@\s]+@[^/\s]+\/[^\s]+/gi,
+  /mongodb\+srv:\/\/[^@\s]+@[^/\s]+\/[^\s]+/gi,
 
   // SQL Server connection strings
   /Server=[^;]+;Database=[^;]+;User Id=[^;]+;Password=[^;]+/gi,
   /Data Source=[^;]+;Initial Catalog=[^;]+;User ID=[^;]+;Password=[^;]+/gi,
 
   // Oracle connection strings
-  /oracle:\/\/[^:\s]+:[^@\s]+@[^\/\s]+\/[^\s]+/gi,
-  /oracle:\/\/[^@\s]+@[^\/\s]+\/[^\s]+/gi,
+  /oracle:\/\/[^:\s]+:[^@\s]+@[^/\s]+\/[^\s]+/gi,
+  /oracle:\/\/[^@\s]+@[^/\s]+\/[^\s]+/gi,
 
   // Redis connection strings
-  /redis:\/\/[^:\s]+:[^@\s]+@[^\/\s]+/gi,
-  /redis:\/\/[^@\s]+@[^\/\s]+/gi,
+  /redis:\/\/[^:\s]+:[^@\s]+@[^/\s]+/gi,
+  /redis:\/\/[^@\s]+@[^/\s]+/gi,
 
   // Generic database connection patterns
   /(?:database|db|connection|conn)_(?:url|string|uri|host|user|password|pass|pwd)\s*[=:]\s*[^\s]+/gi,
@@ -46,8 +46,8 @@ const DB_CONNECTION_PATTERNS = [
   /jdbc:[^:]+:[^;]+;password=[^;]+;user=[^;]+/gi,
 ];
 
-export default defineCheck<{}>(({ step }) => {
-  step("scanResponse", async (state, context) => {
+export default defineCheck(({ step }) => {
+  step("scanResponse", (state, context) => {
     const response = context.target.response;
 
     if (response === undefined || response.getCode() !== 200) {

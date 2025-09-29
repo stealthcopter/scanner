@@ -18,8 +18,8 @@ const CREDIT_CARD_PATTERNS = [
   /\b4\d{12}(?:\d{3,6})?\b/g, // Visa
 ];
 
-export default defineCheck<{}>(({ step }) => {
-  step("scanResponse", async (state, context) => {
+export default defineCheck(({ step }) => {
+  step("scanResponse", (state, context) => {
     const response = context.target.response;
 
     if (response === undefined || response.getCode() !== 200) {

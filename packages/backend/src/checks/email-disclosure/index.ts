@@ -11,8 +11,8 @@ const EMAIL_PATTERNS = [
   /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\.[A-Z|a-z]{2,}\b/,
 ];
 
-export default defineCheck<{}>(({ step }) => {
-  step("scanResponse", async (state, context) => {
+export default defineCheck(({ step }) => {
+  step("scanResponse", (state, context) => {
     const response = context.target.response;
 
     if (response === undefined || response.getCode() !== 200) {

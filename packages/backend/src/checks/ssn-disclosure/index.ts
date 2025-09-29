@@ -13,8 +13,8 @@ const SSN_PATTERNS = [
   /\b[0-9]{3}\.[0-9]{2}\.[0-9]{4}\b/,
 ];
 
-export default defineCheck<{}>(({ step }) => {
-  step("scanResponse", async (state, context) => {
+export default defineCheck(({ step }) => {
+  step("scanResponse", (state, context) => {
     const response = context.target.response;
 
     if (response === undefined || response.getCode() !== 200) {
