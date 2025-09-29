@@ -33,7 +33,7 @@ export default defineCheck(({ step }) => {
           {
             name: "Credit Card Number Disclosed",
             description:
-              "Credit card numbers have been detected in the response. This sensitive financial information should not be exposed in web responses as it could lead to identity theft and financial fraud.",
+              "Credit card numbers have been detected in the response. This sensitive financial information should not be exposed in web responses.",
             severity: Severity.INFO,
             correlation: {
               requestID: context.target.request.getId(),
@@ -52,8 +52,7 @@ export default defineCheck(({ step }) => {
     metadata: {
       id: "credit-card-disclosure",
       name: "Credit Card Number Disclosed",
-      description:
-        "Detects credit card numbers in HTTP responses that could lead to financial fraud",
+      description: "Detects credit card numbers in HTTP responses",
       type: "passive",
       tags: ["information-disclosure", "sensitive-data"],
       severities: [Severity.INFO],

@@ -5,10 +5,8 @@ import { keyStrategy } from "../../utils/key";
 
 // Email address regex pattern
 const EMAIL_PATTERNS = [
-  // Standard email pattern
-  /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/,
-  // Email with international domains
-  /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\.[A-Z|a-z]{2,}\b/,
+  // Taken from https://colinhacks.com/essays/reasonable-email-regex
+  /(?!\.)(?!.*\.\.)([a-z0-9_'+\-.]*)[a-z0-9_'+-]@([a-z0-9][a-z0-9\-]*\.)+[a-z]{2,}/,
 ];
 
 export default defineCheck(({ step }) => {
@@ -25,8 +23,7 @@ export default defineCheck(({ step }) => {
         findings: [
           {
             name: "Email Address Disclosed",
-            description:
-              "Email addresses have been detected in the response. Exposed email addresses can be used for phishing attacks, spam, and social engineering attempts.",
+            description: "Email addresses have been detected in the response.",
             severity: Severity.INFO,
             correlation: {
               requestID: context.target.request.getId(),

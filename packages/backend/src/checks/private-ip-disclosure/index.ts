@@ -37,7 +37,7 @@ export default defineCheck(({ step }) => {
           {
             name: "Private IP Address Disclosed",
             description:
-              "Private IP addresses have been detected in the response. Exposing internal network infrastructure details can aid attackers in network reconnaissance and lateral movement.",
+              "Private IP addresses have been detected in the response.",
             severity: Severity.INFO,
             correlation: {
               requestID: context.target.request.getId(),

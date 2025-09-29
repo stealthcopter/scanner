@@ -61,7 +61,7 @@ export default defineCheck(({ step }) => {
           {
             name: "Database Connection String Disclosed",
             description:
-              "Database connection strings have been detected in the response. Exposed database credentials can lead to unauthorized database access and data breaches.",
+              "Database connection strings have been detected in the response. Exposed database credentials can lead to unauthorized database access.",
             severity: Severity.INFO,
             correlation: {
               requestID: context.target.request.getId(),

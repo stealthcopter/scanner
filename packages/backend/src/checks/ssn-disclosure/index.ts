@@ -28,7 +28,7 @@ export default defineCheck(({ step }) => {
           {
             name: "Social Security Number Disclosed",
             description:
-              "Social Security Numbers have been detected in the response. This highly sensitive personal information should never be exposed as it can lead to identity theft and serious privacy violations.",
+              "Social Security Numbers have been detected in the response.",
             severity: Severity.INFO,
             correlation: {
               requestID: context.target.request.getId(),
