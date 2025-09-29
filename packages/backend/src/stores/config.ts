@@ -85,6 +85,26 @@ export class ConfigStore {
               checkID: Checks.SQL_STATEMENT_IN_PARAMS,
               enabled: false,
             },
+            {
+              checkID: Checks.CREDIT_CARD_DISCLOSURE,
+              enabled: false,
+            },
+            {
+              checkID: Checks.DB_CONNECTION_DISCLOSURE,
+              enabled: false,
+            },
+            {
+              checkID: Checks.EMAIL_DISCLOSURE,
+              enabled: false,
+            },
+            {
+              checkID: Checks.PRIVATE_IP_DISCLOSURE,
+              enabled: false,
+            },
+            {
+              checkID: Checks.SSN_DISCLOSURE,
+              enabled: false,
+            },
           ],
         },
         {
@@ -178,6 +198,26 @@ export class ConfigStore {
             },
             {
               checkID: Checks.SQL_STATEMENT_IN_PARAMS,
+              enabled: true,
+            },
+            {
+              checkID: Checks.CREDIT_CARD_DISCLOSURE,
+              enabled: true,
+            },
+            {
+              checkID: Checks.DB_CONNECTION_DISCLOSURE,
+              enabled: true,
+            },
+            {
+              checkID: Checks.EMAIL_DISCLOSURE,
+              enabled: true,
+            },
+            {
+              checkID: Checks.PRIVATE_IP_DISCLOSURE,
+              enabled: true,
+            },
+            {
+              checkID: Checks.SSN_DISCLOSURE,
               enabled: true,
             },
           ],
@@ -293,6 +333,26 @@ export class ConfigStore {
             },
             {
               checkID: Checks.SQL_STATEMENT_IN_PARAMS,
+              enabled: true,
+            },
+            {
+              checkID: Checks.CREDIT_CARD_DISCLOSURE,
+              enabled: true,
+            },
+            {
+              checkID: Checks.DB_CONNECTION_DISCLOSURE,
+              enabled: true,
+            },
+            {
+              checkID: Checks.EMAIL_DISCLOSURE,
+              enabled: true,
+            },
+            {
+              checkID: Checks.PRIVATE_IP_DISCLOSURE,
+              enabled: true,
+            },
+            {
+              checkID: Checks.SSN_DISCLOSURE,
               enabled: true,
             },
           ],

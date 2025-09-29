@@ -6,7 +6,7 @@ import { keyStrategy } from "../../utils/key";
 // Email address regex pattern
 const EMAIL_PATTERNS = [
   // Taken from https://colinhacks.com/essays/reasonable-email-regex
-  /(?!\.)(?!.*\.\.)([a-z0-9_'+\-.]*)[a-z0-9_'+-]@([a-z0-9][a-z0-9\-]*\.)+[a-z]{2,}/,
+  /(?!\.)(?!.*\.\.)([a-z0-9_'+\-.]*)[a-z0-9_'+-]@([a-z0-9][a-z0-9-]*\.)+[a-z]{2,}/,
 ];
 
 export default defineCheck(({ step }) => {
