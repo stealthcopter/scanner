@@ -9,7 +9,6 @@ import { useQueueService } from "@/services/queue";
 import { useScannerService } from "@/services/scanner";
 import Checks from "@/views/Checks.vue";
 import Dashboard from "@/views/Dashboard.vue";
-import Queue from "@/views/Queue.vue";
 import Settings from "@/views/Settings.vue";
 
 const page = ref<"Dashboard" | "Queue" | "Checks" | "Settings">("Dashboard");
@@ -22,14 +21,14 @@ const items = [
       page.value = "Dashboard";
     },
   },
-  {
-    label: "Queue",
-    class: "mx-1",
-    isActive: () => page.value === "Queue",
-    command: () => {
-      page.value = "Queue";
-    },
-  },
+  // {
+  //   label: "Queue",
+  //   class: "mx-1",
+  //   isActive: () => page.value === "Queue",
+  //   command: () => {
+  //     page.value = "Queue";
+  //   },
+  // },
   {
     label: "Checks",
     class: "mx-1",
@@ -52,8 +51,8 @@ const component = computed(() => {
   switch (page.value) {
     case "Dashboard":
       return Dashboard;
-    case "Queue":
-      return Queue;
+    // case "Queue":
+    //   return Queue;
     case "Checks":
       return Checks;
     case "Settings":
@@ -77,7 +76,7 @@ onMounted(() => {
 
 // PrimeVue update broke types and we can't just do :label="item.label"
 const handleLabel = (
-  label: string | ((...args: unknown[]) => string) | undefined,
+  label: string | ((...args: unknown[]) => string) | undefined
 ) => {
   if (typeof label === "function") {
     return label();
@@ -101,7 +100,7 @@ const handleLabel = (
           size="small"
           :text="!item.isActive()"
           :label="handleLabel(item.label)"
-          @mousedown="item.onClick()"
+          @mousedown="item.command()"
         />
       </template>
     </MenuBar>

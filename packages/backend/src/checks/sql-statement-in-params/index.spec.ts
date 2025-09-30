@@ -117,4 +117,45 @@ describe("sql-statement-in-params check", () => {
       },
     ]);
   });
+
+  it("should handle non-string JSON values without errors", async () => {
+    const request = createMockRequest({
+      id: "j1",
+      host: "example.com",
+      method: "POST",
+      path: "/api/data",
+      headers: { "content-type": ["application/json"] },
+      body: '{"id":123,"active":true,"query":"select * from users"}',
+    });
+
+    const response = createMockResponse({
+      id: "j1",
+      code: 200,
+      headers: { "content-type": ["application/json"] },
+      body: "ok",
+    });
+
+    const history = await runCheck(check, [{ request, response }]);
+
+    expect(history).toMatchObject([
+      {
+        checkId: "sql-statement-in-params",
+        targetRequestId: "j1",
+        status: "completed",
+        steps: [
+          {
+            stepName: "scanParameters",
+            findings: [
+              {
+                name: expect.stringContaining(
+                  "SQL Statement Detected in Parameter",
+                ),
+                severity: "info",
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+  });
 });

@@ -13,8 +13,8 @@ export class ConfigStore {
       passive: {
         enabled: true,
         aggressivity: ScanAggressivity.LOW,
-        inScopeOnly: false,
-        concurrentChecks: 3,
+        inScopeOnly: true,
+        concurrentChecks: 2,
         concurrentRequests: 3,
         overrides: [],
         severities: ["critical", "high", "medium", "low", "info"],
@@ -22,7 +22,6 @@ export class ConfigStore {
       active: {
         overrides: [],
       },
-      // TODO: improve default presets
       presets: [
         {
           name: "Light",
@@ -41,7 +40,7 @@ export class ConfigStore {
             },
             {
               checkID: Checks.OPEN_REDIRECT,
-              enabled: false,
+              enabled: true,
             },
             {
               checkID: Checks.ANTI_CLICKJACKING,
@@ -49,6 +48,38 @@ export class ConfigStore {
             },
             {
               checkID: Checks.ROBOTS_TXT,
+              enabled: true,
+            },
+            {
+              checkID: Checks.CORS_MISCONFIG,
+              enabled: true,
+            },
+            {
+              checkID: Checks.PHPINFO,
+              enabled: false,
+            },
+            {
+              checkID: Checks.GIT_CONFIG,
+              enabled: true,
+            },
+            {
+              checkID: Checks.BASIC_REFLECTED_XSS,
+              enabled: false,
+            },
+            {
+              checkID: Checks.MYSQL_ERROR_BASED_SQLI,
+              enabled: false,
+            },
+            {
+              checkID: Checks.COMMAND_INJECTION,
+              enabled: false,
+            },
+            {
+              checkID: Checks.PATH_TRAVERSAL,
+              enabled: false,
+            },
+            {
+              checkID: Checks.SSTI,
               enabled: false,
             },
           ],
@@ -86,6 +117,14 @@ export class ConfigStore {
               enabled: false,
             },
             {
+              checkID: Checks.APPLICATION_ERRORS,
+              enabled: false,
+            },
+            {
+              checkID: Checks.DEBUG_ERRORS,
+              enabled: false,
+            },
+            {
               checkID: Checks.CREDIT_CARD_DISCLOSURE,
               enabled: false,
             },
@@ -98,7 +137,15 @@ export class ConfigStore {
               enabled: false,
             },
             {
+              checkID: Checks.HASH_DISCLOSURE,
+              enabled: false,
+            },
+            {
               checkID: Checks.PRIVATE_IP_DISCLOSURE,
+              enabled: false,
+            },
+            {
+              checkID: Checks.PRIVATE_KEY_DISCLOSURE,
               enabled: false,
             },
             {
@@ -154,6 +201,18 @@ export class ConfigStore {
               checkID: Checks.ROBOTS_TXT,
               enabled: true,
             },
+            {
+              checkID: Checks.GIT_CONFIG,
+              enabled: true,
+            },
+            {
+              checkID: Checks.PATH_TRAVERSAL,
+              enabled: true,
+            },
+            {
+              checkID: Checks.ANTI_CLICKJACKING,
+              enabled: true,
+            },
           ],
           passive: [
             {
@@ -170,11 +229,11 @@ export class ConfigStore {
             },
             {
               checkID: Checks.OPEN_REDIRECT,
-              enabled: false,
+              enabled: true,
             },
             {
               checkID: Checks.MYSQL_ERROR_BASED_SQLI,
-              enabled: true,
+              enabled: false,
             },
             {
               checkID: Checks.BASIC_REFLECTED_XSS,
@@ -189,6 +248,10 @@ export class ConfigStore {
               enabled: false,
             },
             {
+              checkID: Checks.ANTI_CLICKJACKING,
+              enabled: true,
+            },
+            {
               checkID: Checks.COOKIE_HTTPONLY,
               enabled: true,
             },
@@ -201,19 +264,35 @@ export class ConfigStore {
               enabled: true,
             },
             {
+              checkID: Checks.APPLICATION_ERRORS,
+              enabled: true,
+            },
+            {
+              checkID: Checks.DEBUG_ERRORS,
+              enabled: true,
+            },
+            {
               checkID: Checks.CREDIT_CARD_DISCLOSURE,
               enabled: true,
             },
             {
               checkID: Checks.DB_CONNECTION_DISCLOSURE,
-              enabled: true,
+              enabled: false,
             },
             {
               checkID: Checks.EMAIL_DISCLOSURE,
-              enabled: true,
+              enabled: false,
+            },
+            {
+              checkID: Checks.HASH_DISCLOSURE,
+              enabled: false,
             },
             {
               checkID: Checks.PRIVATE_IP_DISCLOSURE,
+              enabled: true,
+            },
+            {
+              checkID: Checks.PRIVATE_KEY_DISCLOSURE,
               enabled: true,
             },
             {
@@ -277,6 +356,10 @@ export class ConfigStore {
               checkID: Checks.ROBOTS_TXT,
               enabled: true,
             },
+            {
+              checkID: Checks.SSTI,
+              enabled: true,
+            },
           ],
           passive: [
             {
@@ -285,6 +368,18 @@ export class ConfigStore {
             },
             {
               checkID: Checks.EXPOSED_ENV,
+              enabled: true,
+            },
+            {
+              checkID: Checks.ROBOTS_TXT,
+              enabled: true,
+            },
+            {
+              checkID: Checks.DIRECTORY_LISTING,
+              enabled: true,
+            },
+            {
+              checkID: Checks.COMMAND_INJECTION,
               enabled: true,
             },
             {
@@ -321,7 +416,11 @@ export class ConfigStore {
             },
             {
               checkID: Checks.SSTI,
-              enabled: false,
+              enabled: true,
+            },
+            {
+              checkID: Checks.ANTI_CLICKJACKING,
+              enabled: true,
             },
             {
               checkID: Checks.COOKIE_HTTPONLY,
@@ -333,6 +432,14 @@ export class ConfigStore {
             },
             {
               checkID: Checks.SQL_STATEMENT_IN_PARAMS,
+              enabled: true,
+            },
+            {
+              checkID: Checks.APPLICATION_ERRORS,
+              enabled: true,
+            },
+            {
+              checkID: Checks.DEBUG_ERRORS,
               enabled: true,
             },
             {
@@ -348,7 +455,15 @@ export class ConfigStore {
               enabled: true,
             },
             {
+              checkID: Checks.HASH_DISCLOSURE,
+              enabled: true,
+            },
+            {
               checkID: Checks.PRIVATE_IP_DISCLOSURE,
+              enabled: true,
+            },
+            {
+              checkID: Checks.PRIVATE_KEY_DISCLOSURE,
               enabled: true,
             },
             {
@@ -359,6 +474,13 @@ export class ConfigStore {
         },
       ],
     };
+
+    // Light preset is selected by default
+    const lightPreset = this.config.presets[0];
+    if (lightPreset) {
+      this.config.active.overrides = lightPreset.active;
+      this.config.passive.overrides = lightPreset.passive;
+    }
   }
 
   static get(): ConfigStore {

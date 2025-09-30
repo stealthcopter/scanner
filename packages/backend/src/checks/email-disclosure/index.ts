@@ -1,13 +1,10 @@
 import { defineCheck, done, Severity } from "engine";
 
-import { bodyMatchesAny } from "../../utils/body";
+import { extractBodyMatches } from "../../utils/body";
 import { keyStrategy } from "../../utils/key";
 
 // Email address regex pattern
-const EMAIL_PATTERNS = [
-  // Taken from https://colinhacks.com/essays/reasonable-email-regex
-  /(?!\.)(?!.*\.\.)([a-z0-9_'+\-.]*)[a-z0-9_'+-]@([a-z0-9][a-z0-9-]*\.)+[a-z]{2,}/,
-];
+const EMAIL_PATTERNS = [/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g];
 
 export default defineCheck(({ step }) => {
   step("scanResponse", (state, context) => {
@@ -17,13 +14,16 @@ export default defineCheck(({ step }) => {
       return done({ state });
     }
 
-    // Check if the response body contains email patterns
-    if (bodyMatchesAny(response, EMAIL_PATTERNS)) {
+    const matches = extractBodyMatches(response, EMAIL_PATTERNS);
+
+    if (matches.length > 0) {
+      const matchedEmails = matches.map((email) => `- ${email}`).join("\n");
+
       return done({
         findings: [
           {
             name: "Email Address Disclosed",
-            description: "Email addresses have been detected in the response.",
+            description: `Email addresses have been detected in the response. \n\nDiscovered email addresses:\n\`\`\`\n${matchedEmails}\n\`\`\``,
             severity: Severity.INFO,
             correlation: {
               requestID: context.target.request.getId(),

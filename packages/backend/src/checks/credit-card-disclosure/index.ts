@@ -4,11 +4,7 @@ import { extractBodyMatches } from "../../utils/body";
 import { keyStrategy } from "../../utils/key";
 
 // Credit card regex patterns based on Valibot implementation
-// Combined patterns for detection in text (with word boundaries and optional separators)
 const CREDIT_CARD_PATTERNS = [
-  // Main pattern with word boundaries and optional separators
-  /\b(?:\d{14,19}|\d{4}(?:[\s-]\d{3,6}){2,4})\b/g,
-  // Provider-specific patterns with word boundaries
   /\b3[47]\d{13}\b/g, // American Express
   /\b3(?:0[0-5]|[68]\d)\d{11,13}\b/g, // Diners Club
   /\b6(?:011|5\d{2})\d{12,15}\b/g, // Discover
@@ -35,7 +31,7 @@ export default defineCheck(({ step }) => {
         findings: [
           {
             name: "Credit Card Number Disclosed",
-            description: `Credit card numbers have been detected in the response. This sensitive financial information should not be exposed in web responses.\n\nDiscovered credit card numbers:\n\`\`\`\n${matchedCards}\n\`\`\``,
+            description: `Credit card numbers have been detected in the response. This could be a false positive and should be always manually verified.\n\nDiscovered credit card numbers:\n\`\`\`\n${matchedCards}\n\`\`\``,
             severity: Severity.INFO,
             correlation: {
               requestID: context.target.request.getId(),

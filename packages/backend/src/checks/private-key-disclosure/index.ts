@@ -1,6 +1,6 @@
 import { defineCheck, done, Severity } from "engine";
 
-import { bodyMatchesAny } from "../../utils/body";
+import { extractBodyMatches } from "../../utils/body";
 import { keyStrategy } from "../../utils/key";
 
 // Private key regex patterns
@@ -29,9 +29,6 @@ const PRIVATE_KEY_PATTERNS = [
 
   // SSH private key without headers (common in config files)
   /ssh-rsa AAAA[0-9A-Za-z+/]+=*[\s\S]*?-----END OPENSSH PRIVATE KEY-----/g,
-
-  // Generic base64 private key content (high entropy)
-  /\b[A-Za-z0-9+/]{100,}={0,2}\b/g,
 ];
 
 export default defineCheck(({ step }) => {
@@ -42,14 +39,16 @@ export default defineCheck(({ step }) => {
       return done({ state });
     }
 
-    // Check if the response body contains private key patterns
-    if (bodyMatchesAny(response, PRIVATE_KEY_PATTERNS)) {
+    const matches = extractBodyMatches(response, PRIVATE_KEY_PATTERNS);
+
+    if (matches.length > 0) {
+      const matchedKeys = matches.map((key) => `- ${key}`).join("\n");
+
       return done({
         findings: [
           {
             name: "Private Key Disclosed",
-            description:
-              "Private keys have been detected in the response. Exposed private keys can lead to complete compromise of encrypted communications and unauthorized access to systems.",
+            description: `Private keys have been detected in the response.\n\nDiscovered private keys:\n\`\`\`\n${matchedKeys}\n\`\`\``,
             severity: Severity.INFO,
             correlation: {
               requestID: context.target.request.getId(),

@@ -17,7 +17,6 @@ export function bodyMatchesAny(
   const { trim = true } = options ?? {};
 
   let body = target.getBody()?.toText();
-
   if (body === undefined) {
     return false;
   }

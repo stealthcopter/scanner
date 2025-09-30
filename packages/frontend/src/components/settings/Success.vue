@@ -113,7 +113,13 @@ const aggressivityOptions = computed(() =>
                   Number of scans that can run simultaneously
                 </p>
               </div>
-              <div class="flex-shrink-0">
+              <div class="flex-shrink-0 flex gap-1">
+                <div
+                  v-if="passiveConcurrentScans > 8"
+                  class="text-sm text-orange-400"
+                >
+                  Warning: This setting is high and may cause performance issues
+                </div>
                 <InputNumber
                   v-model="passiveConcurrentScans"
                   :min="1"

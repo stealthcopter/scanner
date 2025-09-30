@@ -24,17 +24,18 @@ export const useQueueService = defineStore("services.queue", () => {
       });
     }
 
-    sdk.backend.onEvent("passive:queue-new", (taskId, requestID) => {
-      store.send({ type: "AddTask", taskId, requestID });
-    });
+    // TODO: currently turned off because of performance issues
+    // sdk.backend.onEvent("passive:queue-new", (taskId, requestID) => {
+    //   store.send({ type: "AddTask", taskId, requestID });
+    // });
 
-    sdk.backend.onEvent("passive:queue-started", (taskId) => {
-      store.send({ type: "StartTask", taskId });
-    });
+    // sdk.backend.onEvent("passive:queue-started", (taskId) => {
+    //   store.send({ type: "StartTask", taskId });
+    // });
 
-    sdk.backend.onEvent("passive:queue-finished", (taskId) => {
-      store.send({ type: "FinishTask", taskId });
-    });
+    // sdk.backend.onEvent("passive:queue-finished", (taskId) => {
+    //   store.send({ type: "FinishTask", taskId });
+    // });
   };
 
   const clearQueue = async () => {

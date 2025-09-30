@@ -49,6 +49,7 @@ const ERROR_PATTERNS = [
   /internal server error/i,
   /application error/i,
 ];
+
 export default defineCheck<Record<never, never>>(({ step }) => {
   step("checkApplicationErrors", (state, context) => {
     const { response } = context.target;

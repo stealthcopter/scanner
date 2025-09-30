@@ -29,9 +29,9 @@ function getContentType(headers: Record<string, Array<string>>): ContentType {
   return "other";
 }
 
-function parseJsonBody(body: string): Record<string, string> | undefined {
+function parseJsonBody(body: string): Record<string, unknown> | undefined {
   try {
-    return JSON.parse(body) as Record<string, string>;
+    return JSON.parse(body) as Record<string, unknown>;
   } catch {
     return undefined;
   }
@@ -60,7 +60,7 @@ export function createRequestWithParameter(
     if (contentType === "json") {
       const bodyParams = parseJsonBody(body);
       if (bodyParams !== undefined) {
-        bodyParams[parameter.name] = newValue;
+        bodyParams[parameter.name] = newValue as unknown;
         requestSpec.setBody(JSON.stringify(bodyParams));
       }
     } else {
@@ -105,8 +105,10 @@ function extractBodyParameters(
     const bodyParams = parseJsonBody(body);
     if (bodyParams !== undefined) {
       for (const [name, value] of Object.entries(bodyParams)) {
-        if (name && value) {
-          parameters.push({ name, value, source: "body" });
+        if (name !== undefined && value !== undefined) {
+          const stringValue =
+            typeof value === "string" ? value : JSON.stringify(value);
+          parameters.push({ name, value: stringValue, source: "body" });
         }
       }
     }
