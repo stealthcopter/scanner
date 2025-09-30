@@ -11,7 +11,7 @@ export default defineConfig({
   id,
   name: "Scanner",
   description: "Passive and active vulnerability scanner",
-  version: "1.0.3",
+  version: "1.0.2",
   author: {
     name: "Caido Labs Inc.",
     email: "dev@caido.io",
