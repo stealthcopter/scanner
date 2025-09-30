@@ -1,6 +1,6 @@
 import { defineCheck, done, Severity } from "engine";
 
-import { bodyMatchesAny } from "../../utils/body";
+import { extractBodyMatches } from "../../utils/body";
 import { keyStrategy } from "../../utils/key";
 
 // Credit card regex patterns based on Valibot implementation
@@ -26,14 +26,16 @@ export default defineCheck(({ step }) => {
       return done({ state });
     }
 
-    // Check if the response body contains credit card patterns
-    if (bodyMatchesAny(response, CREDIT_CARD_PATTERNS)) {
+    const matches = extractBodyMatches(response, CREDIT_CARD_PATTERNS);
+
+    if (matches.length > 0) {
+      const matchedCards = matches.map((card) => `- ${card}`).join("\n");
+
       return done({
         findings: [
           {
             name: "Credit Card Number Disclosed",
-            description:
-              "Credit card numbers have been detected in the response. This sensitive financial information should not be exposed in web responses.",
+            description: `Credit card numbers have been detected in the response. This sensitive financial information should not be exposed in web responses.\n\nDiscovered credit card numbers:\n\`\`\`\n${matchedCards}\n\`\`\``,
             severity: Severity.INFO,
             correlation: {
               requestID: context.target.request.getId(),

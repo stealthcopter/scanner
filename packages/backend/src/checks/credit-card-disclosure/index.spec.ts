@@ -52,6 +52,9 @@ describe("Credit Card Disclosure Check", () => {
         ],
       },
     ]);
+
+    const finding = executionHistory[0]?.steps[0]?.findings[0];
+    expect(finding?.description).toContain("4111-1111-1111-1111");
   });
 
   it("should not trigger on non-200 responses", async () => {

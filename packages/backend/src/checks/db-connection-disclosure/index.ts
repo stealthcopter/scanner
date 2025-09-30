@@ -1,6 +1,6 @@
 import { defineCheck, done, Severity } from "engine";
 
-import { bodyMatchesAny } from "../../utils/body";
+import { extractBodyMatches } from "../../utils/body";
 import { keyStrategy } from "../../utils/key";
 
 // Database connection string regex patterns
@@ -54,14 +54,16 @@ export default defineCheck(({ step }) => {
       return done({ state });
     }
 
-    // Check if the response body contains database connection patterns
-    if (bodyMatchesAny(response, DB_CONNECTION_PATTERNS)) {
+    const matches = extractBodyMatches(response, DB_CONNECTION_PATTERNS);
+
+    if (matches.length > 0) {
+      const matchedConnections = matches.map((conn) => `- ${conn}`).join("\n");
+
       return done({
         findings: [
           {
             name: "Database Connection String Disclosed",
-            description:
-              "Database connection strings have been detected in the response. Exposed database credentials can lead to unauthorized database access.",
+            description: `Database connection strings have been detected in the response. Exposed database credentials can lead to unauthorized database access.\n\nDiscovered connection strings:\n\`\`\`\n${matchedConnections}\n\`\`\``,
             severity: Severity.INFO,
             correlation: {
               requestID: context.target.request.getId(),

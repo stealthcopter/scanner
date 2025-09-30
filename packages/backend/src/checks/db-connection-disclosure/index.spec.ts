@@ -52,6 +52,11 @@ describe("Database Connection Disclosure Check", () => {
         ],
       },
     ]);
+
+    const finding = executionHistory[0]?.steps[0]?.findings[0];
+    expect(finding?.description).toContain(
+      "mysql://user:password@localhost:3306/database",
+    );
   });
 
   it("should detect PostgreSQL connection string", async () => {
@@ -97,6 +102,11 @@ describe("Database Connection Disclosure Check", () => {
         ],
       },
     ]);
+
+    const finding = executionHistory[0]?.steps[0]?.findings[0];
+    expect(finding?.description).toContain(
+      "postgresql://user:password@localhost:5432/database",
+    );
   });
 
   it("should detect MongoDB connection string", async () => {
@@ -142,6 +152,11 @@ describe("Database Connection Disclosure Check", () => {
         ],
       },
     ]);
+
+    const finding = executionHistory[0]?.steps[0]?.findings[0];
+    expect(finding?.description).toContain(
+      "mongodb://user:password@localhost:27017/database",
+    );
   });
 
   it("should detect MongoDB SRV connection string", async () => {
@@ -187,6 +202,11 @@ describe("Database Connection Disclosure Check", () => {
         ],
       },
     ]);
+
+    const finding = executionHistory[0]?.steps[0]?.findings[0];
+    expect(finding?.description).toContain(
+      "mongodb+srv://user:password@cluster.mongodb.net/database",
+    );
   });
 
   it("should detect SQL Server connection string", async () => {
@@ -232,6 +252,11 @@ describe("Database Connection Disclosure Check", () => {
         ],
       },
     ]);
+
+    const finding = executionHistory[0]?.steps[0]?.findings[0];
+    expect(finding?.description).toContain(
+      "Server=localhost;Database=mydb;User Id=user;Password=password",
+    );
   });
 
   it("should detect Oracle connection string", async () => {
@@ -277,6 +302,11 @@ describe("Database Connection Disclosure Check", () => {
         ],
       },
     ]);
+
+    const finding = executionHistory[0]?.steps[0]?.findings[0];
+    expect(finding?.description).toContain(
+      "oracle://user:password@localhost:1521/database",
+    );
   });
 
   it("should detect Redis connection string", async () => {
@@ -322,6 +352,11 @@ describe("Database Connection Disclosure Check", () => {
         ],
       },
     ]);
+
+    const finding = executionHistory[0]?.steps[0]?.findings[0];
+    expect(finding?.description).toContain(
+      "redis://user:password@localhost:6379",
+    );
   });
 
   it("should detect JDBC connection string", async () => {
@@ -367,6 +402,11 @@ describe("Database Connection Disclosure Check", () => {
         ],
       },
     ]);
+
+    const finding = executionHistory[0]?.steps[0]?.findings[0];
+    expect(finding?.description).toContain(
+      "jdbc:mysql://localhost:3306/database;user=user;password=password",
+    );
   });
 
   it("should detect generic database connection patterns", async () => {
@@ -412,6 +452,11 @@ describe("Database Connection Disclosure Check", () => {
         ],
       },
     ]);
+
+    const finding = executionHistory[0]?.steps[0]?.findings[0];
+    expect(finding?.description).toContain(
+      "postgresql://user:pass@localhost/db",
+    );
   });
 
   it("should not trigger on non-200 responses", async () => {
