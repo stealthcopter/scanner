@@ -17,7 +17,6 @@ export function bodyMatchesAny(
   const { trim = true } = options ?? {};
 
   let body = target.getBody()?.toText();
-
   if (body === undefined) {
     return false;
   }
@@ -27,4 +26,34 @@ export function bodyMatchesAny(
   }
 
   return patterns.some((pattern) => pattern.test(body));
+}
+
+export function extractBodyMatches(
+  target: Request | Response,
+  patterns: RegExp[],
+  options?: {
+    trim?: boolean;
+  },
+): string[] {
+  const { trim = true } = options ?? {};
+
+  let body = target.getBody()?.toText();
+
+  if (body === undefined) {
+    return [];
+  }
+
+  if (trim) {
+    body = body.trim();
+  }
+
+  const matches: string[] = [];
+  for (const pattern of patterns) {
+    const foundMatches = body.match(pattern);
+    if (foundMatches) {
+      matches.push(...foundMatches);
+    }
+  }
+
+  return [...new Set(matches)];
 }

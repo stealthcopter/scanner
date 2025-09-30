@@ -79,6 +79,7 @@ const {
         :filters="filters"
         :global-filter-fields="['name', 'id', 'description']"
         size="small"
+        class="flex-1 overflow-auto"
         expandable-rows
         removable-sort
       >

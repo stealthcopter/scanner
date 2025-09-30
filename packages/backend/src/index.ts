@@ -127,7 +127,9 @@ export function init(sdk: BackendSDK) {
           if (!request) return;
           if (!config.passive.severities.includes(finding.severity)) return;
 
-          const wrappedDescription = `This finding has been assessed as \`${finding.severity.toUpperCase()}\` severity and was discovered by the \`${checkID}\` check.\n\n${finding.description}`;
+          const wrappedDescription = `This finding has been assessed as \`${finding.severity.toUpperCase()}\` severity and was discovered by the \`${checkID}\` check.\n\n${
+            finding.description
+          }`;
 
           sdk.findings.create({
             reporter: "Scanner: Passive",

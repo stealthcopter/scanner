@@ -14,7 +14,8 @@ import { type JSONSerializable } from "../types/utils";
 
 import { CheckDefinitionError, CheckDefinitionErrorCode } from "./errors";
 
-export const defineCheck = <T>(
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export const defineCheck = <T = {}>(
   build: (api: CheckBuilder<T>) => CheckSpec<T>,
 ): Check => {
   const steps: Map<StepName, Step<T>> = new Map();

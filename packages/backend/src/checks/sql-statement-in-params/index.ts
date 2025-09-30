@@ -1,4 +1,4 @@
-import { defineCheck, done, Finding, Severity } from "engine";
+import { defineCheck, done, type Finding, Severity } from "engine";
 
 import { extractParameters } from "../../utils";
 import { keyStrategy } from "../../utils/key";
@@ -7,7 +7,7 @@ const hasTokenPair = (
   value: string,
   a: RegExp,
   b: RegExp,
-  maxGap: number
+  maxGap: number,
 ): boolean => {
   const lower = value.toLowerCase();
   const matchA = a.exec(lower);
@@ -118,7 +118,7 @@ const isLikelySqlStatement = (raw: string) => {
       value,
       /\bdrop\s+(table|database|index)\b/i,
       /\b[a-z_][a-z0-9_]*\b/i,
-      100
+      100,
     )
   ) {
     return { matched: true, pattern: "drop-statement" };
@@ -128,7 +128,7 @@ const isLikelySqlStatement = (raw: string) => {
       value,
       /\bcreate\s+(table|database|index)\b/i,
       /\b[a-z_][a-z0-9_]*\b/i,
-      120
+      120,
     )
   ) {
     return { matched: true, pattern: "create-statement" };
@@ -158,7 +158,7 @@ const isLikelySqlStatement = (raw: string) => {
       hasMultipleSqlKeywords(value);
 
     const hasWeakIndicators = /\b(id|name|user|admin|password|email)\b/i.test(
-      value
+      value,
     );
 
     if (hasStrongIndicators && !hasWeakIndicators) {
