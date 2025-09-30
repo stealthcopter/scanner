@@ -95,12 +95,11 @@ const handleLabel = (
 
       <template #item="{ item }">
         <Button
-          :severity="item.isActive() ? 'secondary' : 'contrast'"
-          :outlined="item.isActive()"
+          :severity="item.isActive?.() ? 'secondary' : 'contrast'"
+          :outlined="item.isActive?.()"
           size="small"
-          :text="!item.isActive()"
+          :text="!item.isActive?.()"
           :label="handleLabel(item.label)"
-          @mousedown="item.command()"
         />
       </template>
     </MenuBar>

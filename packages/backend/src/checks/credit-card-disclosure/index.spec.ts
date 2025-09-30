@@ -30,7 +30,7 @@ describe("Credit Card Disclosure Check", () => {
       {
         sendHandler: () => Promise.resolve({ request, response }),
         config: { aggressivity: ScanAggressivity.LOW },
-      }
+      },
     );
 
     expect(executionHistory).toMatchObject([
@@ -78,7 +78,7 @@ describe("Credit Card Disclosure Check", () => {
       {
         sendHandler: () => Promise.resolve({ request, response }),
         config: { aggressivity: ScanAggressivity.LOW },
-      }
+      },
     );
 
     expect(executionHistory).toMatchObject([
@@ -115,7 +115,7 @@ describe("Credit Card Disclosure Check", () => {
       {
         sendHandler: () => Promise.resolve({ request, response }),
         config: { aggressivity: ScanAggressivity.LOW },
-      }
+      },
     );
 
     expect(executionHistory).toMatchObject([
