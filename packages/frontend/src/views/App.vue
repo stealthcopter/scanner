@@ -76,7 +76,7 @@ onMounted(() => {
 
 // PrimeVue update broke types and we can't just do :label="item.label"
 const handleLabel = (
-  label: string | ((...args: unknown[]) => string) | undefined
+  label: string | ((...args: unknown[]) => string) | undefined,
 ) => {
   if (typeof label === "function") {
     return label();

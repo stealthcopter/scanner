@@ -155,7 +155,7 @@ export function init(sdk: BackendSDK) {
 
 export const getRequestResponse = async (
   sdk: BackendSDK,
-  requestId: string
+  requestId: string,
 ): Promise<
   Result<{
     request: { id: string; raw: string };

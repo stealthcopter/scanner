@@ -21,7 +21,7 @@ describe("Credit Card Disclosure Check", () => {
       id: "1",
       code: 200,
       headers: { "content-type": ["text/html"] },
-      body: "User credit card: 4111-1111-1111-1111",
+      body: "User credit card: 4111111111111111",
     });
 
     const executionHistory = await runCheck(
@@ -30,7 +30,7 @@ describe("Credit Card Disclosure Check", () => {
       {
         sendHandler: () => Promise.resolve({ request, response }),
         config: { aggressivity: ScanAggressivity.LOW },
-      },
+      }
     );
 
     expect(executionHistory).toMatchObject([
@@ -54,7 +54,7 @@ describe("Credit Card Disclosure Check", () => {
     ]);
 
     const finding = executionHistory[0]?.steps[0]?.findings[0];
-    expect(finding?.description).toContain("4111-1111-1111-1111");
+    expect(finding?.description).toContain("4111111111111111");
   });
 
   it("should not trigger on non-200 responses", async () => {
@@ -78,7 +78,7 @@ describe("Credit Card Disclosure Check", () => {
       {
         sendHandler: () => Promise.resolve({ request, response }),
         config: { aggressivity: ScanAggressivity.LOW },
-      },
+      }
     );
 
     expect(executionHistory).toMatchObject([
@@ -115,7 +115,7 @@ describe("Credit Card Disclosure Check", () => {
       {
         sendHandler: () => Promise.resolve({ request, response }),
         config: { aggressivity: ScanAggressivity.LOW },
-      },
+      }
     );
 
     expect(executionHistory).toMatchObject([
