@@ -18,7 +18,7 @@ import sstiCheck from "./index";
 
 describe("SSTI Check", () => {
   describe("Mathematical Expression Detection", () => {
-    it("should detect Jinja2 SSTI with {{7*7}} payload", async () => {
+    it("should detect Jinja2 SSTI with {{1234*5678}} payload", async () => {
       const request = createMockRequest({
         id: "1",
         host: "example.com",
@@ -42,7 +42,7 @@ describe("SSTI Check", () => {
           host: "example.com",
           method: "GET",
           path: "/search",
-          query: "name=test__ssti_probe__{{7*7}}",
+          query: "name=test__ssti_probe__{{1234*5678}}",
         });
 
         const mockResponse = createMockResponse({
@@ -51,7 +51,7 @@ describe("SSTI Check", () => {
           headers: {
             "Content-Type": ["text/html"],
           },
-          body: "Hello test__ssti_probe__49",
+          body: "Hello test__ssti_probe__7006652",
         });
 
         return Promise.resolve({
@@ -92,7 +92,7 @@ describe("SSTI Check", () => {
       ]);
     });
 
-    it("should detect FreeMarker SSTI with ${8*8} payload", async () => {
+    it("should detect FreeMarker SSTI with ${1234*5678} payload", async () => {
       const request = createMockRequest({
         id: "1",
         host: "example.com",
@@ -119,7 +119,7 @@ describe("SSTI Check", () => {
           host: "example.com",
           method: "POST",
           path: "/process",
-          body: "param=value__ssti_probe__${8*8}",
+          body: "param=value__ssti_probe__${1234*5678}",
         });
 
         const mockResponse = createMockResponse({
@@ -128,7 +128,7 @@ describe("SSTI Check", () => {
           headers: {
             "Content-Type": ["text/html"],
           },
-          body: "Processing value__ssti_probe__64",
+          body: "Processing value__ssti_probe__7006652",
         });
 
         return Promise.resolve({
@@ -154,7 +154,7 @@ describe("SSTI Check", () => {
       });
     });
 
-    it("should detect ERB SSTI with <%= 7*7 %> payload", async () => {
+    it("should detect ERB SSTI with <%= 1234*5678 %> payload", async () => {
       const request = createMockRequest({
         id: "1",
         host: "example.com",
@@ -182,8 +182,8 @@ describe("SSTI Check", () => {
           path: "/view",
           query:
             callCount <= 2
-              ? `input=data{{7*7}}`
-              : `input=data__ssti_probe__<%= 7*7 %>`,
+              ? `input=data{{1234*5678}}`
+              : `input=data__ssti_probe__<%= 1234*5678 %>`,
         });
 
         const mockResponse = createMockResponse({
@@ -194,8 +194,8 @@ describe("SSTI Check", () => {
           },
           body:
             callCount <= 2
-              ? "Input: data{{7*7}}"
-              : "Input: data__ssti_probe__49",
+              ? "Input: data{{1234*5678}}"
+              : "Input: data__ssti_probe__7006652",
         });
 
         return Promise.resolve({
@@ -246,7 +246,7 @@ describe("SSTI Check", () => {
           host: "example.com",
           method: "GET",
           path: "/template",
-          query: callCount <= 2 ? `name=test{{7*7}}` : `name=test{{7*'7'}}`,
+          query: callCount <= 2 ? `name=test{{1234*5678}}` : `name=test{{7*'7'}}`,
         });
 
         const mockResponse = createMockResponse({
@@ -257,7 +257,7 @@ describe("SSTI Check", () => {
           },
           body:
             callCount <= 2
-              ? "Welcome test{{7*7}}" // No evaluation for first payloads
+              ? "Welcome test{{1234*5678}}" // No evaluation for first payloads
               : "jinja2.exceptions.TemplateSyntaxError: unexpected character", // Template error
         });
 
@@ -457,13 +457,13 @@ describe("SSTI Check", () => {
           host: "example.com",
           method: "GET",
           path: "/page",
-          query: "id=123{{7*7}}",
+          query: "id=123{{1234*5678}}",
         });
 
         const mockResponse = createMockResponse({
           id: "2",
           code: 200,
-          body: "User ID: 49 items found", // Contains 49 but not from template evaluation
+          body: "User ID: 7006652 items found", // Contains 7006652 but not from template evaluation
         });
 
         return Promise.resolve({

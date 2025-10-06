@@ -34,28 +34,28 @@ type ErrorPayloadConfig = {
 
 const MATH_PAYLOADS: PayloadConfig[] = [
   {
-    payload: "{{7*7}}",
-    expected: "49",
+    payload: "{{1234*5678}}",
+    expected: "7006652",
     description: "Double curly brace mathematical expression",
   },
   {
-    payload: "${8*8}",
-    expected: "64",
+    payload: "${1234*5678}",
+    expected: "7006652",
     description: "Dollar brace mathematical expression",
   },
   {
-    payload: "<%= 7*7 %>",
-    expected: "49",
+    payload: "<%= 1234*5678 %>",
+    expected: "7006652",
     description: "ERB mathematical expression",
   },
   {
-    payload: "{7*7}",
-    expected: "49",
+    payload: "{1234*5678}",
+    expected: "7006652",
     description: "Smarty mathematical expression",
   },
   {
-    payload: "[[${7*7}]]",
-    expected: "49",
+    payload: "[[${1234*5678}]]",
+    expected: "7006652",
     description: "Thymeleaf mathematical expression",
   },
 ];
